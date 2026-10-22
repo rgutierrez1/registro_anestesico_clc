@@ -7,6 +7,7 @@ import { RegistroFarmacosSection } from '../components/RegistroFarmacosSection'
 import { RegistroFluidosSection } from '../components/RegistroFluidosSection'
 import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
 import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
+import { ViaAereaSection } from '../components/ViaAereaSection'
 import { Badge, Button, Field, Select, TextArea } from '../components/ui'
 import { DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
@@ -83,6 +84,8 @@ export default function RegistroIntraoperatorio() {
     navigate(`/caso/${id}/resumen`)
   }
 
+  const requiereViaAerea = caso.tiposAnestesia.some((t) => t === 'General' || t === 'Combinada (General + Regional)')
+
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 py-6 pb-10">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3 no-print">
@@ -146,6 +149,12 @@ export default function RegistroIntraoperatorio() {
       )}
 
       <div className="flex flex-col gap-4">
+        {requiereViaAerea && (
+          <ViaAereaSection
+            valor={caso.manejoViaAerea}
+            onChange={(v) => patch(() => ({ manejoViaAerea: v }))}
+          />
+        )}
         <RegistroVitalesSection
           registros={caso.signosVitales}
           inicio={caso.horaInicioAnestesia}

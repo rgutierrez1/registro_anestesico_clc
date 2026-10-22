@@ -1,5 +1,5 @@
 import Dexie, { type Table } from 'dexie'
-import type { CasoAnestesico } from './types'
+import type { CasoAnestesico, ManejoViaAerea } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
   casos!: Table<CasoAnestesico, string>
@@ -9,7 +9,23 @@ class RegistroAnestesicoDB extends Dexie {
     this.version(1).stores({
       casos: 'id, estado, createdAt, paciente.nombre',
     })
+    this.version(2)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            if (!caso.manejoViaAerea) caso.manejoViaAerea = crearManejoViaAereaVacio()
+          }),
+      )
   }
+}
+
+export function crearManejoViaAereaVacio(): ManejoViaAerea {
+  return { tipo: '', tamanoTubo: '', cormack: '', tamanoMascara: '', dispositivosAdicionales: [] }
 }
 
 export const db = new RegistroAnestesicoDB()
@@ -40,6 +56,7 @@ export function crearCasoVacio(): CasoAnestesico {
     },
     tiposAnestesia: [],
     monitorizacion: [],
+    manejoViaAerea: crearManejoViaAereaVacio(),
     tecnicasRegionales: [],
     signosVitales: [],
     farmacos: [],

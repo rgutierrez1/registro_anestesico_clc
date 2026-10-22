@@ -81,6 +81,22 @@ export interface Evento {
   descripcion: string
 }
 
+export type TipoManejoViaAerea =
+  | ''
+  | 'Intubación orotraqueal'
+  | 'Intubación nasotraqueal'
+  | 'Máscara laríngea'
+
+export type Cormack = '' | 'I' | 'IIa' | 'IIb' | 'III' | 'IV'
+
+export interface ManejoViaAerea {
+  tipo: TipoManejoViaAerea
+  tamanoTubo: string
+  cormack: Cormack
+  tamanoMascara: string
+  dispositivosAdicionales: string[]
+}
+
 export interface CasoAnestesico {
   id: string
   estado: EstadoCaso
@@ -88,6 +104,7 @@ export interface CasoAnestesico {
   cirugia: DatosCirugia
   tiposAnestesia: TipoAnestesia[]
   monitorizacion: string[]
+  manejoViaAerea: ManejoViaAerea
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
   farmacos: RegistroFarmaco[]

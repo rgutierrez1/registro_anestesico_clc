@@ -77,6 +77,21 @@ export default function ResumenCaso() {
           <Dato label="Monitorización" valor={caso.monitorizacion.join(', ')} full />
         </SeccionResumen>
 
+        {(caso.manejoViaAerea.tipo || caso.manejoViaAerea.dispositivosAdicionales.length > 0) && (
+          <SeccionResumen titulo="Vía aérea">
+            <Grid>
+              <Dato label="Manejo avanzado" valor={caso.manejoViaAerea.tipo} />
+              <Dato label="Tamaño del tubo" valor={caso.manejoViaAerea.tamanoTubo} />
+              <Dato label="Cormack" valor={caso.manejoViaAerea.cormack} />
+              <Dato label="Tamaño de la máscara" valor={caso.manejoViaAerea.tamanoMascara} />
+              <Dato
+                label="Dispositivos adicionales"
+                valor={caso.manejoViaAerea.dispositivosAdicionales.join(', ')}
+              />
+            </Grid>
+          </SeccionResumen>
+        )}
+
         {caso.tecnicasRegionales.length > 0 && (
           <SeccionResumen titulo="Técnicas regionales">
             <ul className="flex flex-col gap-1 text-sm text-slate-700">

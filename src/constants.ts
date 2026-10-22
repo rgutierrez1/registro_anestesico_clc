@@ -41,7 +41,28 @@ export const TIPOS_TECNICA_REGIONAL = [
   'Otro',
 ]
 
-export const VIAS_FARMACO = ['IV', 'IM', 'Inhalatoria', 'Regional', 'Oral', 'Subcutánea', 'Otra'] as const
+export const TIPOS_MANEJO_VIA_AEREA = [
+  'Intubación orotraqueal',
+  'Intubación nasotraqueal',
+  'Máscara laríngea',
+] as const
+
+// Tubos de 2,0 a 9,0 en pasos de 0,5 (se guardan como texto con coma decimal)
+export const TAMANOS_TUBO = Array.from({ length: 15 }, (_, i) => (2 + i * 0.5).toFixed(1).replace('.', ','))
+
+export const GRADOS_CORMACK: { value: string; label: string }[] = [
+  { value: 'I', label: 'I — se ve la glotis completa' },
+  { value: 'IIa', label: 'IIa — se ve la parte anterior de la glotis' },
+  { value: 'IIb', label: 'IIb — se ven solo los aritenoides' },
+  { value: 'III', label: 'III — se ve solo la epiglotis' },
+  { value: 'IV', label: 'IV — no se ve epiglotis ni glotis' },
+]
+
+export const TAMANOS_MASCARA_LARINGEA = ['1', '1,5', '2', '2,5', '3', '4', '5', '6']
+
+export const DISPOSITIVOS_VIA_AEREA = ['Fibrobroncoscopio', 'GEB', 'Videolaringoscopio']
+
+export const VIAS_FARMACO =['IV', 'IM', 'Inhalatoria', 'Regional', 'Oral', 'Subcutánea', 'Otra'] as const
 
 export const FARMACOS_FRECUENTES = [
   { nombre: 'Propofol', via: 'IV' },
