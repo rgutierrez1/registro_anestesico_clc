@@ -3,8 +3,10 @@ import { indiceCatalogo, obtenerFarmaco } from '../../data/catalogoFarmacos'
 import type { RegistroFarmaco } from '../../types'
 import { formatDosis } from '../../utils/dosis'
 import { claveFarmaco, limitesHora } from '../../utils/farmacos'
+import type { Hito } from '../../utils/hitos'
 import { formatHora } from '../../utils/tiempo'
 import { useAhora } from '../../utils/useAhora'
+import { ALTO_BANDA_HITOS, MarcasHitos } from '../MarcasHitos'
 
 const ANCHO = 760
 const ANCHO_ETIQUETA = 150
@@ -69,6 +71,7 @@ export function LineaTiempoFarmacos({
   seleccionadoId = null,
   onAgregarEn,
   agregando = null,
+  hitos = [],
 }: {
   registros: RegistroFarmaco[]
   inicio: string | null
@@ -78,6 +81,7 @@ export function LineaTiempoFarmacos({
   seleccionadoId?: string | null
   onAgregarEn?: (destino: { farmacoId: string; nombre: string }, t: number) => void
   agregando?: DestinoAgregar | null
+  hitos?: Hito[]
 }) {
   const ahora = useAhora(30000)
   const svgRef = useRef<SVGSVGElement>(null)
@@ -86,9 +90,10 @@ export function LineaTiempoFarmacos({
   if (registros.length === 0 && !agregando) return null
 
   const tiempos = registros.map((r) => Date.parse(r.hora)).sort((a, b) => a - b)
-  const t0Base = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0] ?? Infinity)
+  const tiemposHitos = hitos.map((h) => Date.parse(h.hora))
+  const t0Base = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0] ?? Infinity, ...tiemposHitos)
   const t0 = Number.isFinite(t0Base) ? t0Base : ahora - 10 * MIN
-  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1] ?? 0)
+  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1] ?? 0, ...tiemposHitos)
   const tEnd = Math.max(tFinal, t0 + 10 * MIN)
   const x = (t: number) => ANCHO_ETIQUETA + ((t - t0) / (tEnd - t0)) * ANCHO_GRAFICO
   const tiempoEn = (clientX: number): number | null => {
@@ -145,8 +150,9 @@ export function LineaTiempoFarmacos({
   for (let m = 0; m <= spanMin; m += paso) marcas.push(t0 + m * MIN)
 
   const altos = filas.map((f) => (f.continuo ? ALTO_FILA_CONTINUO : ALTO_FILA_BOLO))
-  const altoTotal = altos.reduce((s, a) => s + a, 0) + ALTO_EJE
-  const tops = altos.map((_, i) => altos.slice(0, i).reduce((s, a) => s + a, 0))
+  const desfase = hitos.length > 0 ? ALTO_BANDA_HITOS : 0
+  const altoTotal = altos.reduce((s, a) => s + a, 0) + ALTO_EJE + desfase
+  const tops = altos.map((_, i) => desfase + altos.slice(0, i).reduce((s, a) => s + a, 0))
 
   const manejadores = onCambiarHora
     ? (r: RegistroFarmaco): Manejadores => ({
@@ -198,12 +204,21 @@ export function LineaTiempoFarmacos({
       >
         {marcas.map((t) => (
           <g key={t}>
-            <line x1={x(t)} x2={x(t)} y1={0} y2={altoTotal - ALTO_EJE} stroke="#e2e8f0" />
+            <line x1={x(t)} x2={x(t)} y1={desfase} y2={altoTotal - ALTO_EJE} stroke="#e2e8f0" />
             <text x={x(t)} y={altoTotal - 9} fontSize={10} fill="#94a3b8" textAnchor="middle">
               {formatHora(new Date(t).toISOString())}
             </text>
           </g>
         ))}
+
+        <MarcasHitos
+          hitos={hitos}
+          x={x}
+          yTop={0}
+          yBottom={altoTotal - ALTO_EJE}
+          xMax={ANCHO - 4}
+          tFinal={tFinal}
+        />
 
         {filas.map((fila, i) => {
           const top = tops[i]
@@ -272,7 +287,7 @@ export function LineaTiempoFarmacos({
             <line
               x1={x(previa.t)}
               x2={x(previa.t)}
-              y1={0}
+              y1={desfase}
               y2={altoTotal - ALTO_EJE}
               stroke={COLOR_EDICION}
               strokeDasharray="4 3"

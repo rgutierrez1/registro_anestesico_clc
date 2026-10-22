@@ -42,15 +42,23 @@ export interface TecnicaRegional {
   notas: string
 }
 
-export interface RegistroVital {
-  id: string
-  hora: string
-  fc: number | null
+export interface ValoresVitales {
   pas: number | null
   pad: number | null
   pam: number | null
-  spo2: number | null
+  fc: number | null
   etco2: number | null
+  spo2: number | null
+}
+
+// Solo se guardan los registros cargados o editados a mano; los de cada 5 minutos se calculan al mostrarlos.
+export interface RegistroVital extends ValoresVitales {
+  id: string
+  hora: string
+  // true: los registros automáticos siguientes copian estos valores (o `copiar`, si existe)
+  propaga: boolean
+  // valores que siguen copiándose cuando este registro se editó "solo este registro"
+  copiar: ValoresVitales | null
   temp: number | null
   fr: number | null
   bis: number | null
@@ -129,6 +137,8 @@ export interface CasoAnestesico {
   fluidos: RegistroFluido[]
   eventos: Evento[]
   horaInicioAnestesia: string | null
+  horaInicioCirugia: string | null
+  horaFinCirugia: string | null
   horaFinAnestesia: string | null
   destinoPaciente: string
   notasFinales: string

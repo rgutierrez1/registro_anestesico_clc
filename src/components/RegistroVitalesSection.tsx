@@ -1,128 +1,292 @@
-import { useState } from 'react'
-import type { RegistroVital } from '../types'
+import { useMemo, useState } from 'react'
+import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
+import { hitosDelCaso } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
+import { useAhora } from '../utils/useAhora'
+import {
+  agregarAncla,
+  aplicarEdicionVital,
+  CAMPOS_VITALES,
+  eliminarRegistroVital,
+  esCopia,
+  serieVitales,
+  ultimosValores,
+  valoresDe,
+  valoresIguales,
+  type ModoEdicionVital,
+} from '../utils/vitales'
+import { VitalesChart, type CambioPendiente } from './VitalesChart'
 import { Button, Section } from './ui'
-import { VitalesChart } from './VitalesChart'
-
-const CAMPOS: { key: keyof RegistroVital; label: string; unidad: string }[] = [
-  { key: 'fc', label: 'FC', unidad: 'lpm' },
-  { key: 'pas', label: 'PAS', unidad: 'mmHg' },
-  { key: 'pad', label: 'PAD', unidad: 'mmHg' },
-  { key: 'spo2', label: 'SpO2', unidad: '%' },
-  { key: 'etco2', label: 'EtCO2', unidad: 'mmHg' },
-  { key: 'fr', label: 'FR', unidad: 'rpm' },
-  { key: 'temp', label: 'Temp', unidad: '°C' },
-  { key: 'bis', label: 'BIS', unidad: '' },
-]
-
-type Borrador = Partial<Record<keyof RegistroVital, string>>
+import { FormularioVitales } from './vitales/FormularioVitales'
 
 export function RegistroVitalesSection({
-  registros,
-  inicio,
-  onAgregar,
-  onEliminar,
+  caso,
+  onActualizar,
 }: {
-  registros: RegistroVital[]
-  inicio: string | null
-  onAgregar: (v: RegistroVital) => void
-  onEliminar: (id: string) => void
+  caso: CasoAnestesico
+  onActualizar: (fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) => void
 }) {
-  const [borrador, setBorrador] = useState<Borrador>({})
+  const ahora = useAhora(30000)
+  const hasta = caso.horaFinAnestesia ? Date.parse(caso.horaFinAnestesia) : ahora
+  const serie = useMemo(() => serieVitales(caso.signosVitales, hasta), [caso.signosVitales, hasta])
   const [mostrarTabla, setMostrarTabla] = useState(false)
+  const [nuevosValores, setNuevosValores] = useState(false)
+  const [editandoHora, setEditandoHora] = useState<string | null>(null)
+  const [pendiente, setPendiente] = useState<CambioPendiente | null>(null)
 
-  function agregar() {
-    const algunValor = CAMPOS.some((c) => borrador[c.key])
-    if (!algunValor) return
-    const registro: RegistroVital = {
-      id: crypto.randomUUID(),
-      hora: new Date().toISOString(),
-      fc: numeroONull(borrador.fc),
-      pas: numeroONull(borrador.pas),
-      pad: numeroONull(borrador.pad),
-      pam: null,
-      spo2: numeroONull(borrador.spo2),
-      etco2: numeroONull(borrador.etco2),
-      temp: numeroONull(borrador.temp),
-      fr: numeroONull(borrador.fr),
-      bis: numeroONull(borrador.bis),
-    }
-    onAgregar(registro)
-    setBorrador({})
+  const sinRegistros = caso.signosVitales.length === 0
+  const registroEditando = serie.find((r) => r.hora === editandoHora)
+  const registroPendiente = serie.find((r) => r.hora === pendiente?.hora)
+
+  function solicitarCambio(hora: string, nuevos: ValoresVitales) {
+    const actual = serie.find((r) => r.hora === hora)
+    if (!actual || valoresIguales(valoresDe(actual), nuevos)) return
+    setEditandoHora(null)
+    setPendiente({ hora, nuevos })
   }
 
-  const ordenados = [...registros].sort((a, b) => b.hora.localeCompare(a.hora))
+  function aplicar(modo: ModoEdicionVital) {
+    if (!pendiente) return
+    const { hora, nuevos } = pendiente
+    onActualizar((c) => aplicarEdicionVital(c, hora, nuevos, modo))
+    setPendiente(null)
+  }
+
+  function seleccionar(hora: string) {
+    setPendiente(null)
+    setNuevosValores(false)
+    setEditandoHora(hora)
+  }
 
   return (
     <Section
       title="Signos vitales"
       actions={
-        <button className="text-sm text-sky-600" onClick={() => setMostrarTabla((v) => !v)}>
-          {mostrarTabla ? 'Ver gráfico' : 'Ver tabla'}
-        </button>
+        !sinRegistros && (
+          <button className="text-sm text-sky-600" onClick={() => setMostrarTabla((v) => !v)}>
+            {mostrarTabla ? 'Ver gráfico' : 'Ver tabla'}
+          </button>
+        )
       }
     >
-      {mostrarTabla ? (
-        <TablaVitales registros={ordenados} onEliminar={onEliminar} />
+      {sinRegistros ? (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+          <h3 className="mb-2 font-semibold text-sky-900">Primer registro</h3>
+          <FormularioVitales
+            inicial={null}
+            textoGuardar="Guardar y repetir cada 5 min"
+            ayuda="Estos valores se repetirán automáticamente cada 5 minutos durante toda la anestesia. Después podés editar cada registro."
+            onGuardar={(valores) =>
+              onActualizar((c) => agregarAncla(c, valores, c.horaInicioAnestesia ?? new Date().toISOString()))
+            }
+          />
+        </div>
       ) : (
-        <VitalesChart registros={registros} inicio={inicio} />
-      )}
-
-      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
-        {CAMPOS.map((c) => (
-          <label key={c.key} className="flex flex-col gap-1">
-            <span className="text-[11px] font-medium text-slate-500">
-              {c.label}
-              {c.unidad ? ` (${c.unidad})` : ''}
-            </span>
-            <input
-              type="number"
-              inputMode="decimal"
-              value={borrador[c.key] ?? ''}
-              onChange={(e) => setBorrador((b) => ({ ...b, [c.key]: e.target.value }))}
-              className="min-h-[44px] rounded-lg border border-slate-300 px-2 py-2 text-center text-base focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200"
+        <>
+          {mostrarTabla ? (
+            <TablaVitales
+              serie={serie}
+              seleccionHora={editandoHora}
+              onSeleccionar={seleccionar}
+              onEliminar={(id) => onActualizar((c) => eliminarRegistroVital(c, id))}
             />
-          </label>
-        ))}
-      </div>
-      <Button className="mt-3 w-full sm:w-auto" onClick={agregar}>
-        + Registrar signos vitales ahora
-      </Button>
+          ) : (
+            <VitalesChart
+              serie={serie}
+              inicio={caso.horaInicioAnestesia}
+              hitos={hitosDelCaso(caso)}
+              pendiente={pendiente}
+              seleccionHora={editandoHora}
+              onSolicitarCambio={solicitarCambio}
+              onSeleccionar={seleccionar}
+            />
+          )}
+
+          {pendiente && registroPendiente && (
+            <ConfirmarEdicion registro={registroPendiente} pendiente={pendiente} onAplicar={aplicar} onCancelar={() => setPendiente(null)} />
+          )}
+
+          {registroEditando && !pendiente && (
+            <EditorRegistro
+              key={registroEditando.hora}
+              registro={registroEditando}
+              onGuardar={(nuevos) => solicitarCambio(registroEditando.hora, nuevos)}
+              onCerrar={() => setEditandoHora(null)}
+            />
+          )}
+
+          <div className="mt-4">
+            {nuevosValores ? (
+              <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
+                <h3 className="mb-2 font-semibold text-sky-900">Registrar nuevos valores ahora</h3>
+                <FormularioVitales
+                  inicial={ultimosValores(serie, ahora)}
+                  textoGuardar="Guardar y repetir desde ahora"
+                  onCancelar={() => setNuevosValores(false)}
+                  ayuda="Los registros automáticos siguientes copiarán estos valores."
+                  onGuardar={(valores) => {
+                    onActualizar((c) => agregarAncla(c, valores, new Date().toISOString()))
+                    setNuevosValores(false)
+                  }}
+                />
+              </div>
+            ) : (
+              <Button
+                onClick={() => {
+                  setEditandoHora(null)
+                  setPendiente(null)
+                  setNuevosValores(true)
+                }}
+              >
+                + Registrar nuevos valores ahora
+              </Button>
+            )}
+          </div>
+        </>
+      )}
     </Section>
   )
 }
 
-function TablaVitales({ registros, onEliminar }: { registros: RegistroVital[]; onEliminar: (id: string) => void }) {
-  if (registros.length === 0) {
-    return <p className="py-6 text-center text-sm text-slate-400">Sin registros todavía.</p>
-  }
+function etiquetaValor(clave: keyof ValoresVitales, antes: number | null, despues: number | null): string {
+  const campo = CAMPOS_VITALES.find((c) => c.clave === clave)
+  return `${campo?.etiqueta ?? 'PAM'} ${antes ?? '–'} → ${despues ?? '–'}`
+}
+
+function ConfirmarEdicion({
+  registro,
+  pendiente,
+  onAplicar,
+  onCancelar,
+}: {
+  registro: RegistroVital
+  pendiente: CambioPendiente
+  onAplicar: (modo: ModoEdicionVital) => void
+  onCancelar: () => void
+}) {
+  const cambios = CAMPOS_VITALES.filter((c) => registro[c.clave] !== pendiente.nuevos[c.clave]).map((c) =>
+    etiquetaValor(c.clave, registro[c.clave], pendiente.nuevos[c.clave]),
+  )
+  const hora = formatHora(pendiente.hora)
   return (
-    <div className="max-h-[320px] overflow-auto rounded-lg border border-slate-200">
+    <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
+      <p className="text-sm font-semibold text-amber-900">
+        Cambio en el registro de las {hora}: {cambios.join(' · ')}
+      </p>
+      <p className="mb-3 text-sm text-amber-900">¿Cómo querés aplicarlo?</p>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={() => onAplicar('solo')}
+          className="min-h-[56px] rounded-xl border border-amber-300 bg-white p-3 text-left hover:border-amber-500"
+        >
+          <span className="block font-semibold text-slate-900">Solo este registro</span>
+          <span className="block text-xs text-slate-600">
+            Cambia únicamente el de las {hora}. Los siguientes siguen copiando los valores anteriores.
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onAplicar('siguientes')}
+          className="min-h-[56px] rounded-xl border border-amber-300 bg-white p-3 text-left hover:border-amber-500"
+        >
+          <span className="block font-semibold text-slate-900">Este y los siguientes</span>
+          <span className="block text-xs text-slate-600">
+            Los registros automáticos desde las {hora} en adelante copiarán estos valores. Los que editaste a mano
+            después se mantienen.
+          </span>
+        </button>
+      </div>
+      <div className="mt-2 flex justify-end">
+        <Button size="sm" variant="ghost" onClick={onCancelar}>
+          Cancelar cambio
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function EditorRegistro({
+  registro,
+  onGuardar,
+  onCerrar,
+}: {
+  registro: RegistroVital
+  onGuardar: (nuevos: ValoresVitales) => void
+  onCerrar: () => void
+}) {
+  return (
+    <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
+      <p className="mb-2 text-sm font-semibold text-amber-900">
+        Editar registro de las {formatHora(registro.hora)} ({esCopia(registro) ? 'copia automática' : 'registrado'})
+      </p>
+      <FormularioVitales
+        inicial={valoresDe(registro)}
+        textoGuardar="Guardar cambios"
+        textoCancelar="Cancelar"
+        onCancelar={onCerrar}
+        onGuardar={onGuardar}
+      />
+    </div>
+  )
+}
+
+function TablaVitales({
+  serie,
+  seleccionHora,
+  onSeleccionar,
+  onEliminar,
+}: {
+  serie: RegistroVital[]
+  seleccionHora: string | null
+  onSeleccionar: (hora: string) => void
+  onEliminar: (id: string) => void
+}) {
+  const filas = [...serie].reverse()
+  return (
+    <div className="max-h-[360px] overflow-auto rounded-lg border border-slate-200">
       <table className="w-full text-sm">
         <thead className="sticky top-0 bg-slate-100 text-slate-600">
           <tr>
             <th className="px-2 py-2 text-left">Hora</th>
-            {CAMPOS.map((c) => (
-              <th key={c.key} className="px-2 py-2 text-right">
-                {c.label}
-              </th>
-            ))}
+            <th className="px-2 py-2 text-right">PAS</th>
+            <th className="px-2 py-2 text-right">PAD</th>
+            <th className="px-2 py-2 text-right">PAM</th>
+            <th className="px-2 py-2 text-right">FC</th>
+            <th className="px-2 py-2 text-right">EtCO2</th>
+            <th className="px-2 py-2 text-right">SpO2</th>
+            <th className="px-2 py-2 text-left">Origen</th>
             <th />
           </tr>
         </thead>
         <tbody>
-          {registros.map((r) => (
-            <tr key={r.id} className="border-t border-slate-100">
-              <td className="px-2 py-2 text-left font-medium text-slate-700">{formatHora(r.hora)}</td>
-              {CAMPOS.map((c) => (
-                <td key={c.key} className="px-2 py-2 text-right text-slate-600">
-                  {(r[c.key] as number | null) ?? '—'}
+          {filas.map((r) => (
+            <tr
+              key={r.id}
+              onClick={() => onSeleccionar(r.hora)}
+              className={`cursor-pointer border-t border-slate-100 hover:bg-sky-50 ${seleccionHora === r.hora ? 'bg-amber-50' : ''}`}
+            >
+              <td className="px-2 py-2 font-medium text-slate-700">{formatHora(r.hora)}</td>
+              {(['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2'] as const).map((c) => (
+                <td key={c} className={`px-2 py-2 text-right ${esCopia(r) ? 'text-slate-400' : 'text-slate-800'}`}>
+                  {r[c] ?? '—'}
                 </td>
               ))}
+              <td className="px-2 py-2 text-xs text-slate-500">
+                {esCopia(r) ? 'Copia' : r.propaga ? 'Registrado (se repite)' : 'Registrado (solo este)'}
+              </td>
               <td className="px-2 py-2 text-right">
-                <button onClick={() => onEliminar(r.id)} className="text-xs text-rose-500">
-                  Borrar
-                </button>
+                {!esCopia(r) && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEliminar(r.id)
+                    }}
+                    className="text-xs text-rose-500"
+                  >
+                    Borrar
+                  </button>
+                )}
               </td>
             </tr>
           ))}
@@ -130,10 +294,4 @@ function TablaVitales({ registros, onEliminar }: { registros: RegistroVital[]; o
       </table>
     </div>
   )
-}
-
-function numeroONull(v: string | undefined): number | null {
-  if (v === undefined || v === '') return null
-  const n = Number(v)
-  return Number.isNaN(n) ? null : n
 }

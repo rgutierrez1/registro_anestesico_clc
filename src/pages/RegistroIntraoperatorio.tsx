@@ -4,18 +4,21 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Cronometro } from '../components/Cronometro'
 import { EventosSection } from '../components/EventosSection'
 import { FarmacosSection } from '../components/FarmacosSection'
+import { HitosSection } from '../components/HitosSection'
 import { RegistroFluidosSection } from '../components/RegistroFluidosSection'
 import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
+import { ModalSignosIniciales } from '../components/vitales/FormularioVitales'
 import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
 import { ViaAereaSection } from '../components/ViaAereaSection'
 import { Badge, Button, Field, Select, TextArea } from '../components/ui'
 import { DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
+import { cambiarHito, type ClaveHito } from '../utils/hitos'
+import { agregarAncla } from '../utils/vitales'
 import type {
   CasoAnestesico,
   Evento,
   RegistroFluido,
-  RegistroVital,
   TecnicaRegional,
 } from '../types'
 
@@ -26,6 +29,7 @@ export default function RegistroIntraoperatorio() {
   const [finalizando, setFinalizando] = useState(false)
   const [destino, setDestino] = useState(DESTINOS_PACIENTE[0])
   const [notas, setNotas] = useState('')
+  const [promptVitales, setPromptVitales] = useState(false)
 
   if (caso === undefined) return <div className="p-6 text-slate-500">Cargando…</div>
   if (caso === null || !id) return <div className="p-6 text-slate-500">Caso no encontrado.</div>
@@ -39,15 +43,13 @@ export default function RegistroIntraoperatorio() {
     })
   }
 
-  async function iniciarAnestesia() {
-    await patch(() => ({ estado: 'en_curso', horaInicioAnestesia: new Date().toISOString() }))
+  async function registrarHito(clave: ClaveHito, iso: string | null) {
+    await patch((c) => cambiarHito(c, clave, iso))
+    if (clave === 'inicioAnestesia' && iso && caso && caso.signosVitales.length === 0) setPromptVitales(true)
   }
 
-  function agregarVital(v: RegistroVital) {
-    patch((c) => ({ signosVitales: [...c.signosVitales, v] }))
-  }
-  function eliminarVital(vid: string) {
-    patch((c) => ({ signosVitales: c.signosVitales.filter((v) => v.id !== vid) }))
+  async function iniciarAnestesia() {
+    await registrarHito('inicioAnestesia', new Date().toISOString())
   }
 
   function agregarFluido(f: RegistroFluido) {
@@ -146,18 +148,14 @@ export default function RegistroIntraoperatorio() {
       )}
 
       <div className="flex flex-col gap-4">
+        <HitosSection caso={caso} onCambiar={registrarHito} />
         {requiereViaAerea && (
           <ViaAereaSection
             valor={caso.manejoViaAerea}
             onChange={(v) => patch(() => ({ manejoViaAerea: v }))}
           />
         )}
-        <RegistroVitalesSection
-          registros={caso.signosVitales}
-          inicio={caso.horaInicioAnestesia}
-          onAgregar={agregarVital}
-          onEliminar={eliminarVital}
-        />
+        <RegistroVitalesSection caso={caso} onActualizar={patch} />
         <FarmacosSection caso={caso} onActualizar={patch} />
         <TecnicasRegionalesSection
           tecnicas={caso.tecnicasRegionales}
@@ -167,6 +165,15 @@ export default function RegistroIntraoperatorio() {
         <RegistroFluidosSection registros={caso.fluidos} onAgregar={agregarFluido} onEliminar={eliminarFluido} />
         <EventosSection eventos={caso.eventos} onAgregar={agregarEvento} onEliminar={eliminarEvento} />
       </div>
+      {promptVitales && caso.signosVitales.length === 0 && (
+        <ModalSignosIniciales
+          onCerrar={() => setPromptVitales(false)}
+          onGuardar={(valores) => {
+            patch((c) => agregarAncla(c, valores, c.horaInicioAnestesia ?? new Date().toISOString()))
+            setPromptVitales(false)
+          }}
+        />
+      )}
     </div>
   )
 }

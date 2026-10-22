@@ -6,6 +6,8 @@ import { Button, Card } from '../components/ui'
 import { db } from '../db'
 import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
+import { hitosDelCaso } from '../utils/hitos'
+import { serieVitales } from '../utils/vitales'
 import { formatFechaHora, formatHora, duracionDesde } from '../utils/tiempo'
 
 export default function ResumenCaso() {
@@ -66,6 +68,11 @@ export default function ResumenCaso() {
               label="Inicio anestésico"
               valor={caso.horaInicioAnestesia ? formatFechaHora(caso.horaInicioAnestesia) : '—'}
             />
+            <Dato
+              label="Inicio de cirugía"
+              valor={caso.horaInicioCirugia ? formatFechaHora(caso.horaInicioCirugia) : '—'}
+            />
+            <Dato label="Fin de cirugía" valor={caso.horaFinCirugia ? formatFechaHora(caso.horaFinCirugia) : '—'} />
             <Dato label="Fin anestésico" valor={caso.horaFinAnestesia ? formatFechaHora(caso.horaFinAnestesia) : '—'} />
             <Dato
               label="Duración"
@@ -74,6 +81,10 @@ export default function ResumenCaso() {
                   ? duracionDesde(caso.horaInicioAnestesia, caso.horaFinAnestesia ? new Date(caso.horaFinAnestesia) : undefined)
                   : '—'
               }
+            />
+            <Dato
+              label="Duración de cirugía"
+              valor={caso.horaInicioCirugia && caso.horaFinCirugia ? duracionDesde(caso.horaInicioCirugia, new Date(caso.horaFinCirugia)) : ''}
             />
             <Dato label="Destino del paciente" valor={caso.destinoPaciente} />
           </Grid>
@@ -110,7 +121,11 @@ export default function ResumenCaso() {
         )}
 
         <SeccionResumen titulo="Signos vitales">
-          <VitalesChart registros={caso.signosVitales} inicio={caso.horaInicioAnestesia} />
+          <VitalesChart
+            serie={serieVitales(caso.signosVitales, Date.parse(caso.horaFinAnestesia ?? new Date().toISOString()))}
+            inicio={caso.horaInicioAnestesia}
+            hitos={hitosDelCaso(caso)}
+          />
         </SeccionResumen>
 
         {caso.farmacos.length > 0 && (
@@ -120,6 +135,7 @@ export default function ResumenCaso() {
                 registros={caso.farmacos}
                 inicio={caso.horaInicioAnestesia}
                 fin={caso.horaFinAnestesia}
+                hitos={hitosDelCaso(caso)}
               />
             </div>
             <TablaSimple

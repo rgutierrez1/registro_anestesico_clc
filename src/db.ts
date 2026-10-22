@@ -34,6 +34,35 @@ class RegistroAnestesicoDB extends Dexie {
             caso.farmacos = (caso.farmacos ?? []).map(migrarFarmacoAntiguo)
           }),
       )
+    this.version(4)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.horaInicioCirugia ??= null
+            caso.horaFinCirugia ??= null
+          }),
+      )
+    this.version(5)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.signosVitales = (caso.signosVitales ?? []).map((v: Record<string, unknown>) => ({
+              ...v,
+              propaga: v.propaga ?? false,
+              copiar: v.copiar ?? null,
+            }))
+          }),
+      )
   }
 }
 
@@ -95,6 +124,8 @@ export function crearCasoVacio(): CasoAnestesico {
     fluidos: [],
     eventos: [],
     horaInicioAnestesia: null,
+    horaInicioCirugia: null,
+    horaFinCirugia: null,
     horaFinAnestesia: null,
     destinoPaciente: '',
     notasFinales: '',
