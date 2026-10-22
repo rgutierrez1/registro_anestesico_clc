@@ -64,27 +64,6 @@ export const DISPOSITIVOS_VIA_AEREA = ['Fibrobroncoscopio', 'GEB', 'Videolaringo
 
 export const VIAS_FARMACO =['IV', 'IM', 'Inhalatoria', 'Regional', 'Oral', 'Subcutánea', 'Otra'] as const
 
-export const FARMACOS_FRECUENTES = [
-  { nombre: 'Propofol', via: 'IV' },
-  { nombre: 'Fentanilo', via: 'IV' },
-  { nombre: 'Remifentanilo', via: 'IV' },
-  { nombre: 'Rocuronio', via: 'IV' },
-  { nombre: 'Succinilcolina', via: 'IV' },
-  { nombre: 'Sevoflurano', via: 'Inhalatoria' },
-  { nombre: 'Midazolam', via: 'IV' },
-  { nombre: 'Lidocaína', via: 'IV' },
-  { nombre: 'Efedrina', via: 'IV' },
-  { nombre: 'Fenilefrina', via: 'IV' },
-  { nombre: 'Atropina', via: 'IV' },
-  { nombre: 'Ondansetrón', via: 'IV' },
-  { nombre: 'Dexametasona', via: 'IV' },
-  { nombre: 'Ketamina', via: 'IV' },
-  { nombre: 'Neostigmina', via: 'IV' },
-  { nombre: 'Sugammadex', via: 'IV' },
-  { nombre: 'Paracetamol', via: 'IV' },
-  { nombre: 'Ketorolac', via: 'IV' },
-]
-
 export const TIPOS_FLUIDO = [
   'Cristaloide (SF / Ringer)',
   'Coloide',

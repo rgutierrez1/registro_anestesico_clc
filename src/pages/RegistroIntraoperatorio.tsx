@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Cronometro } from '../components/Cronometro'
 import { EventosSection } from '../components/EventosSection'
-import { RegistroFarmacosSection } from '../components/RegistroFarmacosSection'
+import { FarmacosSection } from '../components/FarmacosSection'
 import { RegistroFluidosSection } from '../components/RegistroFluidosSection'
 import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
 import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
@@ -12,8 +12,8 @@ import { Badge, Button, Field, Select, TextArea } from '../components/ui'
 import { DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
 import type {
+  CasoAnestesico,
   Evento,
-  RegistroFarmaco,
   RegistroFluido,
   RegistroVital,
   TecnicaRegional,
@@ -30,9 +30,13 @@ export default function RegistroIntraoperatorio() {
   if (caso === undefined) return <div className="p-6 text-slate-500">Cargando…</div>
   if (caso === null || !id) return <div className="p-6 text-slate-500">Caso no encontrado.</div>
 
-  async function patch(fn: (c: NonNullable<typeof caso>) => Partial<NonNullable<typeof caso>>) {
-    if (!id || !caso) return
-    await db.casos.update(id, { ...fn(caso), updatedAt: new Date().toISOString() })
+  function patch(fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) {
+    if (!id) return Promise.resolve()
+    return db.transaction('rw', db.casos, async () => {
+      const actual = await db.casos.get(id)
+      if (!actual) return
+      await db.casos.update(id, { ...fn(actual), updatedAt: new Date().toISOString() })
+    })
   }
 
   async function iniciarAnestesia() {
@@ -44,13 +48,6 @@ export default function RegistroIntraoperatorio() {
   }
   function eliminarVital(vid: string) {
     patch((c) => ({ signosVitales: c.signosVitales.filter((v) => v.id !== vid) }))
-  }
-
-  function agregarFarmaco(f: RegistroFarmaco) {
-    patch((c) => ({ farmacos: [...c.farmacos, f] }))
-  }
-  function eliminarFarmaco(fid: string) {
-    patch((c) => ({ farmacos: c.farmacos.filter((f) => f.id !== fid) }))
   }
 
   function agregarFluido(f: RegistroFluido) {
@@ -161,7 +158,7 @@ export default function RegistroIntraoperatorio() {
           onAgregar={agregarVital}
           onEliminar={eliminarVital}
         />
-        <RegistroFarmacosSection registros={caso.farmacos} onAgregar={agregarFarmaco} onEliminar={eliminarFarmaco} />
+        <FarmacosSection caso={caso} onActualizar={patch} />
         <TecnicasRegionalesSection
           tecnicas={caso.tecnicasRegionales}
           onAgregar={agregarTecnica}

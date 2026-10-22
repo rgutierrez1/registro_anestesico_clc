@@ -58,13 +58,30 @@ export interface RegistroVital {
 
 export type ViaFarmaco = 'IV' | 'IM' | 'Inhalatoria' | 'Regional' | 'Oral' | 'Subcutánea' | 'Otra'
 
+export type EventoFarmaco = 'bolo' | 'inicio' | 'cambio' | 'fin'
+
 export interface RegistroFarmaco {
   id: string
   hora: string
+  farmacoId: string
   nombre: string
-  dosis: string
+  modo: string
+  evento: EventoFarmaco
+  valor: number | null
+  unidad: string
+  dosisTexto?: string
   via: ViaFarmaco
-  tipo: 'Bolo' | 'Infusión inicio' | 'Infusión fin'
+}
+
+export interface ItemCarrito {
+  id: string
+  farmacoId: string
+  presentacionId: string
+  dosisSel: string
+  dosisManual: string
+  nombre: string
+  unidad: string
+  via: ViaFarmaco
 }
 
 export interface RegistroFluido {
@@ -107,6 +124,7 @@ export interface CasoAnestesico {
   manejoViaAerea: ManejoViaAerea
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
+  carritoFarmacos: ItemCarrito[]
   farmacos: RegistroFarmaco[]
   fluidos: RegistroFluido[]
   eventos: Evento[]

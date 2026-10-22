@@ -1,8 +1,11 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams } from 'react-router-dom'
+import { LineaTiempoFarmacos } from '../components/farmacos/LineaTiempoFarmacos'
 import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { db } from '../db'
+import { formatDosis } from '../utils/dosis'
+import { ETIQUETA_EVENTO } from '../utils/farmacos'
 import { formatFechaHora, formatHora, duracionDesde } from '../utils/tiempo'
 
 export default function ResumenCaso() {
@@ -112,12 +115,26 @@ export default function ResumenCaso() {
 
         {caso.farmacos.length > 0 && (
           <SeccionResumen titulo="Fármacos administrados">
+            <div className="mb-3">
+              <LineaTiempoFarmacos
+                registros={caso.farmacos}
+                inicio={caso.horaInicioAnestesia}
+                fin={caso.horaFinAnestesia}
+              />
+            </div>
             <TablaSimple
-              columnas={['Hora', 'Fármaco', 'Dosis', 'Vía', 'Tipo']}
+              columnas={['Hora', 'Fármaco', 'Modo', 'Evento', 'Dosis', 'Vía']}
               filas={caso.farmacos
                 .slice()
                 .sort((a, b) => a.hora.localeCompare(b.hora))
-                .map((f) => [formatHora(f.hora), f.nombre, f.dosis, f.via, f.tipo])}
+                .map((f) => [
+                  formatHora(f.hora),
+                  f.nombre,
+                  f.modo,
+                  ETIQUETA_EVENTO[f.evento],
+                  f.evento === 'fin' ? '—' : (f.dosisTexto ?? formatDosis(f.valor, f.unidad)),
+                  f.via,
+                ])}
             />
           </SeccionResumen>
         )}
