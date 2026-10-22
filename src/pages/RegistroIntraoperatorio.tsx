@@ -1,6 +1,7 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { AccesosVascularesSection } from '../components/AccesosVascularesSection'
 import { ChecklistSection } from '../components/ChecklistSection'
 import { Cronometro } from '../components/Cronometro'
 import { EventosSection } from '../components/EventosSection'
@@ -212,6 +213,11 @@ export default function RegistroIntraoperatorio() {
             onChange={(v) => patch(() => ({ manejoViaAerea: v }))}
           />
         )}
+        <AccesosVascularesSection
+          accesos={caso.accesosVasculares}
+          onAgregar={(a) => patch((c) => ({ accesosVasculares: [...c.accesosVasculares, a] }))}
+          onEliminar={(id) => patch((c) => ({ accesosVasculares: c.accesosVasculares.filter((x) => x.id !== id) }))}
+        />
         <RegistroVitalesSection caso={caso} onActualizar={patch} />
         <FarmacosSection caso={caso} onActualizar={patch} />
         <TecnicasRegionalesSection

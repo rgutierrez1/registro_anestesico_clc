@@ -66,6 +66,20 @@ export interface RegistroVital extends ValoresVitales {
 
 export type ViaFarmaco = 'IV' | 'IM' | 'Inhalatoria' | 'Regional' | 'Oral' | 'Subcutánea' | 'Otra'
 
+export type TipoAcceso = 'VVP' | 'PICC' | 'VVC' | 'LINEA_ARTERIAL'
+
+export interface AccesoVascular {
+  id: string
+  hora: string
+  tipo: TipoAcceso
+  ubicacion: string
+  lado: '' | 'Derecho' | 'Izquierdo'
+  calibre: string
+  tecnicaEsteril: boolean
+  apoyoRadioscopia: boolean
+  ecoguiado: boolean
+}
+
 export type EventoFarmaco = 'bolo' | 'inicio' | 'cambio' | 'fin'
 
 export interface RegistroFarmaco {
@@ -132,6 +146,7 @@ export interface CasoAnestesico {
   monitorizacion: string[]
   checklist: string[]
   manejoViaAerea: ManejoViaAerea
+  accesosVasculares: AccesoVascular[]
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
   carritoFarmacos: ItemCarrito[]

@@ -88,6 +88,18 @@ class RegistroAnestesicoDB extends Dexie {
             caso.checklist ??= []
           }),
       )
+    this.version(8)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.accesosVasculares ??= []
+          }),
+      )
   }
 }
 
@@ -150,6 +162,7 @@ export function crearCasoVacio(): CasoAnestesico {
     monitorizacion: [...MONITORIZACION_ESTANDAR],
     checklist: [],
     manejoViaAerea: crearManejoViaAereaVacio(),
+    accesosVasculares: [],
     tecnicasRegionales: [],
     signosVitales: [],
     carritoFarmacos: [],

@@ -4,6 +4,7 @@ import { LineaTiempoFarmacos } from '../components/farmacos/LineaTiempoFarmacos'
 import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
+import { chequeoVVC, tituloAcceso, ubicacionAcceso } from '../utils/accesos'
 import { db } from '../db'
 import type { CasoAnestesico } from '../types'
 import { formatDosis } from '../utils/dosis'
@@ -128,6 +129,22 @@ export default function ResumenCaso() {
                   {t.exitosa ? '✓ exitosa' : '✗ fallida'} {t.notas && `· ${t.notas}`}
                 </li>
               ))}
+            </ul>
+          </SeccionResumen>
+        )}
+
+        {caso.accesosVasculares.length > 0 && (
+          <SeccionResumen titulo="Accesos vasculares">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {[...caso.accesosVasculares]
+                .sort((a, b) => a.hora.localeCompare(b.hora))
+                .map((a) => (
+                  <li key={a.id}>
+                    <span className="font-mono text-xs text-slate-400">{formatHora(a.hora)}</span> — {tituloAcceso(a)},{' '}
+                    {ubicacionAcceso(a).toLowerCase()}
+                    {a.tipo === 'VVC' && ` (${chequeoVVC(a).map((c) => `${c.etiqueta.toLowerCase()}: ${c.hecho ? 'sí' : 'no'}`).join(', ')})`}
+                  </li>
+                ))}
             </ul>
           </SeccionResumen>
         )}

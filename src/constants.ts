@@ -29,6 +29,34 @@ export const OPCIONES_MONITORIZACION = [
   'Gasto cardíaco',
 ]
 
+export const TIPOS_ACCESO = [
+  { id: 'VVP', etiqueta: 'Vía venosa periférica', corta: 'VVP' },
+  { id: 'PICC', etiqueta: 'PICC line', corta: 'PICC line' },
+  { id: 'VVC', etiqueta: 'Vía venosa central', corta: 'VVC' },
+  { id: 'LINEA_ARTERIAL', etiqueta: 'Línea arterial', corta: 'Línea arterial' },
+] as const
+
+export const UBICACIONES_ACCESO = {
+  VVP: ['Mano derecha', 'Antebrazo derecho', 'Mano izquierda', 'Antebrazo izquierdo'],
+  PICC: ['Vena basílica derecha', 'Vena basílica izquierda', 'Vena cefálica derecha', 'Vena cefálica izquierda'],
+  VVC: ['Yugular derecha', 'Yugular izquierda', 'Subclavia', 'Axilar', 'Femoral'],
+  LINEA_ARTERIAL: [
+    'Radial izquierda',
+    'Radial derecha',
+    'Ulnar izquierda',
+    'Ulnar derecha',
+    'Braquial izquierda',
+    'Braquial derecha',
+    'Femoral izquierda',
+    'Femoral derecha',
+  ],
+} as const
+
+// En la VVC solo yugular indica el lado en su nombre; para estos sitios se ofrece un lado opcional.
+export const UBICACIONES_VVC_CON_LADO = ['Subclavia', 'Axilar', 'Femoral']
+
+export const CALIBRES_VVP = ['24G', '22G', '20G', '18G', '16G', '14G']
+
 export const CHECKLIST_SEGURIDAD = [
   { id: 'maquina', etiqueta: 'Revisión de máquina de anestesia' },
   { id: 'drogas', etiqueta: 'Revisión de drogas' },
