@@ -21,6 +21,8 @@ const COLOR_EDICION = '#d97706'
 
 interface Fila {
   clave: string
+  farmacoId: string
+  nombre: string
   etiqueta: string
   modo: string
   continuo: boolean
@@ -35,6 +37,12 @@ interface Arrastre {
   t: number
   lo: number
   hi: number
+}
+
+export interface DestinoAgregar {
+  farmacoId: string
+  nombre: string
+  t: number
 }
 
 interface Vista {
@@ -59,6 +67,8 @@ export function LineaTiempoFarmacos({
   onCambiarHora,
   onSeleccionar,
   seleccionadoId = null,
+  onAgregarEn,
+  agregando = null,
 }: {
   registros: RegistroFarmaco[]
   inicio: string | null
@@ -66,18 +76,28 @@ export function LineaTiempoFarmacos({
   onCambiarHora?: (id: string, hora: string) => void
   onSeleccionar?: (id: string) => void
   seleccionadoId?: string | null
+  onAgregarEn?: (destino: { farmacoId: string; nombre: string }, t: number) => void
+  agregando?: DestinoAgregar | null
 }) {
   const ahora = useAhora(30000)
   const svgRef = useRef<SVGSVGElement>(null)
   const arrastre = useRef<Arrastre | null>(null)
   const [vista, setVista] = useState<Vista | null>(null)
-  if (registros.length === 0) return null
+  if (registros.length === 0 && !agregando) return null
 
   const tiempos = registros.map((r) => Date.parse(r.hora)).sort((a, b) => a - b)
-  const t0 = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0])
-  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1])
+  const t0Base = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0] ?? Infinity)
+  const t0 = Number.isFinite(t0Base) ? t0Base : ahora - 10 * MIN
+  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1] ?? 0)
   const tEnd = Math.max(tFinal, t0 + 10 * MIN)
   const x = (t: number) => ANCHO_ETIQUETA + ((t - t0) / (tEnd - t0)) * ANCHO_GRAFICO
+  const tiempoEn = (clientX: number): number | null => {
+    const svg = svgRef.current
+    if (!svg) return null
+    const rect = svg.getBoundingClientRect()
+    const sx = ((clientX - rect.left) / rect.width) * ANCHO
+    return t0 + ((sx - ANCHO_ETIQUETA) / ANCHO_GRAFICO) * (tEnd - t0)
+  }
 
   // Mientras se arrastra se muestra la hora provisoria, con la escala del gráfico congelada.
   const previa = vista && vista.base === registros ? vista : null
@@ -93,6 +113,8 @@ export function LineaTiempoFarmacos({
   const filas: Fila[] = [...grupos.entries()]
     .map(([clave, regs]) => ({
       clave,
+      farmacoId: regs[0].farmacoId,
+      nombre: regs[0].nombre,
       etiqueta: obtenerFarmaco(regs[0].farmacoId)?.etiqueta ?? regs[0].nombre,
       modo: regs.find((r) => r.evento === 'inicio')?.modo ?? '',
       continuo: regs.some((r) => r.evento !== 'bolo'),
@@ -100,6 +122,22 @@ export function LineaTiempoFarmacos({
       orden: indiceCatalogo(regs[0].farmacoId),
     }))
     .sort((a, b) => a.orden - b.orden)
+
+  const claveAgregando = agregando ? claveFarmaco(agregando.farmacoId, agregando.nombre) : null
+  if (agregando && claveAgregando && !grupos.has(claveAgregando)) {
+    const def = obtenerFarmaco(agregando.farmacoId)
+    filas.push({
+      clave: claveAgregando,
+      farmacoId: agregando.farmacoId,
+      nombre: agregando.nombre,
+      etiqueta: def?.etiqueta ?? agregando.nombre,
+      modo: '',
+      continuo: def?.administracion === 'continuo',
+      registros: [],
+      orden: indiceCatalogo(agregando.farmacoId),
+    })
+    filas.sort((a, b) => a.orden - b.orden)
+  }
 
   const spanMin = (tEnd - t0) / MIN
   const paso = [5, 10, 15, 30, 60, 120].find((p) => spanMin / p <= 8) ?? 120
@@ -127,13 +165,11 @@ export function LineaTiempoFarmacos({
         },
         onPointerMove: (e) => {
           const a = arrastre.current
-          const svg = svgRef.current
-          if (!a || a.id !== r.id || !svg || a.lo > a.hi) return
+          if (!a || a.id !== r.id || a.lo > a.hi) return
           if (!a.movido && Math.abs(e.clientX - a.x0) < 4) return
+          const bruto = tiempoEn(e.clientX)
+          if (bruto === null) return
           a.movido = true
-          const rect = svg.getBoundingClientRect()
-          const sx = ((e.clientX - rect.left) / rect.width) * ANCHO
-          const bruto = t0 + ((sx - ANCHO_ETIQUETA) / ANCHO_GRAFICO) * (tEnd - t0)
           a.t = Math.min(a.hi, Math.max(a.lo, Math.round(bruto / MIN) * MIN))
           setVista({ base: registros, id: r.id, t: a.t })
         },
@@ -184,6 +220,26 @@ export function LineaTiempoFarmacos({
                   {fila.modo}
                 </text>
               )}
+              {onAgregarEn && (
+                <rect
+                  x={ANCHO_ETIQUETA}
+                  y={top}
+                  width={ANCHO_GRAFICO}
+                  height={alto}
+                  className="cursor-cell fill-transparent hover:fill-sky-100/60"
+                  onClick={(e) => {
+                    const bruto = tiempoEn(e.clientX)
+                    if (bruto === null) return
+                    const t = Math.min(Date.now(), Math.max(t0, Math.round(bruto / MIN) * MIN))
+                    onAgregarEn({ farmacoId: fila.farmacoId, nombre: fila.nombre }, t)
+                  }}
+                />
+              )}
+              {fila.registros.length === 0 && (
+                <text x={ANCHO_ETIQUETA + 10} y={top + alto / 2 + 4} fontSize={11} fill="#94a3b8" pointerEvents="none">
+                  Tocá la fila en el momento de administración, o elegí la hora abajo
+                </text>
+              )}
               {fila.continuo ? (
                 <FilaContinua
                   fila={fila}
@@ -203,6 +259,9 @@ export function LineaTiempoFarmacos({
                   manejadores={manejadores}
                   seleccionadoId={seleccionadoId}
                 />
+              )}
+              {agregando && fila.clave === claveAgregando && (
+                <MarcadorAgregar x={x(Math.min(Math.max(agregando.t, t0), tEnd))} top={top} alto={alto} />
               )}
             </g>
           )
@@ -243,10 +302,24 @@ export function LineaTiempoFarmacos({
           <span style={{ color: COLOR_CONTINUO }}>▬</span> TCI / infusión / inhalatoria (escalón = cambio de dosis)
         </span>
         {manejadores && (
-          <span className="text-slate-500">Arrastrá un punto para cambiar su hora, o tocalo para escribirla.</span>
+          <span className="text-slate-500">
+            Arrastrá un punto para cambiar su hora, o tocalo para escribirla. Tocá un espacio vacío de una fila para agregar una dosis ahí.
+          </span>
         )}
       </div>
     </div>
+  )
+}
+
+function MarcadorAgregar({ x, top, alto }: { x: number; top: number; alto: number }) {
+  return (
+    <g pointerEvents="none">
+      <line x1={x} x2={x} y1={top + 3} y2={top + alto - 3} stroke={COLOR_EDICION} strokeWidth={2} strokeDasharray="4 3" />
+      <circle cx={x} cy={top + alto / 2} r={8} fill="#fff" stroke={COLOR_EDICION} strokeWidth={2} />
+      <text x={x} y={top + alto / 2 + 4.5} fontSize={13} fontWeight={700} fill={COLOR_EDICION} textAnchor="middle">
+        +
+      </text>
+    </g>
   )
 }
 
@@ -309,7 +382,7 @@ function FilaContinua({
   const base = top + alto - 8
   const cima = top + 20
   const conValor = fila.registros.filter((r) => r.valor !== null)
-  const def = obtenerFarmaco(fila.registros[0].farmacoId)
+  const def = obtenerFarmaco(fila.farmacoId)
   const maximo = Math.max(...(def?.dosis ?? []), ...conValor.map((r) => r.valor as number), 0)
   const nivel = (v: number) => (maximo > 0 ? base - (v / maximo) * (base - cima) : base)
 

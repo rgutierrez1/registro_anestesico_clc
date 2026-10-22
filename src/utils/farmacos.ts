@@ -185,12 +185,23 @@ export function cambiarInfusion(c: CasoAnestesico, clave: string, valor: number)
   return { farmacos: [...c.farmacos, registro] }
 }
 
-export function finalizarInfusion(c: CasoAnestesico, clave: string): Partial<CasoAnestesico> {
+export function ultimoEventoMs(registros: RegistroFarmaco[], clave: string): number | null {
+  const tiempos = registros
+    .filter((r) => r.evento !== 'bolo' && claveFarmaco(r.farmacoId, r.nombre) === clave)
+    .map((r) => Date.parse(r.hora))
+  return tiempos.length ? Math.max(...tiempos) : null
+}
+
+export function finalizarInfusion(c: CasoAnestesico, clave: string, hora?: string): Partial<CasoAnestesico> {
   const activa = infusionesActivas(c.farmacos).find((a) => a.clave === clave)
   if (!activa) return {}
+  if (hora !== undefined) {
+    const ultimo = ultimoEventoMs(c.farmacos, clave)
+    if (ultimo !== null && Date.parse(hora) <= ultimo) return {}
+  }
   const registro: RegistroFarmaco = {
     id: crypto.randomUUID(),
-    hora: new Date().toISOString(),
+    hora: hora ?? new Date().toISOString(),
     farmacoId: activa.farmacoId,
     nombre: activa.nombre,
     modo: activa.modo,
@@ -200,6 +211,13 @@ export function finalizarInfusion(c: CasoAnestesico, clave: string): Partial<Cas
     via: activa.via,
   }
   return { farmacos: [...c.farmacos, registro] }
+}
+
+// Agrega un registro sin pasar por el carrito (panel del gráfico). El evento (inicio/cambio) sale de la línea de tiempo.
+export function agregarRegistroDesdeItem(c: CasoAnestesico, item: ItemCarrito, hora: string): Partial<CasoAnestesico> {
+  if (!itemListo(item)) return {}
+  const registro = registroDesdeItem(item, hora, c.farmacos)
+  return registro ? { farmacos: [...c.farmacos, registro] } : {}
 }
 
 export function alternarFarmacoEnCarrito(c: CasoAnestesico, def: FarmacoDef): Partial<CasoAnestesico> {

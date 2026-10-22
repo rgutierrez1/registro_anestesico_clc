@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import type { FarmacoDef } from '../data/catalogoFarmacos'
+import { CATALOGO_FARMACOS, CATEGORIAS_FARMACO } from '../data/catalogoFarmacos'
 import { PACKS_FARMACOS } from '../data/packsFarmacos'
 import type { CasoAnestesico, ItemCarrito } from '../types'
 import {
   agregarFarmacoAlCarrito,
+  agregarRegistroDesdeItem,
   alternarFarmacoEnCarrito,
   aplicarPack,
   cambiarHoraRegistro,
@@ -13,12 +15,13 @@ import {
   infusionesActivas,
   registrarItems,
 } from '../utils/farmacos'
+import { AgregarEnGrafico } from './farmacos/AgregarEnGrafico'
 import { Carrito } from './farmacos/Carrito'
 import { Catalogo } from './farmacos/Catalogo'
 import { EditorHoraFarmaco } from './farmacos/EditorHoraFarmaco'
 import { HistorialFarmacos } from './farmacos/HistorialFarmacos'
 import { InfusionesActivas } from './farmacos/InfusionesActivas'
-import { LineaTiempoFarmacos } from './farmacos/LineaTiempoFarmacos'
+import { LineaTiempoFarmacos, type DestinoAgregar } from './farmacos/LineaTiempoFarmacos'
 import { Field, Section, Select } from './ui'
 
 export function FarmacosSection({
@@ -30,6 +33,7 @@ export function FarmacosSection({
 }) {
   const activas = useMemo(() => infusionesActivas(caso.farmacos), [caso.farmacos])
   const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [agregando, setAgregando] = useState<DestinoAgregar | null>(null)
   const registroEditando = caso.farmacos.find((f) => f.id === editandoId)
   const enCarrito = useMemo(() => new Set(caso.carritoFarmacos.map((i) => i.farmacoId)), [caso.carritoFarmacos])
 
@@ -81,31 +85,82 @@ export function FarmacosSection({
         />
       </div>
 
-      {caso.farmacos.length > 0 && (
-        <div className="mt-5">
-          <h3 className="mb-2 text-sm font-semibold text-slate-700">Registro gráfico de fármacos</h3>
-          <LineaTiempoFarmacos
-            registros={caso.farmacos}
-            inicio={caso.horaInicioAnestesia}
-            fin={caso.horaFinAnestesia}
-            onCambiarHora={(id, hora) => onActualizar((c) => cambiarHoraRegistro(c, id, hora))}
-            onSeleccionar={setEditandoId}
-            seleccionadoId={editandoId}
-          />
-          {registroEditando && (
-            <EditorHoraFarmaco
-              key={registroEditando.id}
-              registro={registroEditando}
-              registros={caso.farmacos}
-              onGuardar={(hora) => {
-                onActualizar((c) => cambiarHoraRegistro(c, registroEditando.id, hora))
-                setEditandoId(null)
-              }}
-              onCerrar={() => setEditandoId(null)}
-            />
-          )}
+      <div className="mt-5">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold text-slate-700">Registro gráfico de fármacos</h3>
+          <Select
+            value=""
+            aria-label="Agregar fármaco en el gráfico"
+            className="max-w-[260px]"
+            onChange={(e) => {
+              const def = CATALOGO_FARMACOS.find((f) => f.id === e.target.value)
+              if (!def) return
+              setEditandoId(null)
+              setAgregando({ farmacoId: def.id, nombre: def.nombre, t: Date.now() })
+            }}
+          >
+            <option value="">+ Fármaco en el gráfico…</option>
+            {CATEGORIAS_FARMACO.map((categoria) => (
+              <optgroup key={categoria} label={categoria}>
+                {CATALOGO_FARMACOS.filter((f) => f.categoria === categoria).map((f) => (
+                  <option key={f.id} value={f.id}>
+                    {f.etiqueta}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </Select>
         </div>
-      )}
+        {caso.farmacos.length === 0 && !agregando && (
+          <p className="rounded-lg border border-dashed border-slate-300 py-5 text-center text-sm text-slate-400">
+            Todavía no hay fármacos registrados. Elegí uno arriba para agregarlo directamente en el gráfico.
+          </p>
+        )}
+        <LineaTiempoFarmacos
+          registros={caso.farmacos}
+          inicio={caso.horaInicioAnestesia}
+          fin={caso.horaFinAnestesia}
+          onCambiarHora={(id, hora) => onActualizar((c) => cambiarHoraRegistro(c, id, hora))}
+          onSeleccionar={(id) => {
+            setAgregando(null)
+            setEditandoId(id)
+          }}
+          seleccionadoId={editandoId}
+          onAgregarEn={(fila, t) => {
+            setEditandoId(null)
+            setAgregando({ ...fila, t })
+          }}
+          agregando={agregando}
+        />
+        {agregando && (
+          <AgregarEnGrafico
+            key={`${agregando.farmacoId}:${agregando.nombre}:${agregando.t}`}
+            destino={agregando}
+            caso={caso}
+            onAgregar={(item, hora) => {
+              onActualizar((c) => agregarRegistroDesdeItem(c, item, hora))
+              setAgregando(null)
+            }}
+            onFinalizar={(clave, hora) => {
+              onActualizar((c) => finalizarInfusion(c, clave, hora))
+              setAgregando(null)
+            }}
+            onCerrar={() => setAgregando(null)}
+          />
+        )}
+        {registroEditando && (
+          <EditorHoraFarmaco
+            key={registroEditando.id}
+            registro={registroEditando}
+            registros={caso.farmacos}
+            onGuardar={(hora) => {
+              onActualizar((c) => cambiarHoraRegistro(c, registroEditando.id, hora))
+              setEditandoId(null)
+            }}
+            onCerrar={() => setEditandoId(null)}
+          />
+        )}
+      </div>
 
       <div className="mt-5">
         <h3 className="mb-2 text-sm font-semibold text-slate-700">Historial</h3>

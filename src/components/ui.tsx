@@ -87,16 +87,16 @@ export function Field({
 const inputClasses =
   'rounded-lg border border-slate-300 px-3 py-3 text-base focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-200 min-h-[44px]'
 
-export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={inputClasses} {...props} />
+export function Input({ className = '', ...props }: InputHTMLAttributes<HTMLInputElement>) {
+  return <input className={`${inputClasses} ${className}`} {...props} />
 }
 
-export function TextArea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
-  return <textarea className={inputClasses} {...props} />
+export function TextArea({ className = '', ...props }: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return <textarea className={`${inputClasses} ${className}`} {...props} />
 }
 
-export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={inputClasses} {...props} />
+export function Select({ className = '', ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
+  return <select className={`${inputClasses} ${className}`} {...props} />
 }
 
 export function Pill({
