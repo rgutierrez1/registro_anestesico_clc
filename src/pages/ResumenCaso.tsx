@@ -125,6 +125,7 @@ export default function ResumenCaso() {
             serie={serieVitales(caso.signosVitales, Date.parse(caso.horaFinAnestesia ?? new Date().toISOString()))}
             inicio={caso.horaInicioAnestesia}
             hitos={hitosDelCaso(caso)}
+            controles={false}
           />
         </SeccionResumen>
 
