@@ -91,11 +91,37 @@ export function infusionesActivas(registros: RegistroFarmaco[]): InfusionActiva[
   return [...activas.values()]
 }
 
-function registroDesdeItem(
-  item: ItemCarrito,
-  hora: string,
-  activas: Set<string>,
-): RegistroFarmaco | null {
+export function infusionActivaEn(registros: RegistroFarmaco[], clave: string, tMs: number): boolean {
+  const eventos = registros
+    .filter((r) => r.evento !== 'bolo' && claveFarmaco(r.farmacoId, r.nombre) === clave && Date.parse(r.hora) <= tMs)
+    .sort((a, b) => a.hora.localeCompare(b.hora))
+  const ultimo = eventos[eventos.length - 1]
+  return ultimo !== undefined && ultimo.evento !== 'fin'
+}
+
+// Un inicio/cambio/fin no puede cruzar a sus eventos vecinos del mismo fármaco; los bolos no tienen límites.
+export function limitesHora(registros: RegistroFarmaco[], id: string): { min: number | null; max: number | null } {
+  const r = registros.find((x) => x.id === id)
+  if (!r || r.evento === 'bolo') return { min: null, max: null }
+  const clave = claveFarmaco(r.farmacoId, r.nombre)
+  const hermanos = registros
+    .filter((x) => x.evento !== 'bolo' && claveFarmaco(x.farmacoId, x.nombre) === clave)
+    .sort((a, b) => a.hora.localeCompare(b.hora))
+  const i = hermanos.findIndex((x) => x.id === id)
+  return {
+    min: i > 0 ? Date.parse(hermanos[i - 1].hora) : null,
+    max: i < hermanos.length - 1 ? Date.parse(hermanos[i + 1].hora) : null,
+  }
+}
+
+export function cambiarHoraRegistro(c: CasoAnestesico, id: string, hora: string): Partial<CasoAnestesico> {
+  const t = Date.parse(hora)
+  const { min, max } = limitesHora(c.farmacos, id)
+  if (Number.isNaN(t) || (min !== null && t <= min) || (max !== null && t >= max)) return {}
+  return { farmacos: c.farmacos.map((r) => (r.id === id ? { ...r, hora } : r)) }
+}
+
+function registroDesdeItem(item: ItemCarrito, hora: string, previos: RegistroFarmaco[]): RegistroFarmaco | null {
   const valor = valorItem(item)
   if (valor === null) return null
   if (item.farmacoId === ID_PERSONALIZADO) {
@@ -114,7 +140,8 @@ function registroDesdeItem(
   const def = obtenerFarmaco(item.farmacoId)
   if (!def) return null
   const presentacion = def.presentaciones?.find((p) => p.id === item.presentacionId)
-  const evento = def.administracion === 'bolo' ? 'bolo' : activas.has(def.id) ? 'cambio' : 'inicio'
+  const evento =
+    def.administracion === 'bolo' ? 'bolo' : infusionActivaEn(previos, def.id, Date.parse(hora)) ? 'cambio' : 'inicio'
   return {
     id: crypto.randomUUID(),
     hora,
@@ -128,19 +155,15 @@ function registroDesdeItem(
   }
 }
 
-export function registrarItems(c: CasoAnestesico, ids: string[]): Partial<CasoAnestesico> {
-  const hora = new Date().toISOString()
-  const activas = new Set(infusionesActivas(c.farmacos).map((a) => a.clave))
+export function registrarItems(c: CasoAnestesico, ids: string[], hora?: string): Partial<CasoAnestesico> {
+  const horaIso = hora ?? new Date().toISOString()
   const nuevos: RegistroFarmaco[] = []
   const restantes: ItemCarrito[] = []
   for (const item of c.carritoFarmacos) {
-    const registro = ids.includes(item.id) && itemListo(item) ? registroDesdeItem(item, hora, activas) : null
-    if (!registro) {
-      restantes.push(item)
-      continue
-    }
-    nuevos.push(registro)
-    if (registro.evento === 'inicio') activas.add(claveFarmaco(registro.farmacoId, registro.nombre))
+    const registro =
+      ids.includes(item.id) && itemListo(item) ? registroDesdeItem(item, horaIso, [...c.farmacos, ...nuevos]) : null
+    if (registro) nuevos.push(registro)
+    else restantes.push(item)
   }
   return { carritoFarmacos: restantes, farmacos: [...c.farmacos, ...nuevos] }
 }

@@ -1,7 +1,8 @@
+import { useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { indiceCatalogo, obtenerFarmaco } from '../../data/catalogoFarmacos'
 import type { RegistroFarmaco } from '../../types'
 import { formatDosis } from '../../utils/dosis'
-import { claveFarmaco } from '../../utils/farmacos'
+import { claveFarmaco, limitesHora } from '../../utils/farmacos'
 import { formatHora } from '../../utils/tiempo'
 import { useAhora } from '../../utils/useAhora'
 
@@ -16,6 +17,7 @@ const MIN = 60000
 
 const COLOR_BOLO = '#0284c7'
 const COLOR_CONTINUO = '#059669'
+const COLOR_EDICION = '#d97706'
 
 interface Fila {
   clave: string
@@ -26,21 +28,65 @@ interface Fila {
   orden: number
 }
 
+interface Arrastre {
+  id: string
+  x0: number
+  movido: boolean
+  t: number
+  lo: number
+  hi: number
+}
+
+interface Vista {
+  base: RegistroFarmaco[]
+  id: string
+  t: number
+}
+
+type Manejadores = {
+  onPointerDown: (e: ReactPointerEvent<SVGGElement>) => void
+  onPointerMove: (e: ReactPointerEvent<SVGGElement>) => void
+  onPointerUp: () => void
+  onPointerCancel: () => void
+}
+
+const estiloInteractivo = { touchAction: 'none', cursor: 'ew-resize' } as const
+
 export function LineaTiempoFarmacos({
   registros,
   inicio,
   fin,
+  onCambiarHora,
+  onSeleccionar,
+  seleccionadoId = null,
 }: {
   registros: RegistroFarmaco[]
   inicio: string | null
   fin: string | null
+  onCambiarHora?: (id: string, hora: string) => void
+  onSeleccionar?: (id: string) => void
+  seleccionadoId?: string | null
 }) {
   const ahora = useAhora(30000)
+  const svgRef = useRef<SVGSVGElement>(null)
+  const arrastre = useRef<Arrastre | null>(null)
+  const [vista, setVista] = useState<Vista | null>(null)
   if (registros.length === 0) return null
 
-  const ordenados = [...registros].sort((a, b) => a.hora.localeCompare(b.hora))
+  const tiempos = registros.map((r) => Date.parse(r.hora)).sort((a, b) => a - b)
+  const t0 = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0])
+  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1])
+  const tEnd = Math.max(tFinal, t0 + 10 * MIN)
+  const x = (t: number) => ANCHO_ETIQUETA + ((t - t0) / (tEnd - t0)) * ANCHO_GRAFICO
+
+  // Mientras se arrastra se muestra la hora provisoria, con la escala del gráfico congelada.
+  const previa = vista && vista.base === registros ? vista : null
+  const efectivos = previa
+    ? registros.map((r) => (r.id === previa.id ? { ...r, hora: new Date(previa.t).toISOString() } : r))
+    : registros
+
   const grupos = new Map<string, RegistroFarmaco[]>()
-  for (const r of ordenados) {
+  for (const r of [...efectivos].sort((a, b) => a.hora.localeCompare(b.hora))) {
     const clave = claveFarmaco(r.farmacoId, r.nombre)
     grupos.set(clave, [...(grupos.get(clave) ?? []), r])
   }
@@ -55,12 +101,6 @@ export function LineaTiempoFarmacos({
     }))
     .sort((a, b) => a.orden - b.orden)
 
-  const tiempos = ordenados.map((r) => Date.parse(r.hora))
-  const t0 = Math.min(inicio ? Date.parse(inicio) : Infinity, tiempos[0])
-  const tFinal = Math.max(fin ? Date.parse(fin) : ahora, tiempos[tiempos.length - 1])
-  const tEnd = Math.max(tFinal, t0 + 10 * MIN)
-  const x = (t: number) => ANCHO_ETIQUETA + ((t - t0) / (tEnd - t0)) * ANCHO_GRAFICO
-
   const spanMin = (tEnd - t0) / MIN
   const paso = [5, 10, 15, 30, 60, 120].find((p) => spanMin / p <= 8) ?? 120
   const marcas: number[] = []
@@ -70,9 +110,51 @@ export function LineaTiempoFarmacos({
   const altoTotal = altos.reduce((s, a) => s + a, 0) + ALTO_EJE
   const tops = altos.map((_, i) => altos.slice(0, i).reduce((s, a) => s + a, 0))
 
+  const manejadores = onCambiarHora
+    ? (r: RegistroFarmaco): Manejadores => ({
+        onPointerDown: (e) => {
+          e.currentTarget.setPointerCapture(e.pointerId)
+          const lim = limitesHora(registros, r.id)
+          const original = registros.find((o) => o.id === r.id) ?? r
+          arrastre.current = {
+            id: r.id,
+            x0: e.clientX,
+            movido: false,
+            t: Date.parse(original.hora),
+            lo: Math.max(t0, lim.min !== null ? lim.min + MIN : t0),
+            hi: Math.min(tEnd, lim.max !== null ? lim.max - MIN : tEnd),
+          }
+        },
+        onPointerMove: (e) => {
+          const a = arrastre.current
+          const svg = svgRef.current
+          if (!a || a.id !== r.id || !svg || a.lo > a.hi) return
+          if (!a.movido && Math.abs(e.clientX - a.x0) < 4) return
+          a.movido = true
+          const rect = svg.getBoundingClientRect()
+          const sx = ((e.clientX - rect.left) / rect.width) * ANCHO
+          const bruto = t0 + ((sx - ANCHO_ETIQUETA) / ANCHO_GRAFICO) * (tEnd - t0)
+          a.t = Math.min(a.hi, Math.max(a.lo, Math.round(bruto / MIN) * MIN))
+          setVista({ base: registros, id: r.id, t: a.t })
+        },
+        onPointerUp: () => {
+          const a = arrastre.current
+          arrastre.current = null
+          if (!a || a.id !== r.id) return
+          if (a.movido) onCambiarHora(r.id, new Date(a.t).toISOString())
+          else onSeleccionar?.(r.id)
+        },
+        onPointerCancel: () => {
+          arrastre.current = null
+          setVista(null)
+        },
+      })
+    : undefined
+
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${ANCHO} ${altoTotal}`}
         className="block w-full min-w-[600px]"
         role="img"
@@ -103,24 +185,73 @@ export function LineaTiempoFarmacos({
                 </text>
               )}
               {fila.continuo ? (
-                <FilaContinua fila={fila} top={top} alto={alto} x={x} tFinal={tFinal} />
+                <FilaContinua
+                  fila={fila}
+                  top={top}
+                  alto={alto}
+                  x={x}
+                  tFinal={tFinal}
+                  manejadores={manejadores}
+                  seleccionadoId={seleccionadoId}
+                />
               ) : (
-                <FilaBolos fila={fila} top={top} alto={alto} x={x} />
+                <FilaBolos
+                  fila={fila}
+                  top={top}
+                  alto={alto}
+                  x={x}
+                  manejadores={manejadores}
+                  seleccionadoId={seleccionadoId}
+                />
               )}
             </g>
           )
         })}
+
+        {previa && (
+          <g pointerEvents="none">
+            <line
+              x1={x(previa.t)}
+              x2={x(previa.t)}
+              y1={0}
+              y2={altoTotal - ALTO_EJE}
+              stroke={COLOR_EDICION}
+              strokeDasharray="4 3"
+              strokeWidth={1.5}
+            />
+            <text
+              x={x(previa.t)}
+              y={altoTotal - 9}
+              fontSize={11}
+              fontWeight={700}
+              fill={COLOR_EDICION}
+              textAnchor="middle"
+              stroke="#fff"
+              strokeWidth={4}
+              paintOrder="stroke"
+            >
+              {formatHora(new Date(previa.t).toISOString())}
+            </text>
+          </g>
+        )}
       </svg>
-      <div className="flex flex-wrap gap-4 border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-slate-200 px-3 py-2 text-xs text-slate-600">
         <span>
           <span style={{ color: COLOR_BOLO }}>●</span> Bolo
         </span>
         <span>
           <span style={{ color: COLOR_CONTINUO }}>▬</span> TCI / infusión / inhalatoria (escalón = cambio de dosis)
         </span>
+        {manejadores && (
+          <span className="text-slate-500">Arrastrá un punto para cambiar su hora, o tocalo para escribirla.</span>
+        )}
       </div>
     </div>
   )
+}
+
+function Seleccion({ cx, cy }: { cx: number; cy: number }) {
+  return <circle cx={cx} cy={cy} r={10} fill="none" stroke={COLOR_EDICION} strokeWidth={2.5} />
 }
 
 function FilaBolos({
@@ -128,23 +259,32 @@ function FilaBolos({
   top,
   alto,
   x,
+  manejadores,
+  seleccionadoId,
 }: {
   fila: Fila
   top: number
   alto: number
   x: (t: number) => number
+  manejadores?: (r: RegistroFarmaco) => Manejadores
+  seleccionadoId: string | null
 }) {
   const cy = top + alto / 2 + 7
   return (
     <>
-      {fila.registros.map((r) => (
-        <g key={r.id}>
-          <circle cx={x(Date.parse(r.hora))} cy={cy} r={5} fill={COLOR_BOLO} />
-          <text x={x(Date.parse(r.hora))} y={cy - 9} fontSize={10} fill="#334155" textAnchor="middle">
-            {r.dosisTexto ?? formatDosis(r.valor, r.unidad)}
-          </text>
-        </g>
-      ))}
+      {fila.registros.map((r) => {
+        const cx = x(Date.parse(r.hora))
+        return (
+          <g key={r.id} {...manejadores?.(r)} style={manejadores ? estiloInteractivo : undefined}>
+            {manejadores && <circle cx={cx} cy={cy} r={15} fill="transparent" />}
+            {seleccionadoId === r.id && <Seleccion cx={cx} cy={cy} />}
+            <circle cx={cx} cy={cy} r={5} fill={COLOR_BOLO} />
+            <text x={cx} y={cy - 9} fontSize={10} fill="#334155" textAnchor="middle" pointerEvents="none">
+              {r.dosisTexto ?? formatDosis(r.valor, r.unidad)}
+            </text>
+          </g>
+        )
+      })}
     </>
   )
 }
@@ -155,12 +295,16 @@ function FilaContinua({
   alto,
   x,
   tFinal,
+  manejadores,
+  seleccionadoId,
 }: {
   fila: Fila
   top: number
   alto: number
   x: (t: number) => number
   tFinal: number
+  manejadores?: (r: RegistroFarmaco) => Manejadores
+  seleccionadoId: string | null
 }) {
   const base = top + alto - 8
   const cima = top + 20
@@ -171,17 +315,19 @@ function FilaContinua({
 
   let d = ''
   let abierto = false
-  const etiquetas: { x: number; y: number; texto: string; id: string }[] = []
+  let yActual = base
+  const puntos: { r: RegistroFarmaco; x: number; y: number; texto: string | null }[] = []
   for (const r of fila.registros) {
     const xr = x(Date.parse(r.hora))
     if (r.evento === 'fin') {
       if (abierto) d += ` H ${xr} V ${base}`
+      puntos.push({ r, x: xr, y: abierto ? (yActual + base) / 2 : base, texto: null })
       abierto = false
     } else if (r.evento === 'inicio' || r.evento === 'cambio') {
-      const y = nivel(r.valor ?? 0)
-      d += abierto ? ` H ${xr} V ${y}` : ` M ${xr} ${base} V ${y}`
+      yActual = nivel(r.valor ?? 0)
+      d += abierto ? ` H ${xr} V ${yActual}` : ` M ${xr} ${base} V ${yActual}`
       abierto = true
-      etiquetas.push({ x: xr, y, texto: formatDosis(r.valor, r.unidad), id: r.id })
+      puntos.push({ r, x: xr, y: yActual, texto: formatDosis(r.valor, r.unidad) })
     }
   }
   if (abierto) d += ` H ${x(tFinal)}`
@@ -189,17 +335,19 @@ function FilaContinua({
   return (
     <>
       <path d={d.trim()} fill="none" stroke={COLOR_CONTINUO} strokeWidth={2.5} strokeLinejoin="round" />
-      {abierto && <circle cx={x(tFinal)} cy={nivelFinal(fila, nivel)} r={4} fill={COLOR_CONTINUO} />}
-      {etiquetas.map((e) => (
-        <text key={e.id} x={e.x + 3} y={e.y - 5} fontSize={10} fill="#334155">
-          {e.texto}
-        </text>
+      {abierto && <circle cx={x(tFinal)} cy={yActual} r={4} fill={COLOR_CONTINUO} />}
+      {puntos.map(({ r, x: px, y, texto }) => (
+        <g key={r.id} {...manejadores?.(r)} style={manejadores ? estiloInteractivo : undefined}>
+          {manejadores && <circle cx={px} cy={y} r={13} fill="transparent" />}
+          {seleccionadoId === r.id && <Seleccion cx={px} cy={y} />}
+          {manejadores && <circle cx={px} cy={y} r={4.5} fill="#fff" stroke={COLOR_CONTINUO} strokeWidth={2} />}
+          {texto && (
+            <text x={px + 6} y={y - 6} fontSize={10} fill="#334155" pointerEvents="none">
+              {texto}
+            </text>
+          )}
+        </g>
       ))}
     </>
   )
-}
-
-function nivelFinal(fila: Fila, nivel: (v: number) => number): number {
-  const ultimo = [...fila.registros].reverse().find((r) => r.evento === 'inicio' || r.evento === 'cambio')
-  return nivel(ultimo?.valor ?? 0)
 }

@@ -5,6 +5,7 @@ import type { DatosPaciente, ItemCarrito, ViaFarmaco } from '../../types'
 import { formatDosis, formatNumero, pesoParaDosificar } from '../../utils/dosis'
 import { ID_PERSONALIZADO, itemListo } from '../../utils/farmacos'
 import { Badge, Button, Field, Input, Select } from '../ui'
+import { BotonesAgregar } from './BotonesAgregar'
 import { TIPO_DRAG_FARMACO } from './Catalogo'
 
 export function Carrito({
@@ -21,7 +22,7 @@ export function Carrito({
   paciente: DatosPaciente
   onCambiar: (item: ItemCarrito) => void
   onQuitar: (id: string) => void
-  onRegistrar: (ids: string[]) => void
+  onRegistrar: (ids: string[], hora?: string) => void
   onVaciar: () => void
   onSoltar: (def: FarmacoDef) => void
   onAgregarPersonalizado: () => void
@@ -68,20 +69,26 @@ export function Carrito({
           paciente={paciente}
           onCambiar={onCambiar}
           onQuitar={() => onQuitar(item.id)}
-          onRegistrar={() => onRegistrar([item.id])}
+          onRegistrar={(hora) => onRegistrar([item.id], hora)}
         />
       ))}
 
-      <div className="flex flex-wrap gap-2">
+      <div>
         <Button variant="secondary" size="sm" onClick={onAgregarPersonalizado}>
           + Fármaco no listado
         </Button>
-        {listos.length > 0 && (
-          <Button size="sm" className="ml-auto" onClick={() => onRegistrar(listos.map((i) => i.id))}>
-            Registrar todos ahora ({listos.length})
-          </Button>
-        )}
       </div>
+
+      {listos.length > 1 && (
+        <div className="border-t border-slate-200 pt-3">
+          <BotonesAgregar
+            listo
+            etiquetaAhora={`Agregar todos ahora (${listos.length})`}
+            etiquetaPersonalizada="Agregar todos a hora personalizada"
+            onAgregar={(hora) => onRegistrar(listos.map((i) => i.id), hora)}
+          />
+        </div>
+      )}
     </div>
   )
 }
@@ -97,7 +104,7 @@ function FilaCarrito({
   paciente: DatosPaciente
   onCambiar: (item: ItemCarrito) => void
   onQuitar: () => void
-  onRegistrar: () => void
+  onRegistrar: (hora?: string) => void
 }) {
   const def = obtenerFarmaco(item.farmacoId)
   const personalizado = item.farmacoId === ID_PERSONALIZADO
@@ -187,10 +194,13 @@ function FilaCarrito({
 
       {def?.dosisPorKg && <SugerenciaPeso def={def} paciente={paciente} />}
 
-      <div className="mt-3 flex justify-end">
-        <Button size="sm" disabled={!listo} onClick={onRegistrar}>
-          {continuo ? 'Iniciar ahora' : 'Registrar ahora'}
-        </Button>
+      <div className="mt-3">
+        <BotonesAgregar
+          listo={listo}
+          etiquetaAhora={continuo ? 'Iniciar ahora' : 'Agregar ahora'}
+          etiquetaPersonalizada={continuo ? 'Iniciar a hora personalizada' : 'Agregar a hora personalizada'}
+          onAgregar={onRegistrar}
+        />
       </div>
     </div>
   )
