@@ -3,7 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { LineaTiempoFarmacos } from '../components/farmacos/LineaTiempoFarmacos'
 import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
+import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
 import { db } from '../db'
+import type { CasoAnestesico } from '../types'
 import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
 import { hitosDelCaso } from '../utils/hitos'
@@ -91,6 +93,16 @@ export default function ResumenCaso() {
           <Dato label="Monitorización" valor={caso.monitorizacion.join(', ')} full />
         </SeccionResumen>
 
+        <SeccionResumen titulo="Checklist de seguridad">
+          <ul className="grid grid-cols-1 gap-x-4 gap-y-1 text-sm text-slate-700 sm:grid-cols-2">
+            {CHECKLIST_SEGURIDAD.map((item) => (
+              <li key={item.id}>
+                {caso.checklist.includes(item.id) ? '☑' : '☐'} {item.etiqueta}
+              </li>
+            ))}
+          </ul>
+        </SeccionResumen>
+
         {(caso.manejoViaAerea.tipo || caso.manejoViaAerea.dispositivosAdicionales.length > 0) && (
           <SeccionResumen titulo="Vía aérea">
             <Grid>
@@ -100,7 +112,7 @@ export default function ResumenCaso() {
               <Dato label="Tamaño de la máscara" valor={caso.manejoViaAerea.tamanoMascara} />
               <Dato
                 label="Dispositivos adicionales"
-                valor={caso.manejoViaAerea.dispositivosAdicionales.join(', ')}
+                valor={caso.manejoViaAerea.dispositivosAdicionales.map(describirDispositivo(caso.manejoViaAerea)).join(', ')}
               />
             </Grid>
           </SeccionResumen>
@@ -191,6 +203,15 @@ export default function ResumenCaso() {
       </Card>
     </div>
   )
+}
+
+function describirDispositivo(via: CasoAnestesico['manejoViaAerea']) {
+  return (d: string) => {
+    if (d !== TUBO_DOBLE_LUMEN) return d
+    const { numero, lado } = via.tuboDobleLumen
+    const detalle = [numero && `N° ${numero}`, lado && lado.toLowerCase()].filter(Boolean).join(', ')
+    return detalle ? `${d} (${detalle})` : d
+  }
 }
 
 function SeccionResumen({ titulo, children }: { titulo: string; children: React.ReactNode }) {

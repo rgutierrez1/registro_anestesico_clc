@@ -120,6 +120,7 @@ export interface ManejoViaAerea {
   cormack: Cormack
   tamanoMascara: string
   dispositivosAdicionales: string[]
+  tuboDobleLumen: { numero: string; lado: '' | 'Derecho' | 'Izquierdo' }
 }
 
 export interface CasoAnestesico {
@@ -129,6 +130,7 @@ export interface CasoAnestesico {
   cirugia: DatosCirugia
   tiposAnestesia: TipoAnestesia[]
   monitorizacion: string[]
+  checklist: string[]
   manejoViaAerea: ManejoViaAerea
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]

@@ -1,10 +1,10 @@
 import type { Hito } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 
-export const ALTO_BANDA_HITOS = 38
+export const ALTO_BANDA_HITOS = 42
 
-const ALTO_ETIQUETA = 15
-const SEPARACION = 17
+const ALTO_ETIQUETA = 17
+const SEPARACION = 19
 
 // Se dibuja detrás de los datos: sombrea el tiempo quirúrgico y traza una línea con etiqueta por hito.
 export function MarcasHitos({
@@ -42,14 +42,14 @@ export function MarcasHitos({
       {hitos.map((h, i) => {
         const xh = x(Date.parse(h.hora))
         const texto = `${h.corta} ${formatHora(h.hora)}`
-        const ancho = texto.length * 5.3 + 12
+        const ancho = texto.length * 6.2 + 14
         const xEtiqueta = xh + ancho <= xMax ? xh : xh - ancho
         const yEtiqueta = yTop + 2 + (i % 2) * SEPARACION
         return (
           <g key={h.clave}>
             <line x1={xh} x2={xh} y1={yEtiqueta + ALTO_ETIQUETA} y2={yBottom} stroke={h.color} strokeWidth={1.5} opacity={0.75} />
             <rect x={xEtiqueta} y={yEtiqueta} width={ancho} height={ALTO_ETIQUETA} rx={4} fill={h.color} />
-            <text x={xEtiqueta + 6} y={yEtiqueta + 11} fontSize={9.5} fontWeight={600} fill="#fff">
+            <text x={xEtiqueta + 7} y={yEtiqueta + 12.5} fontSize={11} fontWeight={600} fill="#fff">
               {texto}
             </text>
           </g>

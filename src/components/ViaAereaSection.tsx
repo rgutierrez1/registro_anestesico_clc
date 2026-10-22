@@ -1,5 +1,8 @@
 import {
   DISPOSITIVOS_VIA_AEREA,
+  LADOS_TUBO_DOBLE_LUMEN,
+  NUMEROS_TUBO_DOBLE_LUMEN,
+  TUBO_DOBLE_LUMEN,
   GRADOS_CORMACK,
   TAMANOS_MASCARA_LARINGEA,
   TAMANOS_TUBO,
@@ -24,9 +27,11 @@ export function ViaAereaSection({
 
   function toggleDispositivo(d: string) {
     const actuales = valor.dispositivosAdicionales
+    const quitar = actuales.includes(d)
     onChange({
       ...valor,
-      dispositivosAdicionales: actuales.includes(d) ? actuales.filter((x) => x !== d) : [...actuales, d],
+      dispositivosAdicionales: quitar ? actuales.filter((x) => x !== d) : [...actuales, d],
+      tuboDobleLumen: quitar && d === TUBO_DOBLE_LUMEN ? { numero: '', lado: '' } : valor.tuboDobleLumen,
     })
   }
 
@@ -95,6 +100,41 @@ export function ViaAereaSection({
             </Pill>
           ))}
         </div>
+        {valor.dispositivosAdicionales.includes(TUBO_DOBLE_LUMEN) && (
+          <div className="mt-3 grid grid-cols-1 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2">
+            <Field label="Tubo doble lumen: número">
+              <Select
+                value={valor.tuboDobleLumen.numero}
+                onChange={(e) => onChange({ ...valor, tuboDobleLumen: { ...valor.tuboDobleLumen, numero: e.target.value } })}
+              >
+                <option value="">Seleccionar…</option>
+                {NUMEROS_TUBO_DOBLE_LUMEN.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Tubo doble lumen: lado">
+              <Select
+                value={valor.tuboDobleLumen.lado}
+                onChange={(e) =>
+                  onChange({
+                    ...valor,
+                    tuboDobleLumen: { ...valor.tuboDobleLumen, lado: e.target.value as ManejoViaAerea['tuboDobleLumen']['lado'] },
+                  })
+                }
+              >
+                <option value="">Seleccionar…</option>
+                {LADOS_TUBO_DOBLE_LUMEN.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          </div>
+        )}
       </div>
     </Section>
   )

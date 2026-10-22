@@ -1,4 +1,5 @@
 import type { CasoAnestesico } from '../types'
+import { formatHora } from './tiempo'
 
 export type ClaveHito = 'inicioAnestesia' | 'inicioCirugia' | 'finCirugia' | 'finAnestesia'
 
@@ -54,8 +55,9 @@ export function errorHito(c: TiemposHitos, clave: ClaveHito, iso: string): strin
   if (t > Date.now() + 60000) return 'La hora no puede ser posterior a la hora actual.'
   if (clave === 'inicioCirugia' && !c.horaInicioAnestesia) return 'Registrá primero el inicio de anestesia.'
   if (clave === 'finCirugia' && !c.horaInicioCirugia) return 'Registrá primero el inicio de cirugía.'
+  if (clave === 'finAnestesia' && !c.horaInicioAnestesia) return 'Registrá primero el inicio de anestesia.'
   const { min, max } = limitesHito(c, clave)
-  const fmt = (ms: number) => new Date(ms).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  const fmt = (ms: number) => formatHora(new Date(ms).toISOString())
   if (min !== null && t < min) return `No puede ser anterior a las ${fmt(min)} (hito previo).`
   if (max !== null && t > max) return `No puede ser posterior a las ${fmt(max)} (hito siguiente).`
   return null

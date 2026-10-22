@@ -219,7 +219,7 @@ function EditorRegistro({
   return (
     <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
       <p className="mb-2 text-sm font-semibold text-amber-900">
-        Editar registro de las {formatHora(registro.hora)} ({esCopia(registro) ? 'copia automática' : 'registrado'})
+        Editar registro de las {formatHora(registro.hora)}
       </p>
       <FormularioVitales
         inicial={valoresDe(registro)}
@@ -270,7 +270,7 @@ function TablaVitales({
             >
               <td className="px-2 py-2 font-medium text-slate-700">{formatHora(r.hora)}</td>
               {(['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2', 'temp'] as const).map((c) => (
-                <td key={c} className={`px-2 py-2 text-right ${esCopia(r) ? 'text-slate-400' : 'text-slate-800'}`}>
+                <td key={c} className="px-2 py-2 text-right text-slate-800">
                   {c === 'temp' ? formatTemp(r[c]) : (r[c] ?? '—')}
                 </td>
               ))}

@@ -205,7 +205,7 @@ export function LineaTiempoFarmacos({
         {marcas.map((t) => (
           <g key={t}>
             <line x1={x(t)} x2={x(t)} y1={desfase} y2={altoTotal - ALTO_EJE} stroke="#e2e8f0" />
-            <text x={x(t)} y={altoTotal - 9} fontSize={10} fill="#94a3b8" textAnchor="middle">
+            <text x={x(t)} y={altoTotal - 8} fontSize={12} fontWeight={700} fill="#334155" textAnchor="middle">
               {formatHora(new Date(t).toISOString())}
             </text>
           </g>

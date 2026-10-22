@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { RegistroVital, ValoresVitales } from '../types'
 import type { Hito } from '../utils/hitos'
-import { calcularPam, esCopia, formatTemp, valoresDe } from '../utils/vitales'
+import { formatHora } from '../utils/tiempo'
+import { calcularPam, formatTemp, valoresDe } from '../utils/vitales'
 import { ALTO_BANDA_HITOS, MarcasHitos } from './MarcasHitos'
 
 const ALTO = 260
@@ -147,7 +148,7 @@ export function VitalesChart({
   const x = (hora: string) => xTiempo(Date.parse(hora))
   const y = (valor: number) => yCero - (Math.min(Math.max(valor, 0), ESCALA_MAX) / ESCALA_MAX) * altoInterior
 
-  const cadaTiempo = Math.max(1, Math.ceil(64 / pxPor5))
+  const cadaTiempo = Math.max(1, Math.ceil(46 / pxPor5))
   const cadaTira = Math.max(1, Math.ceil(26 / pxPor5))
   const ultimo = visibles.length - 1
   const mostrarCada = (i: number, k: number) => i % k === 0 || i === ultimo
@@ -303,23 +304,23 @@ export function VitalesChart({
                   />
                 )}
                 {mostrarCada(i, cadaTiempo) && (
-                  <text x={x(r.hora)} y={ALTO + desfase - 8} fontSize={9} fontWeight={600} fill="#64748b" textAnchor="middle" pointerEvents="none">
-                    {new Date(r.hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
+                  <text x={x(r.hora)} y={ALTO + desfase - 8} fontSize={12} fontWeight={700} fill="#334155" textAnchor="middle" pointerEvents="none">
+                    {formatHora(r.hora)}
                   </text>
                 )}
               </g>
             ))}
 
             <path d={trazo('pam')} fill="none" stroke={COLOR_PAM} strokeWidth={1.25} strokeDasharray="3 3" />
-            <path d={trazo('pas')} fill="none" stroke={COLOR_PA} strokeWidth={1.5} opacity={0.7} />
-            <path d={trazo('pad')} fill="none" stroke={COLOR_PA} strokeWidth={1.5} strokeDasharray="4 3" opacity={0.7} />
+            <path d={trazo('pas')} fill="none" stroke={COLOR_PA} strokeWidth={2} />
+            <path d={trazo('pad')} fill="none" stroke={COLOR_PA} strokeWidth={2} strokeDasharray="4 3" />
             <path d={trazo('fc')} fill="none" stroke={COLOR_FC} strokeWidth={2} />
 
             {con('pam').map((r) => (
               <polygon
                 key={`pam-${r.id}`}
                 points={rombo(x(r.hora), y(r.pam as number))}
-                fill={esCopia(r) ? '#fff' : COLOR_PAM}
+                fill={COLOR_PAM}
                 stroke={COLOR_PAM}
                 strokeWidth={1.5}
                 pointerEvents="none"
@@ -328,13 +329,13 @@ export function VitalesChart({
             {con('pas').map((r) => (
               <g key={`pas-${r.id}`} {...manejadores(r, 'pas')} style={estiloArrastre}>
                 {interactivo && <circle cx={x(r.hora)} cy={y(r.pas as number) - 4} r={11} fill="transparent" />}
-                <polyline points={simboloV(x(r.hora), y(r.pas as number))} {...trazoSimbolo(esCopia(r))} />
+                <polyline points={simboloV(x(r.hora), y(r.pas as number))} {...TRAZO_SIMBOLO} />
               </g>
             ))}
             {con('pad').map((r) => (
               <g key={`pad-${r.id}`} {...manejadores(r, 'pad')} style={estiloArrastre}>
                 {interactivo && <circle cx={x(r.hora)} cy={y(r.pad as number) + 4} r={11} fill="transparent" />}
-                <polyline points={simboloVInvertida(x(r.hora), y(r.pad as number))} {...trazoSimbolo(esCopia(r))} />
+                <polyline points={simboloVInvertida(x(r.hora), y(r.pad as number))} {...TRAZO_SIMBOLO} />
               </g>
             ))}
             {con('fc').map((r) => (
@@ -344,7 +345,7 @@ export function VitalesChart({
                   cx={x(r.hora)}
                   cy={y(r.fc as number)}
                   r={4.5}
-                  fill={esCopia(r) ? '#fff' : COLOR_FC}
+                  fill={COLOR_FC}
                   stroke={COLOR_FC}
                   strokeWidth={1.5}
                 />
@@ -401,8 +402,8 @@ export function VitalesChart({
                       y={ALTO + desfase + 15 + k * 17}
                       fontSize={11}
                       textAnchor="middle"
-                      fill={esCopia(r) ? '#94a3b8' : '#1e293b'}
-                      fontWeight={esCopia(r) ? 400 : 600}
+                      fill="#1e293b"
+                      fontWeight={600}
                     >
                       {f.clave === 'temp' ? formatTemp(r.temp) : (r[f.clave] ?? '–')}
                     </text>
@@ -419,7 +420,6 @@ export function VitalesChart({
         <Leyenda color={COLOR_PA} simbolo="V" label="PAS" />
         <Leyenda color={COLOR_PA} simbolo="Λ" label="PAD" />
         <Leyenda color={COLOR_PAM} simbolo="◆" label="PAM" />
-        <span>Trazo grueso / relleno: registrado · fino / hueco: copia automática cada 5 min</span>
       </div>
     </div>
   )
@@ -445,15 +445,12 @@ function simboloVInvertida(cx: number, cy: number) {
   return `${cx - 5},${cy + 9} ${cx},${cy} ${cx + 5},${cy + 9}`
 }
 
-function trazoSimbolo(copia: boolean) {
-  return {
-    fill: 'none',
-    stroke: COLOR_PA,
-    strokeWidth: copia ? 1.6 : 2.8,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-    opacity: copia ? 0.55 : 1,
-  }
+const TRAZO_SIMBOLO = {
+  fill: 'none',
+  stroke: COLOR_PA,
+  strokeWidth: 2.8,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
 }
 
 function rombo(cx: number, cy: number) {

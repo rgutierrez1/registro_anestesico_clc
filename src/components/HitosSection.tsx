@@ -35,8 +35,7 @@ function TileHito({
   const [editando, setEditando] = useState(false)
   const [valor, setValor] = useState('')
   const [error, setError] = useState('')
-  const alFinalizar = def.clave === 'finAnestesia'
-  const sePuedeQuitar = (def.clave === 'inicioCirugia' && !caso.horaFinCirugia) || def.clave === 'finCirugia'
+  const sePuedeQuitar = def.clave !== 'inicioAnestesia' && !(def.clave === 'inicioCirugia' && caso.horaFinCirugia)
 
   function guardar(iso: string) {
     const problema = errorHito(caso, def.clave, iso)
@@ -90,11 +89,9 @@ function TileHito({
           </div>
         </div>
       ) : hora ? (
-        <Button size="sm" variant="secondary" onClick={abrir} disabled={alFinalizar}>
+        <Button size="sm" variant="secondary" onClick={abrir}>
           Editar hora
         </Button>
-      ) : alFinalizar ? (
-        <p className="text-xs text-slate-500">Se registra al finalizar el caso.</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           <Button size="sm" onClick={() => guardar(new Date().toISOString())}>

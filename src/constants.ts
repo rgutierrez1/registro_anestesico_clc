@@ -29,6 +29,22 @@ export const OPCIONES_MONITORIZACION = [
   'Gasto cardíaco',
 ]
 
+export const CHECKLIST_SEGURIDAD = [
+  { id: 'maquina', etiqueta: 'Revisión de máquina de anestesia' },
+  { id: 'drogas', etiqueta: 'Revisión de drogas' },
+  { id: 'proteccion-ocular', etiqueta: 'Protección ocular' },
+  { id: 'puntos-apoyo', etiqueta: 'Protección de puntos de apoyo' },
+  { id: 'profilaxis-tev', etiqueta: 'Profilaxis antitromboembólica no farmacológica' },
+  { id: 'pausa-seguridad', etiqueta: 'Se realiza pausa de seguridad' },
+]
+
+export const MONITORIZACION_ESTANDAR = [
+  'ECG',
+  'SpO2',
+  'PANI (presión no invasiva)',
+  'Capnografía (EtCO2)',
+]
+
 export const TIPOS_TECNICA_REGIONAL = [
   'Raquídea (subaracnoidea)',
   'Epidural',
@@ -60,7 +76,20 @@ export const GRADOS_CORMACK: { value: string; label: string }[] = [
 
 export const TAMANOS_MASCARA_LARINGEA = ['1', '1,5', '2', '2,5', '3', '4', '5', '6']
 
-export const DISPOSITIVOS_VIA_AEREA = ['Fibrobroncoscopio', 'GEB', 'Videolaringoscopio']
+export const TUBO_DOBLE_LUMEN = 'Tubo doble lumen'
+
+export const DISPOSITIVOS_VIA_AEREA = [
+  'Fibrobroncoscopio',
+  'GEB',
+  'Videolaringoscopio',
+  TUBO_DOBLE_LUMEN,
+  'Bloqueador bronquial',
+  'Pack',
+]
+
+export const NUMEROS_TUBO_DOBLE_LUMEN = ['35', '37', '39', '42']
+
+export const LADOS_TUBO_DOBLE_LUMEN = ['Derecho', 'Izquierdo'] as const
 
 export const VIAS_FARMACO =['IV', 'IM', 'Inhalatoria', 'Regional', 'Oral', 'Subcutánea', 'Otra'] as const
 

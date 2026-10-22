@@ -1,14 +1,12 @@
+// Siempre en formato de 24 horas (HH:MM), sin depender de la configuración regional.
 export function formatHora(iso: string): string {
-  return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  return hhmmLocal(iso)
 }
 
 export function formatFechaHora(iso: string): string {
-  return new Date(iso).toLocaleString('es-AR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const d = new Date(iso)
+  const dos = (n: number) => String(n).padStart(2, '0')
+  return `${dos(d.getDate())}/${dos(d.getMonth() + 1)} ${hhmmLocal(iso)}`
 }
 
 export function duracionDesde(iso: string, hasta: Date = new Date()): string {

@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie'
+import { MONITORIZACION_ESTANDAR } from './constants'
 import type { CasoAnestesico, ManejoViaAerea, RegistroFarmaco } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
@@ -63,6 +64,30 @@ class RegistroAnestesicoDB extends Dexie {
             }))
           }),
       )
+    this.version(6)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            if (caso.manejoViaAerea) caso.manejoViaAerea.tuboDobleLumen ??= { numero: '', lado: '' }
+          }),
+      )
+    this.version(7)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.checklist ??= []
+          }),
+      )
   }
 }
 
@@ -85,7 +110,14 @@ function migrarFarmacoAntiguo(f: Record<string, unknown>): RegistroFarmaco {
 }
 
 export function crearManejoViaAereaVacio(): ManejoViaAerea {
-  return { tipo: '', tamanoTubo: '', cormack: '', tamanoMascara: '', dispositivosAdicionales: [] }
+  return {
+    tipo: '',
+    tamanoTubo: '',
+    cormack: '',
+    tamanoMascara: '',
+    dispositivosAdicionales: [],
+    tuboDobleLumen: { numero: '', lado: '' },
+  }
 }
 
 export const db = new RegistroAnestesicoDB()
@@ -115,7 +147,8 @@ export function crearCasoVacio(): CasoAnestesico {
       anestesiologo: '',
     },
     tiposAnestesia: [],
-    monitorizacion: [],
+    monitorizacion: [...MONITORIZACION_ESTANDAR],
+    checklist: [],
     manejoViaAerea: crearManejoViaAereaVacio(),
     tecnicasRegionales: [],
     signosVitales: [],
