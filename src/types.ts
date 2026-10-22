@@ -49,6 +49,7 @@ export interface ValoresVitales {
   fc: number | null
   etco2: number | null
   spo2: number | null
+  temp: number | null
 }
 
 // Solo se guardan los registros cargados o editados a mano; los de cada 5 minutos se calculan al mostrarlos.
@@ -59,7 +60,6 @@ export interface RegistroVital extends ValoresVitales {
   propaga: boolean
   // valores que siguen copiándose cuando este registro se editó "solo este registro"
   copiar: ValoresVitales | null
-  temp: number | null
   fr: number | null
   bis: number | null
 }

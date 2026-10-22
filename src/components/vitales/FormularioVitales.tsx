@@ -7,7 +7,7 @@ type Textos = Record<ClaveVital, string>
 
 function aTextos(v: ValoresVitales | null): Textos {
   const t = (n: number | null | undefined) => (n === null || n === undefined ? '' : String(n))
-  return { pas: t(v?.pas), pad: t(v?.pad), fc: t(v?.fc), etco2: t(v?.etco2), spo2: t(v?.spo2) }
+  return { pas: t(v?.pas), pad: t(v?.pad), fc: t(v?.fc), etco2: t(v?.etco2), spo2: t(v?.spo2), temp: t(v?.temp) }
 }
 
 function aNumero(s: string): number | null {
@@ -15,7 +15,7 @@ function aNumero(s: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
-const ORDEN: (ClaveVital | 'pam')[] = ['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2']
+const ORDEN: (ClaveVital | 'pam')[] = ['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2', 'temp']
 
 export function FormularioVitales({
   inicial,
@@ -43,6 +43,7 @@ export function FormularioVitales({
     fc: aNumero(textos.fc),
     etco2: aNumero(textos.etco2),
     spo2: aNumero(textos.spo2),
+    temp: aNumero(textos.temp),
   }
   const pam = calcularPam(parcial.pas, parcial.pad)
 
@@ -78,10 +79,10 @@ export function FormularioVitales({
             <Field key={clave} label={`${campo.etiqueta} (${campo.unidad})`}>
               <Input
                 type="number"
-                inputMode="numeric"
+                inputMode={campo.paso < 1 ? 'decimal' : 'numeric'}
                 min={campo.min}
                 max={campo.max}
-                step={1}
+                step={campo.paso}
                 autoFocus={autoFocus && i === 0}
                 value={textos[clave]}
                 onChange={(e) => {

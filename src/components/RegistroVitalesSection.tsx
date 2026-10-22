@@ -9,6 +9,7 @@ import {
   CAMPOS_VITALES,
   eliminarRegistroVital,
   esCopia,
+  formatTemp,
   serieVitales,
   ultimosValores,
   valoresDe,
@@ -255,6 +256,7 @@ function TablaVitales({
             <th className="px-2 py-2 text-right">FC</th>
             <th className="px-2 py-2 text-right">EtCO2</th>
             <th className="px-2 py-2 text-right">SpO2</th>
+            <th className="px-2 py-2 text-right">Temp</th>
             <th className="px-2 py-2 text-left">Origen</th>
             <th />
           </tr>
@@ -267,9 +269,9 @@ function TablaVitales({
               className={`cursor-pointer border-t border-slate-100 hover:bg-sky-50 ${seleccionHora === r.hora ? 'bg-amber-50' : ''}`}
             >
               <td className="px-2 py-2 font-medium text-slate-700">{formatHora(r.hora)}</td>
-              {(['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2'] as const).map((c) => (
+              {(['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2', 'temp'] as const).map((c) => (
                 <td key={c} className={`px-2 py-2 text-right ${esCopia(r) ? 'text-slate-400' : 'text-slate-800'}`}>
-                  {r[c] ?? '—'}
+                  {c === 'temp' ? formatTemp(r[c]) : (r[c] ?? '—')}
                 </td>
               ))}
               <td className="px-2 py-2 text-xs text-slate-500">

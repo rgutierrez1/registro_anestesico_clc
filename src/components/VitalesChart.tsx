@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import type { RegistroVital, ValoresVitales } from '../types'
 import type { Hito } from '../utils/hitos'
-import { calcularPam, esCopia, valoresDe } from '../utils/vitales'
+import { calcularPam, esCopia, formatTemp, valoresDe } from '../utils/vitales'
 import { ALTO_BANDA_HITOS, MarcasHitos } from './MarcasHitos'
 
 const ALTO = 260
-const ALTO_TIRA = 38
-const ANCHO_EJE = 56
-const PAD_IZQ = 14
+const ALTO_TIRA = 55
+const ANCHO_EJE = 82
+const PAD_IZQ = 32
 const PAD_DER = 32
 const PAD_TOP = 16
 const PAD_BOTTOM = 28
@@ -21,6 +21,12 @@ const COLOR_FC = '#dc2626'
 const COLOR_PA = '#0284c7'
 const COLOR_PAM = '#64748b'
 const COLOR_EDICION = '#d97706'
+
+const FILAS_TIRA = [
+  { clave: 'spo2', etiqueta: 'SpO2 (%)' },
+  { clave: 'etco2', etiqueta: 'EtCO2 (mmHg)' },
+  { clave: 'temp', etiqueta: 'Temp (°C)' },
+] as const
 
 type ClaveArrastrable = 'fc' | 'pas' | 'pad'
 type Zoom = 'ajustar' | number
@@ -248,17 +254,16 @@ export function VitalesChart({
       <div className="flex">
         <svg width={ANCHO_EJE} height={altoSvg} className="shrink-0" role="img" aria-label="Escala de valores">
           {gridY.map((v) => (
-            <text key={v} x={ANCHO_EJE - 8} y={y(v) + 4} fontSize={10} fill="#94a3b8" textAnchor="end">
+            <text key={v} x={ANCHO_EJE - 8} y={y(v) + 4} fontSize={12} fontWeight={700} fill="#1e293b" textAnchor="end">
               {v}
             </text>
           ))}
-          <line x1={ANCHO_EJE - 0.5} x2={ANCHO_EJE - 0.5} y1={desfase} y2={yCero} stroke="#cbd5e1" />
-          <text x={6} y={ALTO + desfase + 15} fontSize={9} fontWeight={600} fill="#475569">
-            SpO2 %
-          </text>
-          <text x={6} y={ALTO + desfase + 32} fontSize={9} fontWeight={600} fill="#475569">
-            EtCO2
-          </text>
+          <line x1={ANCHO_EJE - 0.5} x2={ANCHO_EJE - 0.5} y1={desfase} y2={yCero} stroke="#94a3b8" />
+          {FILAS_TIRA.map((f, k) => (
+            <text key={f.clave} x={6} y={ALTO + desfase + 15 + k * 17} fontSize={10} fontWeight={700} fill="#1e293b">
+              {f.etiqueta}
+            </text>
+          ))}
         </svg>
 
         <div ref={setContenedor} className="min-w-0 flex-1 overflow-x-auto">
@@ -298,7 +303,7 @@ export function VitalesChart({
                   />
                 )}
                 {mostrarCada(i, cadaTiempo) && (
-                  <text x={x(r.hora)} y={ALTO + desfase - 8} fontSize={9} fill="#94a3b8" textAnchor="middle" pointerEvents="none">
+                  <text x={x(r.hora)} y={ALTO + desfase - 8} fontSize={9} fontWeight={600} fill="#64748b" textAnchor="middle" pointerEvents="none">
                     {new Date(r.hora).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}
                   </text>
                 )}
@@ -389,26 +394,19 @@ export function VitalesChart({
             {visibles.map((r, i) =>
               mostrarCada(i, cadaTira) ? (
                 <g key={`tira-${r.id}`} pointerEvents="none">
-                  <text
-                    x={x(r.hora)}
-                    y={ALTO + desfase + 15}
-                    fontSize={11}
-                    textAnchor="middle"
-                    fill={esCopia(r) ? '#94a3b8' : '#1e293b'}
-                    fontWeight={esCopia(r) ? 400 : 600}
-                  >
-                    {r.spo2 ?? '–'}
-                  </text>
-                  <text
-                    x={x(r.hora)}
-                    y={ALTO + desfase + 32}
-                    fontSize={11}
-                    textAnchor="middle"
-                    fill={esCopia(r) ? '#94a3b8' : '#1e293b'}
-                    fontWeight={esCopia(r) ? 400 : 600}
-                  >
-                    {r.etco2 ?? '–'}
-                  </text>
+                  {FILAS_TIRA.map((f, k) => (
+                    <text
+                      key={f.clave}
+                      x={x(r.hora)}
+                      y={ALTO + desfase + 15 + k * 17}
+                      fontSize={11}
+                      textAnchor="middle"
+                      fill={esCopia(r) ? '#94a3b8' : '#1e293b'}
+                      fontWeight={esCopia(r) ? 400 : 600}
+                    >
+                      {f.clave === 'temp' ? formatTemp(r.temp) : (r[f.clave] ?? '–')}
+                    </text>
+                  ))}
                 </g>
               ) : null,
             )}
@@ -422,11 +420,6 @@ export function VitalesChart({
         <Leyenda color={COLOR_PA} simbolo="Λ" label="PAD" />
         <Leyenda color={COLOR_PAM} simbolo="◆" label="PAM" />
         <span>Trazo grueso / relleno: registrado · fino / hueco: copia automática cada 5 min</span>
-        {interactivo && (
-          <span className="text-slate-500">
-            Arrastrá FC, PAS o PAD hacia arriba o abajo para cambiarlos, o tocá un registro para editar todos sus valores.
-          </span>
-        )}
       </div>
     </div>
   )

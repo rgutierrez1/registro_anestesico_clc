@@ -2,17 +2,29 @@ import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
 
 export const PASO_VITALES_MS = 5 * 60000
 
-export type ClaveVital = 'pas' | 'pad' | 'fc' | 'etco2' | 'spo2'
+export type ClaveVital = 'pas' | 'pad' | 'fc' | 'etco2' | 'spo2' | 'temp'
 
-export const CAMPOS_VITALES: { clave: ClaveVital; etiqueta: string; unidad: string; min: number; max: number }[] = [
-  { clave: 'pas', etiqueta: 'PAS', unidad: 'mmHg', min: 20, max: 300 },
-  { clave: 'pad', etiqueta: 'PAD', unidad: 'mmHg', min: 10, max: 200 },
-  { clave: 'fc', etiqueta: 'FC', unidad: 'lpm', min: 10, max: 250 },
-  { clave: 'etco2', etiqueta: 'EtCO2', unidad: 'mmHg', min: 0, max: 100 },
-  { clave: 'spo2', etiqueta: 'SpO2', unidad: '%', min: 0, max: 100 },
+export const CAMPOS_VITALES: {
+  clave: ClaveVital
+  etiqueta: string
+  unidad: string
+  min: number
+  max: number
+  paso: number
+}[] = [
+  { clave: 'pas', etiqueta: 'PAS', unidad: 'mmHg', min: 20, max: 300, paso: 1 },
+  { clave: 'pad', etiqueta: 'PAD', unidad: 'mmHg', min: 10, max: 200, paso: 1 },
+  { clave: 'fc', etiqueta: 'FC', unidad: 'lpm', min: 10, max: 250, paso: 1 },
+  { clave: 'etco2', etiqueta: 'EtCO2', unidad: 'mmHg', min: 0, max: 100, paso: 1 },
+  { clave: 'spo2', etiqueta: 'SpO2', unidad: '%', min: 0, max: 100, paso: 1 },
+  { clave: 'temp', etiqueta: 'Temp', unidad: '°C', min: 25, max: 43, paso: 0.1 },
 ]
 
 export const PREFIJO_AUTO = 'auto:'
+
+export function formatTemp(t: number | null): string {
+  return t === null ? '–' : String(t).replace('.', ',')
+}
 
 export function esCopia(r: RegistroVital): boolean {
   return r.id.startsWith(PREFIJO_AUTO)
@@ -23,7 +35,7 @@ export function calcularPam(pas: number | null, pad: number | null): number | nu
 }
 
 export function valoresDe(r: ValoresVitales): ValoresVitales {
-  return { pas: r.pas, pad: r.pad, pam: r.pam, fc: r.fc, etco2: r.etco2, spo2: r.spo2 }
+  return { pas: r.pas, pad: r.pad, pam: r.pam, fc: r.fc, etco2: r.etco2, spo2: r.spo2, temp: r.temp ?? null }
 }
 
 export function conPam(v: Omit<ValoresVitales, 'pam'>): ValoresVitales {
@@ -45,7 +57,7 @@ export function validarValores(v: ValoresVitales): string | null {
 }
 
 function registroBase(id: string, hora: string, v: ValoresVitales): RegistroVital {
-  return { ...v, id, hora, propaga: false, copiar: null, temp: null, fr: null, bis: null }
+  return { ...v, temp: v.temp ?? null, id, hora, propaga: false, copiar: null, fr: null, bis: null }
 }
 
 // Serie completa: registros explícitos + copias cada 5 min (desde la primera ancla hasta `hasta`).

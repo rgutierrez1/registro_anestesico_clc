@@ -316,11 +316,6 @@ export function LineaTiempoFarmacos({
         <span>
           <span style={{ color: COLOR_CONTINUO }}>▬</span> TCI / infusión / inhalatoria (escalón = cambio de dosis)
         </span>
-        {manejadores && (
-          <span className="text-slate-500">
-            Arrastrá un punto para cambiar su hora, o tocalo para escribirla. Tocá un espacio vacío de una fila para agregar una dosis ahí.
-          </span>
-        )}
       </div>
     </div>
   )
