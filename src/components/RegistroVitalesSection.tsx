@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
+import type { CasoAnestesico, RegistroVital, TimeFlag, ValoresVitales } from '../types'
+import { agregarFlag, eliminarFlag, errorFlag, posicionEn } from '../utils/flags'
 import { hitosDelCaso } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { useAhora } from '../utils/useAhora'
@@ -21,6 +22,7 @@ import {
 import { VitalesChart, type CambioPendiente } from './VitalesChart'
 import { Button, Section } from './ui'
 import { FormularioVitales } from './vitales/FormularioVitales'
+import { IconoReloj, PanelEventosTemporales } from './vitales/PanelEventosTemporales'
 
 export function RegistroVitalesSection({
   caso,
@@ -33,6 +35,7 @@ export function RegistroVitalesSection({
   const hasta = caso.horaFinAnestesia ? Date.parse(caso.horaFinAnestesia) : ahora
   const serie = useMemo(() => serieVitales(caso.signosVitales, hasta), [caso.signosVitales, hasta])
   const [mostrarTabla, setMostrarTabla] = useState(false)
+  const [panelFlags, setPanelFlags] = useState(false)
   const [nuevosValores, setNuevosValores] = useState(false)
   const [editandoHora, setEditandoHora] = useState<string | null>(null)
   const [pendiente, setPendiente] = useState<CambioPendiente | null>(null)
@@ -55,6 +58,12 @@ export function RegistroVitalesSection({
     setPendiente(null)
   }
 
+  function agregarEventoTemporal(flag: TimeFlag): string | void {
+    const problema = errorFlag(caso.timeFlags, flag)
+    if (problema) return problema
+    onActualizar((c) => agregarFlag(c, flag))
+  }
+
   function seleccionar(hora: string) {
     setPendiente(null)
     setNuevosValores(false)
@@ -65,13 +74,38 @@ export function RegistroVitalesSection({
     <Section
       title="Signos vitales"
       actions={
-        !sinRegistros && (
-          <button className="text-sm text-sky-600" onClick={() => setMostrarTabla((v) => !v)}>
-            {mostrarTabla ? 'Ver gráfico' : 'Ver tabla'}
+        <div className="flex items-center gap-3">
+          {!sinRegistros && (
+            <button className="text-sm text-sky-600" onClick={() => setMostrarTabla((v) => !v)}>
+              {mostrarTabla ? 'Ver gráfico' : 'Ver tabla'}
+            </button>
+          )}
+          <button
+            type="button"
+            title="Eventos temporales"
+            aria-label="Eventos temporales"
+            aria-pressed={panelFlags}
+            onClick={() => setPanelFlags((v) => !v)}
+            className={`relative inline-flex h-[44px] w-[44px] items-center justify-center rounded-xl text-white transition-colors ${
+              panelFlags ? 'bg-sky-800' : 'bg-sky-600 hover:bg-sky-700'
+            }`}
+          >
+            <IconoReloj />
+            <span className="absolute -right-1 -top-1 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-sm font-bold leading-none text-sky-700 shadow ring-1 ring-sky-200">
+              +
+            </span>
           </button>
-        )
+        </div>
       }
     >
+      {panelFlags && (
+        <PanelEventosTemporales
+          flags={caso.timeFlags}
+          onAgregar={agregarEventoTemporal}
+          onEliminar={(id) => onActualizar((c) => eliminarFlag(c, id))}
+          onCerrar={() => setPanelFlags(false)}
+        />
+      )}
       {sinRegistros ? (
         <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
           <h3 className="mb-2 font-semibold text-sky-900">Primer registro</h3>
@@ -93,6 +127,7 @@ export function RegistroVitalesSection({
           {mostrarTabla ? (
             <TablaVitales
               serie={serie}
+              flags={caso.timeFlags}
               seleccionHora={editandoHora}
               onSeleccionar={seleccionar}
               onEliminar={(id) => onActualizar((c) => eliminarRegistroVital(c, id))}
@@ -102,6 +137,7 @@ export function RegistroVitalesSection({
               serie={serie}
               inicio={caso.horaInicioAnestesia}
               hitos={hitosDelCaso(caso)}
+              flags={caso.timeFlags}
               pendiente={pendiente}
               seleccionHora={editandoHora}
               onSolicitarCambio={solicitarCambio}
@@ -240,11 +276,13 @@ function EditorRegistro({
 
 function TablaVitales({
   serie,
+  flags,
   seleccionHora,
   onSeleccionar,
   onEliminar,
 }: {
   serie: RegistroVital[]
+  flags: TimeFlag[]
   seleccionHora: string | null
   onSeleccionar: (hora: string) => void
   onEliminar: (id: string) => void
@@ -263,6 +301,7 @@ function TablaVitales({
             <th className="px-2 py-2 text-right">EtCO2</th>
             <th className="px-2 py-2 text-right">SpO2</th>
             <th className="px-2 py-2 text-right">Temp</th>
+            <th className="px-2 py-2 text-left">Posición</th>
             <th className="px-2 py-2 text-left">Origen</th>
             <th />
           </tr>
@@ -280,6 +319,7 @@ function TablaVitales({
                   {c === 'temp' ? formatTemp(r[c]) : (r[c] ?? '—')}
                 </td>
               ))}
+              <td className="px-2 py-2 text-slate-800">{posicionEn(flags, Date.parse(r.hora))}</td>
               <td className="px-2 py-2 text-xs text-slate-500">
                 {esCopia(r) ? 'Copia' : r.propaga ? 'Registrado (se repite)' : 'Registrado (solo este)'}
               </td>

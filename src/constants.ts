@@ -11,10 +11,11 @@ export const OPCIONES_ASA: { value: string; label: string }[] = [
 
 export const TIPOS_ANESTESIA = [
   'General',
-  'Regional',
+  'Bloqueo regional',
+  'Neuroaxial',
   'Sedación',
+  'CAM',
   'Local',
-  'Combinada (General + Regional)',
 ] as const
 
 export const OPCIONES_MONITORIZACION = [
@@ -59,12 +60,38 @@ export const UBICACIONES_VVC_CON_LADO = ['Subclavia', 'Axilar', 'Femoral']
 
 export const CALIBRES_VVP = ['24G', '22G', '20G', '18G', '16G', '14G']
 
+export const POSICIONES = [
+  { id: 'Prono', etiqueta: 'Prono', corta: 'Prono' },
+  { id: 'Supino', etiqueta: 'Supino', corta: 'Supino' },
+  { id: 'DLI', etiqueta: 'DLI (decúbito lateral izquierdo)', corta: 'DLI' },
+  { id: 'DLD', etiqueta: 'DLD (decúbito lateral derecho)', corta: 'DLD' },
+  { id: 'Litotomía', etiqueta: 'Litotomía', corta: 'Litotomía' },
+  { id: 'Trendelenburg forzado', etiqueta: 'Trendelenburg forzado', corta: 'Trend. forzado' },
+] as const
+
+export const POSICION_INICIAL = 'Supino'
+
+export const PRESION_ISQUEMIA_POR_DEFECTO = 250
+
+// Orden en el que se ofrecen al registrar un evento temporal.
+export const DEF_FLAGS = [
+  { tipo: 'listo', etiqueta: 'Paciente listo para ser operado', corta: 'Paciente listo', color: '#0369a1' },
+  { tipo: 'inicioIsquemia', etiqueta: 'Inicio isquemia', corta: 'Inicio isquemia', color: '#b45309' },
+  { tipo: 'finIsquemia', etiqueta: 'Fin de isquemia', corta: 'Fin isquemia', color: '#b45309' },
+  { tipo: 'inicioVMP', etiqueta: 'Inicio ventilación monopulmonar', corta: 'Inicio VMP', color: '#0f766e' },
+  { tipo: 'finVMP', etiqueta: 'Fin ventilación monopulmonar', corta: 'Fin VMP', color: '#0f766e' },
+  { tipo: 'inicioCEC', etiqueta: 'Inicio CEC', corta: 'Inicio CEC', color: '#be123c' },
+  { tipo: 'finCEC', etiqueta: 'Fin CEC', corta: 'Fin CEC', color: '#be123c' },
+  { tipo: 'posicion', etiqueta: 'Cambio de posición', corta: 'Posición', color: '#6d28d9' },
+] as const
+
 export const CHECKLIST_SEGURIDAD = [
   { id: 'maquina', etiqueta: 'Revisión de máquina de anestesia' },
   { id: 'drogas', etiqueta: 'Revisión de drogas' },
   { id: 'proteccion-ocular', etiqueta: 'Protección ocular' },
   { id: 'puntos-apoyo', etiqueta: 'Protección de puntos de apoyo' },
   { id: 'profilaxis-tev', etiqueta: 'Profilaxis antitromboembólica no farmacológica' },
+  { id: 'calentador-corporal', etiqueta: 'Uso de calentador corporal' },
   { id: 'pausa-seguridad', etiqueta: 'Se realiza pausa de seguridad' },
 ]
 

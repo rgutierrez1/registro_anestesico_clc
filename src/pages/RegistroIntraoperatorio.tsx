@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { AccesosVascularesSection } from '../components/AccesosVascularesSection'
 import { ChecklistSection } from '../components/ChecklistSection'
 import { Cronometro } from '../components/Cronometro'
+import { TipoAnestesiaSection } from '../components/TipoAnestesiaSection'
 import { EventosSection } from '../components/EventosSection'
 import { FarmacosSection } from '../components/FarmacosSection'
 import { HitosSection } from '../components/HitosSection'
@@ -101,7 +102,11 @@ export default function RegistroIntraoperatorio() {
     navigate(`/caso/${id}/resumen`)
   }
 
-  const requiereViaAerea = caso.tiposAnestesia.some((t) => t === 'General' || t === 'Combinada (General + Regional)')
+  // También se muestra si ya hay datos cargados (por ejemplo, tras una conversión a otro tipo).
+  const requiereViaAerea =
+    caso.tiposAnestesia.includes('General') ||
+    caso.manejoViaAerea.tipo !== '' ||
+    caso.manejoViaAerea.dispositivosAdicionales.length > 0
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 py-6 pb-10">
@@ -197,6 +202,24 @@ export default function RegistroIntraoperatorio() {
       )}
 
       <div className="flex flex-col gap-4">
+        <TipoAnestesiaSection
+          tipos={caso.tiposAnestesia}
+          onCambiar={(nuevos, motivo, hora) =>
+            patch((c) => {
+              const evento =
+                c.tiposAnestesia.length > 0
+                  ? [
+                      {
+                        id: crypto.randomUUID(),
+                        hora: hora ?? new Date().toISOString(),
+                        descripcion: `Conversión del tipo de anestesia: ${c.tiposAnestesia.join(' + ')} → ${nuevos.join(' + ')}${motivo ? `. Motivo: ${motivo}` : ''}`,
+                      },
+                    ]
+                  : []
+              return { tiposAnestesia: nuevos, eventos: [...c.eventos, ...evento] }
+            })
+          }
+        />
         <ChecklistSection
           marcados={caso.checklist}
           onAlternar={(id) =>

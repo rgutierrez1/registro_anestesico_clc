@@ -4,10 +4,11 @@ export type EstadoCaso = 'planificado' | 'en_curso' | 'finalizado'
 
 export type TipoAnestesia =
   | 'General'
-  | 'Regional'
+  | 'Bloqueo regional'
+  | 'Neuroaxial'
   | 'Sedación'
+  | 'CAM'
   | 'Local'
-  | 'Combinada (General + Regional)'
 
 export interface DatosPaciente {
   nombre: string
@@ -65,6 +66,26 @@ export interface RegistroVital extends ValoresVitales {
 }
 
 export type ViaFarmaco = 'IV' | 'IM' | 'Inhalatoria' | 'Regional' | 'Oral' | 'Subcutánea' | 'Otra'
+
+export type TipoFlag =
+  | 'listo'
+  | 'inicioIsquemia'
+  | 'finIsquemia'
+  | 'inicioVMP'
+  | 'finVMP'
+  | 'inicioCEC'
+  | 'finCEC'
+  | 'posicion'
+
+export type Posicion = 'Prono' | 'Supino' | 'DLI' | 'DLD' | 'Litotomía' | 'Trendelenburg forzado'
+
+export interface TimeFlag {
+  id: string
+  hora: string
+  tipo: TipoFlag
+  presionMmHg: number | null
+  posicion: Posicion | null
+}
 
 export type TipoAcceso = 'VVP' | 'PICC' | 'VVC' | 'LINEA_ARTERIAL'
 
@@ -147,6 +168,7 @@ export interface CasoAnestesico {
   checklist: string[]
   manejoViaAerea: ManejoViaAerea
   accesosVasculares: AccesoVascular[]
+  timeFlags: TimeFlag[]
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
   carritoFarmacos: ItemCarrito[]

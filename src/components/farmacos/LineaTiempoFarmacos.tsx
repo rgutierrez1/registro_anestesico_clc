@@ -6,7 +6,7 @@ import { claveFarmaco, limitesHora } from '../../utils/farmacos'
 import type { Hito } from '../../utils/hitos'
 import { formatHora } from '../../utils/tiempo'
 import { useAhora } from '../../utils/useAhora'
-import { ALTO_BANDA_HITOS, MarcasHitos } from '../MarcasHitos'
+import { disponerMarcas, marcasDeHitos, MarcasHitos } from '../MarcasHitos'
 
 const ANCHO = 760
 const ANCHO_ETIQUETA = 150
@@ -150,7 +150,8 @@ export function LineaTiempoFarmacos({
   for (let m = 0; m <= spanMin; m += paso) marcas.push(t0 + m * MIN)
 
   const altos = filas.map((f) => (f.continuo ? ALTO_FILA_CONTINUO : ALTO_FILA_BOLO))
-  const desfase = hitos.length > 0 ? ALTO_BANDA_HITOS : 0
+  const banda = disponerMarcas(marcasDeHitos(hitos), x, ANCHO - 4)
+  const desfase = banda.alto
   const altoTotal = altos.reduce((s, a) => s + a, 0) + ALTO_EJE + desfase
   const tops = altos.map((_, i) => desfase + altos.slice(0, i).reduce((s, a) => s + a, 0))
 
@@ -213,10 +214,11 @@ export function LineaTiempoFarmacos({
 
         <MarcasHitos
           hitos={hitos}
+          items={banda.items}
+          alto={banda.alto}
           x={x}
           yTop={0}
           yBottom={altoTotal - ALTO_EJE}
-          xMax={ANCHO - 4}
           tFinal={tFinal}
         />
 

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import type { RegistroVital, ValoresVitales } from '../types'
+import type { RegistroVital, TimeFlag, ValoresVitales } from '../types'
 import type { Hito } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { calcularPam, formatTemp, valoresDe } from '../utils/vitales'
-import { ALTO_BANDA_HITOS, MarcasHitos } from './MarcasHitos'
+import { cortaPosicion, marcasFlags, segmentosPosicion } from '../utils/flags'
+import { disponerMarcas, marcasDeHitos, MarcasHitos } from './MarcasHitos'
 
 const ALTO = 260
-const ALTO_TIRA = 55
+const ALTO_TIRA = 72
 const ANCHO_EJE = 82
 const PAD_IZQ = 32
 const PAD_DER = 32
@@ -71,6 +72,7 @@ export function VitalesChart({
   serie,
   inicio,
   hitos = [],
+  flags = [],
   pendiente = null,
   seleccionHora = null,
   onSolicitarCambio,
@@ -80,6 +82,7 @@ export function VitalesChart({
   serie: RegistroVital[]
   inicio: string | null
   hitos?: Hito[]
+  flags?: TimeFlag[]
   pendiente?: CambioPendiente | null
   seleccionHora?: string | null
   onSolicitarCambio?: (hora: string, nuevos: ValoresVitales) => void
@@ -126,14 +129,11 @@ export function VitalesChart({
   })
 
   const altoInterior = ALTO - PAD_TOP - PAD_BOTTOM
-  const desfase = hitos.length > 0 ? ALTO_BANDA_HITOS : 0
-  const altoSvg = ALTO + desfase + ALTO_TIRA
-  const yCero = desfase + PAD_TOP + altoInterior
 
-  const tiemposHitos = hitos.map((h) => Date.parse(h.hora))
+  const tiemposMarcas = [...hitos.map((h) => Date.parse(h.hora)), ...flags.map((f) => Date.parse(f.hora))]
   const t0Base = inicio ? Date.parse(inicio) : Date.parse(visibles[0].hora)
-  const t0 = Math.min(t0Base, Date.parse(visibles[0].hora), ...tiemposHitos)
-  const tUltimo = Math.max(Date.parse(visibles[visibles.length - 1].hora), ...tiemposHitos)
+  const t0 = Math.min(t0Base, Date.parse(visibles[0].hora), ...tiemposMarcas)
+  const tUltimo = Math.max(Date.parse(visibles[visibles.length - 1].hora), ...tiemposMarcas)
   const span = Math.max(tUltimo - t0, 10 * 60000)
   const spanMin = span / 60000
 
@@ -146,10 +146,14 @@ export function VitalesChart({
 
   const xTiempo = (t: number) => PAD_IZQ + ((t - t0) / span) * anchoInterior
   const x = (hora: string) => xTiempo(Date.parse(hora))
+  const banda = disponerMarcas([...marcasDeHitos(hitos), ...marcasFlags(flags)], xTiempo, ancho - 4)
+  const desfase = banda.alto
+  const altoSvg = ALTO + desfase + ALTO_TIRA
+  const yCero = desfase + PAD_TOP + altoInterior
   const y = (valor: number) => yCero - (Math.min(Math.max(valor, 0), ESCALA_MAX) / ESCALA_MAX) * altoInterior
 
   const cadaTiempo = Math.max(1, Math.ceil(46 / pxPor5))
-  const cadaTira = Math.max(1, Math.ceil(26 / pxPor5))
+  const cadaTira = Math.max(1, Math.ceil(34 / pxPor5))
   const ultimo = visibles.length - 1
   const mostrarCada = (i: number, k: number) => i % k === 0 || i === ultimo
 
@@ -265,16 +269,20 @@ export function VitalesChart({
               {f.etiqueta}
             </text>
           ))}
+          <text x={6} y={ALTO + desfase + 15 + FILAS_TIRA.length * 17} fontSize={10} fontWeight={700} fill="#1e293b">
+            Posición
+          </text>
         </svg>
 
         <div ref={setContenedor} className="min-w-0 flex-1 overflow-x-auto">
           <svg ref={svgRef} width={ancho} height={altoSvg} role="img" aria-label="Gráfico de signos vitales">
             <MarcasHitos
               hitos={hitos}
+              items={banda.items}
+              alto={banda.alto}
               x={xTiempo}
               yTop={0}
               yBottom={ALTO + desfase - PAD_BOTTOM}
-              xMax={ancho - 4}
               tFinal={tUltimo}
             />
             {gridY.map((v) => (
@@ -411,6 +419,29 @@ export function VitalesChart({
                 </g>
               ) : null,
             )}
+            {segmentosPosicion(flags, Date.parse(visibles[0].hora), tUltimo).map((seg, i) => {
+              const xs = xTiempo(seg.desde)
+              const xe = xTiempo(seg.hasta)
+              const nombre = cortaPosicion(seg.posicion)
+              const anchoNombre = nombre.length * 6.6 + 8
+              const flechas = Math.max(0, Math.floor((xe - xs - anchoNombre - 4) / 7.5))
+              return (
+                <text
+                  key={`pos-${i}`}
+                  x={xs - 4}
+                  y={ALTO + desfase + 15 + FILAS_TIRA.length * 17}
+                  fontSize={11}
+                  fontWeight={700}
+                  fill="#1e293b"
+                  pointerEvents="none"
+                >
+                  {nombre}
+                  <tspan fill="#94a3b8" fontWeight={400} dx={6}>
+                    {'>'.repeat(flechas)}
+                  </tspan>
+                </text>
+              )
+            })}
           </svg>
         </div>
       </div>

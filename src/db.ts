@@ -100,6 +100,49 @@ class RegistroAnestesicoDB extends Dexie {
             caso.accesosVasculares ??= []
           }),
       )
+    this.version(9)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.tiposAnestesia = (caso.tiposAnestesia ?? []).map((t: string) => (t === 'Regional' ? 'Bloqueo regional' : t))
+          }),
+      )
+    this.version(10)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            // "Combinada (General + Regional)" se reemplaza por los dos tipos que la componían.
+            const tipos: string[] = []
+            for (const t of caso.tiposAnestesia ?? []) {
+              const nuevos = t === 'Combinada (General + Regional)' ? ['General', 'Bloqueo regional'] : [t]
+              for (const n of nuevos) if (!tipos.includes(n)) tipos.push(n)
+            }
+            caso.tiposAnestesia = tipos
+          }),
+      )
+    this.version(11)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.timeFlags ??= []
+          }),
+      )
+    this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }
 
@@ -129,6 +172,34 @@ export function crearManejoViaAereaVacio(): ManejoViaAerea {
     tamanoMascara: '',
     dispositivosAdicionales: [],
     tuboDobleLumen: { numero: '', lado: '' },
+  }
+}
+
+// Completa los campos que un caso guardado en una versión anterior pueda no tener,
+// para que ninguna pantalla falle por un dato faltante.
+export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
+  const via = c.manejoViaAerea ?? crearManejoViaAereaVacio()
+  return {
+    ...c,
+    tiposAnestesia: c.tiposAnestesia ?? [],
+    monitorizacion: c.monitorizacion ?? [],
+    checklist: c.checklist ?? [],
+    carritoFarmacos: c.carritoFarmacos ?? [],
+    accesosVasculares: c.accesosVasculares ?? [],
+    timeFlags: c.timeFlags ?? [],
+    tecnicasRegionales: c.tecnicasRegionales ?? [],
+    signosVitales: c.signosVitales ?? [],
+    farmacos: c.farmacos ?? [],
+    fluidos: c.fluidos ?? [],
+    eventos: c.eventos ?? [],
+    horaInicioCirugia: c.horaInicioCirugia ?? null,
+    horaFinCirugia: c.horaFinCirugia ?? null,
+    manejoViaAerea: {
+      ...crearManejoViaAereaVacio(),
+      ...via,
+      dispositivosAdicionales: via.dispositivosAdicionales ?? [],
+      tuboDobleLumen: via.tuboDobleLumen ?? { numero: '', lado: '' },
+    },
   }
 }
 
@@ -163,6 +234,7 @@ export function crearCasoVacio(): CasoAnestesico {
     checklist: [],
     manejoViaAerea: crearManejoViaAereaVacio(),
     accesosVasculares: [],
+    timeFlags: [],
     tecnicasRegionales: [],
     signosVitales: [],
     carritoFarmacos: [],

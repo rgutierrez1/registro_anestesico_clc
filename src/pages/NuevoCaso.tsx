@@ -136,6 +136,7 @@ export default function NuevoCaso() {
         </Section>
 
         <Section title="Tipo de anestesia">
+          <p className="mb-3 text-sm text-slate-500">Se puede seleccionar más de una.</p>
           <div className="flex flex-wrap gap-2">
             {TIPOS_ANESTESIA.map((tipo) => (
               <Pill key={tipo} active={caso.tiposAnestesia.includes(tipo)} onClick={() => toggleAnestesia(tipo)}>

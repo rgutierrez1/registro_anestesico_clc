@@ -5,6 +5,7 @@ import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
 import { chequeoVVC, tituloAcceso, ubicacionAcceso } from '../utils/accesos'
+import { duracionesFlags, etiquetaFlag } from '../utils/flags'
 import { db } from '../db'
 import type { CasoAnestesico } from '../types'
 import { formatDosis } from '../utils/dosis'
@@ -149,11 +150,30 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
+        {caso.timeFlags.length > 0 && (
+          <SeccionResumen titulo="Eventos temporales">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {(() => {
+                const duraciones = duracionesFlags(caso.timeFlags, caso.horaFinAnestesia ? Date.parse(caso.horaFinAnestesia) : Date.now())
+                return [...caso.timeFlags]
+                  .sort((a, b) => a.hora.localeCompare(b.hora))
+                  .map((f) => (
+                    <li key={f.id}>
+                      <span className="font-mono text-xs text-slate-400">{formatHora(f.hora)}</span> — {etiquetaFlag(f)}
+                      {duraciones.get(f.id) && ` (duración: ${duraciones.get(f.id)?.minutos} min)`}
+                    </li>
+                  ))
+              })()}
+            </ul>
+          </SeccionResumen>
+        )}
+
         <SeccionResumen titulo="Signos vitales">
           <VitalesChart
             serie={serieVitales(caso.signosVitales, Date.parse(caso.horaFinAnestesia ?? new Date().toISOString()))}
             inicio={caso.horaInicioAnestesia}
             hitos={hitosDelCaso(caso)}
+            flags={caso.timeFlags}
             controles={false}
           />
         </SeccionResumen>
