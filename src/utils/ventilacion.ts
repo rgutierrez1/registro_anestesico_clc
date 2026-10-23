@@ -1,4 +1,4 @@
-import { TIPOS_VENTILACION, VENTILACION_POR_DEFECTO } from '../constants'
+import { TIPOS_VENTILACION, VENTILACION_ESPONTANEA, VENTILACION_POR_DEFECTO } from '../constants'
 import type { CasoAnestesico, DatosPaciente, RegistroVentilacion } from '../types'
 import { pesoIdeal } from './dosis'
 
@@ -30,14 +30,17 @@ export function vtPorDefecto(p: DatosPaciente): number | null {
 const porHora = (a: RegistroVentilacion, b: RegistroVentilacion) => a.hora.localeCompare(b.hora)
 
 // Valores con los que se abre el formulario: el último registro, o los valores de partida.
-export function valoresIniciales(c: CasoAnestesico): Omit<ValoresVentilacion, 'tipo'> & { tipo: ValoresVentilacion['tipo'] | '' } {
+export function valoresIniciales(c: CasoAnestesico): ValoresVentilacion {
   const ultimo = [...c.ventilacion].sort(porHora).pop()
-  if (ultimo) return { tipo: ultimo.tipo, vt: ultimo.vt, fr: ultimo.fr, peep: ultimo.peep, fio2: ultimo.fio2 }
-  return valoresDePartida(c.paciente)
+  if (!ultimo) return valoresDePartida(c.paciente)
+  // Tras una ventilación espontánea, al pasar a otro modo se ofrecen los valores de partida.
+  if (ultimo.tipo === VENTILACION_ESPONTANEA) return { ...valoresDePartida(c.paciente), fio2: ultimo.fio2 }
+  return { tipo: ultimo.tipo, vt: ultimo.vt, fr: ultimo.fr, peep: ultimo.peep, fio2: ultimo.fio2 }
 }
 
-export function valoresDePartida(p: DatosPaciente): Omit<ValoresVentilacion, 'tipo'> & { tipo: '' } {
-  return { tipo: '', vt: vtPorDefecto(p), fr: VENTILACION_POR_DEFECTO.fr, peep: VENTILACION_POR_DEFECTO.peep, fio2: VENTILACION_POR_DEFECTO.fio2 }
+// El tipo de partida es espontánea; Vt, FR y PEEP quedan prellenados por si se cambia a ventilación mecánica.
+export function valoresDePartida(p: DatosPaciente): ValoresVentilacion {
+  return { tipo: VENTILACION_ESPONTANEA, vt: vtPorDefecto(p), fr: VENTILACION_POR_DEFECTO.fr, peep: VENTILACION_POR_DEFECTO.peep, fio2: VENTILACION_POR_DEFECTO.fio2 }
 }
 
 export function errorVentilacion(r: RegistroVentilacion): string | null {
@@ -61,6 +64,7 @@ export function textoValor(r: RegistroVentilacion, clave: ClaveVentilacion): str
 }
 
 export function resumenVentilacion(r: RegistroVentilacion): string {
+  if (r.tipo === VENTILACION_ESPONTANEA) return `${r.tipo} · FiO2 ${textoValor(r, 'fio2')} %`
   return `${r.tipo} · Vt ${textoValor(r, 'vt')} mL · FR ${textoValor(r, 'fr')} · PEEP ${textoValor(r, 'peep')} · FiO2 ${textoValor(r, 'fio2')} %`
 }
 

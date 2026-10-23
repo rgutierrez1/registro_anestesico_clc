@@ -114,7 +114,7 @@ export function FormularioVitales({
       {ventilacion && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
           <p className="mb-2 text-sm font-medium text-slate-600">
-            Parámetros ventilatorios de partida (opcional: si no eliges el tipo de ventilación, no se registran).
+            Parámetros ventilatorios de partida (en ventilación espontánea solo se registra la FiO2).
           </p>
           <CamposVentilacion
             borrador={ventilacion}

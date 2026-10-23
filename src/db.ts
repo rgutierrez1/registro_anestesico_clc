@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import { MONITORIZACION_ESTANDAR } from './constants'
 import { migrarAccesoLegado } from './menus/accesos'
-import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, ViaAereaMenu } from './types'
+import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, ViaAereaMenu } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
   casos!: Table<CasoAnestesico, string>
@@ -182,6 +182,18 @@ class RegistroAnestesicoDB extends Dexie {
             caso.versionMenus ??= 'auto'
           }),
       )
+    this.version(15)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.fluidos = (caso.fluidos ?? []).map(migrarFluido)
+          }),
+      )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }
@@ -213,6 +225,13 @@ export function crearManejoViaAereaVacio(): ManejoViaAerea {
     dispositivosAdicionales: [],
     tuboDobleLumen: { numero: '', lado: '' },
   }
+}
+
+// Los registros anteriores guardaban solo `volumenMl`.
+function migrarFluido(f: RegistroFluido | (Record<string, unknown> & { volumenMl?: number })): RegistroFluido {
+  if ('cantidad' in f) return f as RegistroFluido
+  const { volumenMl, ...resto } = f as Record<string, unknown> & { volumenMl?: number }
+  return { ...resto, cantidad: volumenMl ?? 0, unidad: 'mL' } as RegistroFluido
 }
 
 const vacioViaAerea = (): ViaAereaMenu => ({ valores: {}, eventos: [], vadDeclarada: null })
@@ -250,7 +269,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     tecnicasRegionales: c.tecnicasRegionales ?? [],
     signosVitales: c.signosVitales ?? [],
     farmacos: c.farmacos ?? [],
-    fluidos: c.fluidos ?? [],
+    fluidos: (c.fluidos ?? []).map(migrarFluido),
     eventos: c.eventos ?? [],
     horaInicioCirugia: c.horaInicioCirugia ?? null,
     horaFinCirugia: c.horaFinCirugia ?? null,

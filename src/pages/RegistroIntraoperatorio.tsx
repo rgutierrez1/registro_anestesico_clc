@@ -27,7 +27,6 @@ import { cargarPrimerRegistro, prepararPrimerRegistro } from '../utils/vitales'
 import type {
   CasoAnestesico,
   Evento,
-  RegistroFluido,
   TecnicaRegional,
 } from '../types'
 
@@ -62,13 +61,6 @@ export default function RegistroIntraoperatorio() {
 
   async function iniciarAnestesia() {
     await registrarHito('inicioAnestesia', new Date().toISOString())
-  }
-
-  function agregarFluido(f: RegistroFluido) {
-    patch((c) => ({ fluidos: [...c.fluidos, f] }))
-  }
-  function eliminarFluido(fid: string) {
-    patch((c) => ({ fluidos: c.fluidos.filter((f) => f.id !== fid) }))
   }
 
   function agregarEvento(e: Evento) {
@@ -297,12 +289,7 @@ export default function RegistroIntraoperatorio() {
           onEliminar={eliminarTecnica}
           onEditar={(t) => patch((c) => ({ tecnicasRegionales: c.tecnicasRegionales.map((x) => (x.id === t.id ? t : x)) }))}
         />
-        <RegistroFluidosSection
-          registros={caso.fluidos}
-          onAgregar={agregarFluido}
-          onEliminar={eliminarFluido}
-          onEditar={(f) => patch((c) => ({ fluidos: c.fluidos.map((x) => (x.id === f.id ? f : x)) }))}
-        />
+        <RegistroFluidosSection caso={caso} patch={patch} />
         <LaboratorioSection
           examenes={caso.laboratorio}
           onAgregar={(e) => patch((c) => ({ laboratorio: [...c.laboratorio, e] }))}

@@ -148,8 +148,11 @@ export interface ItemCarrito {
 export interface RegistroFluido {
   id: string
   hora: string
+  // Código del catálogo del balance (o la etiqueta, en registros antiguos).
   tipo: string
-  volumenMl: number
+  // mL, o unidades (U) en los hemocomponentes.
+  cantidad: number
+  unidad: 'mL' | 'U'
   entrada: boolean
 }
 

@@ -91,6 +91,9 @@ export const TIPOS_VENTILACION = [
   { id: 'JET', corta: 'JET' },
 ] as const
 
+// En ventilación espontánea solo se registra la FiO2.
+export const VENTILACION_ESPONTANEA = 'Espontánea'
+
 export const VENTILACION_POR_DEFECTO = { vtMlPorKg: 7, fr: 12, peep: 6, fio2: 100 }
 
 // Orden en el que se ofrecen al registrar un evento temporal.
@@ -112,6 +115,7 @@ export const CHECKLIST_SEGURIDAD = [
   { id: 'puntos-apoyo', etiqueta: 'Protección de puntos de apoyo' },
   { id: 'profilaxis-tev', etiqueta: 'Profilaxis antitromboembólica no farmacológica' },
   { id: 'calentador-corporal', etiqueta: 'Uso de calentador corporal' },
+  { id: 'plan-via-aerea', etiqueta: 'Plan de vía aérea acorde al riesgo del paciente' },
   { id: 'pausa-seguridad', etiqueta: 'Se realiza pausa de seguridad' },
 ]
 
@@ -170,15 +174,28 @@ export const LADOS_TUBO_DOBLE_LUMEN = ['Derecho', 'Izquierdo'] as const
 
 export const VIAS_FARMACO =['IV', 'IM', 'Inhalatoria', 'Regional', 'Oral', 'Subcutánea', 'Otra'] as const
 
-export const TIPOS_FLUIDO = [
-  'Cristaloide (SF / Ringer)',
-  'Coloide',
-  'Glóbulos rojos',
-  'Plasma fresco',
-  'Plaquetas',
-  'Sangrado estimado',
-  'Diuresis',
-  'Otras pérdidas',
+export interface TipoFluido {
+  id: string
+  etiqueta: string
+  unidad: 'mL' | 'U'
+}
+
+// Filas precargadas del balance, en el orden en que se muestran.
+export const FLUIDOS_INGRESO: TipoFluido[] = [
+  { id: 'ringer', etiqueta: 'Ringer lactato', unidad: 'mL' },
+  { id: 'sf09', etiqueta: 'SF 0,9%', unidad: 'mL' },
+  { id: 'sf3', etiqueta: 'SF 3%', unidad: 'mL' },
+  { id: 'sg5', etiqueta: 'SG 5%', unidad: 'mL' },
+  { id: 'gr', etiqueta: 'GR', unidad: 'U' },
+  { id: 'plaquetas', etiqueta: 'Plaquetas', unidad: 'U' },
+  { id: 'crio', etiqueta: 'Crioprecipitado', unidad: 'U' },
+  { id: 'albumina', etiqueta: 'Albúmina', unidad: 'mL' },
+  { id: 'coloide', etiqueta: 'Coloide', unidad: 'mL' },
+]
+
+export const FLUIDOS_EGRESO: TipoFluido[] = [
+  { id: 'sangrado', etiqueta: 'Sangrado estimado', unidad: 'mL' },
+  { id: 'diuresis', etiqueta: 'Diuresis', unidad: 'mL' },
 ]
 
 export const COMPLICACIONES = [

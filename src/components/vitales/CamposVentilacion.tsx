@@ -1,4 +1,4 @@
-import { TIPOS_VENTILACION } from '../../constants'
+import { TIPOS_VENTILACION, VENTILACION_ESPONTANEA } from '../../constants'
 import type { TipoVentilacion } from '../../types'
 import type { ValoresVentilacion } from '../../utils/ventilacion'
 import { Field, Input, Pill } from '../ui'
@@ -31,9 +31,10 @@ export function borradorDesde(v: { tipo: TipoVentilacion | ''; vt: number | null
   return { tipo: v.tipo, vt: aTexto(v.vt), fr: aTexto(v.fr), peep: aTexto(v.peep), fio2: aTexto(v.fio2) }
 }
 
-// null mientras no se haya elegido el tipo de ventilación.
+// null mientras no se haya elegido el tipo de ventilación. En espontánea solo se guarda la FiO2.
 export function valoresDeBorrador(b: BorradorVentilacion): ValoresVentilacion | null {
   if (b.tipo === '') return null
+  if (b.tipo === VENTILACION_ESPONTANEA) return { tipo: b.tipo, vt: null, fr: null, peep: null, fio2: aNumero(b.fio2) }
   return { tipo: b.tipo, vt: aNumero(b.vt), fr: aNumero(b.fr), peep: aNumero(b.peep), fio2: aNumero(b.fio2) }
 }
 
@@ -55,7 +56,7 @@ export function CamposVentilacion({
         ))}
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {CAMPOS_NUMERICOS.map((c) => (
+        {CAMPOS_NUMERICOS.filter((c) => borrador.tipo !== VENTILACION_ESPONTANEA || c.clave === 'fio2').map((c) => (
           <Field key={c.clave} label={c.etiqueta}>
             <Input type="text" inputMode="decimal" value={borrador[c.clave]} onChange={(e) => onCambiar(c.clave, e.target.value)} />
           </Field>

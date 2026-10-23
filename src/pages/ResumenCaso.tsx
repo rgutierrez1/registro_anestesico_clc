@@ -5,6 +5,8 @@ import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
 import { ResumenAccesos, ResumenViaAerea } from '../components/ResumenMenus'
+import { TablaBalanceFluidos } from '../components/TablaBalanceFluidos'
+import { formatCantidad, totales } from '../utils/fluidos'
 import { duracionesFlags, etiquetaFlag } from '../utils/flags'
 import { db } from '../db'
 import type { CasoAnestesico } from '../types'
@@ -238,13 +240,12 @@ export default function ResumenCaso() {
 
         {caso.fluidos.length > 0 && (
           <SeccionResumen titulo="Balance de fluidos">
-            <TablaSimple
-              columnas={['Hora', 'Tipo', 'Volumen', 'Dirección']}
-              filas={caso.fluidos
-                .slice()
-                .sort((a, b) => a.hora.localeCompare(b.hora))
-                .map((f) => [formatHora(f.hora), f.tipo, `${f.volumenMl} ml`, f.entrada ? 'Entrada' : 'Salida'])}
-            />
+            <TablaBalanceFluidos registros={caso.fluidos} />
+            {totales(caso.fluidos).unidades.length > 0 && (
+              <p className="mt-2 text-sm text-slate-600">
+                Hemocomponentes: {totales(caso.fluidos).unidades.map((u) => `${u.etiqueta} ${formatCantidad(u.total)} U`).join(' · ')}
+              </p>
+            )}
           </SeccionResumen>
         )}
 

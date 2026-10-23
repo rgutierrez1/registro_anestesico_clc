@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { VENTILACION_POR_DEFECTO } from '../../constants'
+import { VENTILACION_ESPONTANEA, VENTILACION_POR_DEFECTO } from '../../constants'
 import type { CasoAnestesico, RegistroVentilacion } from '../../types'
 import { pesoIdeal } from '../../utils/dosis'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../../utils/tiempo'
@@ -21,9 +21,11 @@ export function IconoVentilacion() {
       strokeLinejoin="round"
       aria-hidden="true"
     >
-      <path d="M3 8h10a3 3 0 1 0-3-3" />
-      <path d="M3 12h15a3 3 0 1 1-3 3" />
-      <path d="M3 16h6" />
+      <path d="M12 3v8" />
+      <path d="M12 11l-3 3" />
+      <path d="M12 11l3 3" />
+      <path d="M9 8C6 8 3 13.5 3 18c0 2 1.3 3 3 3s3-1 3-3V9" />
+      <path d="M15 8c3 0 6 5.5 6 10 0 2-1.3 3-3 3s-3-1-3-3V9" />
     </svg>
   )
 }
@@ -108,7 +110,7 @@ export function PanelVentilacion({
       </div>
 
       <CamposVentilacion borrador={borrador} onCambiar={cambiar} />
-      {!editando && caso.ventilacion.length === 0 && (
+      {!editando && caso.ventilacion.length === 0 && borrador.tipo !== VENTILACION_ESPONTANEA && (
         <p className="mt-1 text-xs text-slate-500">
           Valores de partida: Vt {VENTILACION_POR_DEFECTO.vtMlPorKg} mL/kg de peso ideal
           {ideal === null ? ' (cargá altura y sexo del paciente para calcularlo)' : ` (${ideal.toFixed(1).replace('.', ',')} kg)`}, FR{' '}
