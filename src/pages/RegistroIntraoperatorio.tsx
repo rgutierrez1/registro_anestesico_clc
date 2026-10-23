@@ -7,6 +7,7 @@ import { Cronometro } from '../components/Cronometro'
 import { EditarDatosCaso } from '../components/EditarDatosCaso'
 import { TipoAnestesiaSection } from '../components/TipoAnestesiaSection'
 import { EventosSection } from '../components/EventosSection'
+import { LaboratorioSection } from '../components/LaboratorioSection'
 import { FarmacosSection } from '../components/FarmacosSection'
 import { HitosSection } from '../components/HitosSection'
 import { RegistroFluidosSection } from '../components/RegistroFluidosSection'
@@ -14,6 +15,8 @@ import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
 import { ModalSignosIniciales } from '../components/vitales/FormularioVitales'
 import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
 import { ViaAereaSection } from '../components/ViaAereaSection'
+import { pendientesAccesos } from '../menus/accesos'
+import { pendientesVia } from '../menus/viaAerea'
 import { Badge, Button, Field, Input, Select, TextArea } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
@@ -108,8 +111,13 @@ export default function RegistroIntraoperatorio() {
   // También se muestra si ya hay datos cargados (por ejemplo, tras una conversión a otro tipo).
   const requiereViaAerea =
     caso.tiposAnestesia.includes('General') ||
-    caso.manejoViaAerea.tipo !== '' ||
-    caso.manejoViaAerea.dispositivosAdicionales.length > 0
+    caso.viaAereaMenu.eventos.length > 0 ||
+    Object.keys(caso.viaAereaMenu.valores).some((k) => !k.startsWith('ext.')) ||
+    caso.viaAereaMenu.vadDeclarada !== null
+
+  // La hoja no se cierra con campos obligatorios vacíos ni con bloqueos de las pestañas de clic.
+  const pendientesCierre = [...pendientesAccesos(caso), ...(requiereViaAerea ? pendientesVia(caso) : [])]
+
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl px-4 py-6 pb-10">
@@ -188,7 +196,21 @@ export default function RegistroIntraoperatorio() {
         />
       )}
 
-      {finalizando && (
+      {finalizando && pendientesCierre.length > 0 && (
+        <div className="mb-4 rounded-xl border border-rose-300 bg-rose-100 p-4" role="alert">
+          <h3 className="mb-2 font-semibold text-rose-900">No se puede cerrar la hoja: faltan datos obligatorios</h3>
+          <ul className="mb-3 list-disc pl-5 text-sm text-rose-900">
+            {pendientesCierre.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+          <Button variant="secondary" onClick={() => setFinalizando(false)}>
+            Volver al registro
+          </Button>
+        </div>
+      )}
+
+      {finalizando && pendientesCierre.length === 0 && (
         <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4">
           <h3 className="mb-3 font-semibold text-rose-900">Finalizar y cerrar el registro</h3>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -265,18 +287,8 @@ export default function RegistroIntraoperatorio() {
           onMarcarTodas={(marcar) => patch(() => ({ checklist: marcar ? CHECKLIST_SEGURIDAD.map((i) => i.id) : [] }))}
         />
         <HitosSection caso={caso} onCambiar={registrarHito} />
-        {requiereViaAerea && (
-          <ViaAereaSection
-            valor={caso.manejoViaAerea}
-            onChange={(v) => patch(() => ({ manejoViaAerea: v }))}
-          />
-        )}
-        <AccesosVascularesSection
-          accesos={caso.accesosVasculares}
-          onAgregar={(a) => patch((c) => ({ accesosVasculares: [...c.accesosVasculares, a] }))}
-          onEliminar={(id) => patch((c) => ({ accesosVasculares: c.accesosVasculares.filter((x) => x.id !== id) }))}
-          onEditar={(a) => patch((c) => ({ accesosVasculares: c.accesosVasculares.map((x) => (x.id === a.id ? a : x)) }))}
-        />
+        {requiereViaAerea && <ViaAereaSection caso={caso} patch={patch} />}
+        <AccesosVascularesSection caso={caso} patch={patch} />
         <RegistroVitalesSection caso={caso} onActualizar={patch} />
         <FarmacosSection caso={caso} onActualizar={patch} />
         <TecnicasRegionalesSection
@@ -290,6 +302,12 @@ export default function RegistroIntraoperatorio() {
           onAgregar={agregarFluido}
           onEliminar={eliminarFluido}
           onEditar={(f) => patch((c) => ({ fluidos: c.fluidos.map((x) => (x.id === f.id ? f : x)) }))}
+        />
+        <LaboratorioSection
+          examenes={caso.laboratorio}
+          onAgregar={(e) => patch((c) => ({ laboratorio: [...c.laboratorio, e] }))}
+          onEditar={(e) => patch((c) => ({ laboratorio: c.laboratorio.map((x) => (x.id === e.id ? e : x)) }))}
+          onEliminar={(id) => patch((c) => ({ laboratorio: c.laboratorio.filter((x) => x.id !== id) }))}
         />
         <EventosSection
           eventos={caso.eventos}

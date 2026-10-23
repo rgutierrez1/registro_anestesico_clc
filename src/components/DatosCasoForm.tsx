@@ -27,8 +27,8 @@ export function DatosCasoForm({
   return (
     <>
       <Section title="Paciente">
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <Field label="Nombre y apellido" className="col-span-2 sm:col-span-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <Field label="Nombre y apellido" className="col-span-2 sm:col-span-5">
             <Input
               value={paciente.nombre}
               onChange={(e) => onPaciente('nombre', e.target.value)}
@@ -41,6 +41,16 @@ export function DatosCasoForm({
               inputMode="numeric"
               value={paciente.edad}
               onChange={(e) => onPaciente('edad', numero(e.target.value))}
+            />
+          </Field>
+          <Field label="Meses (0–11)">
+            <Input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={11}
+              value={paciente.edadMeses ?? ''}
+              onChange={(e) => onPaciente('edadMeses', numero(e.target.value))}
             />
           </Field>
           <Field label="Sexo">
@@ -67,7 +77,7 @@ export function DatosCasoForm({
               onChange={(e) => onPaciente('altura', numero(e.target.value))}
             />
           </Field>
-          <Field label="ASA" className="col-span-2">
+          <Field label="ASA" className="col-span-2 sm:col-span-3">
             <Select value={paciente.asa} onChange={(e) => onPaciente('asa', e.target.value as DatosPaciente['asa'])}>
               <option value="">Seleccionar…</option>
               {OPCIONES_ASA.map((o) => (
@@ -87,7 +97,7 @@ export function DatosCasoForm({
               ))}
             </Select>
           </Field>
-          <div className="col-span-2 sm:col-span-4">
+          <div className="col-span-2 sm:col-span-5">
             <p className="mb-2 text-sm font-medium text-slate-600">Alergias conocidas</p>
             <div className="flex flex-wrap gap-2">
               {ALERGIAS_OPCIONES.map((a) => (

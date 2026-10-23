@@ -1,0 +1,1144 @@
+{
+  "formato": "hoja-anestesia-clc/menus-de-clic",
+  "version_formato": "1.0",
+  "pestana": "Accesos vasculares",
+  "version": "1.0",
+  "fecha": "2026-10-23",
+  "autor": "Dr. Alejandro Jankelevich",
+  "como_leer": {
+    "resumen": "Pestaña definida como secciones → campos → opciones. Guardar siempre el \"codigo\" (nunca la etiqueta). Mostrar cada campo solo si se cumple su \"mostrar_si\" y si corresponde a la versión activa (adulto o pediátrica).",
+    "equivale_a": "Accesos_Vasculares_Hoja_Anestesia_CLC.docx (misma numeración; donde un campo del Word se divide en dos, el segundo lleva sufijo \"b\" o \"c\").",
+    "version": {
+      "ambas": "Aparece en adulto y en pediátrica. Es el valor por defecto cuando no se indica \"version\".",
+      "ped": "Solo versión pediátrica: ocultar en adulto. Si una sección es \"ped\", todo su contenido también lo es."
+    },
+    "tipos_de_campo": {
+      "unica": "Selección única con chips o botones.",
+      "multiple": "Selección múltiple. Las opciones listadas en \"exclusivas\" desmarcan todas las demás (p. ej., \"Ninguna\").",
+      "numero": "Número con \"unidad\", \"min\" y \"max\". \"boton_alternativo\" es un botón que reemplaza al número (p. ej., \"No medida\").",
+      "si_no": "Interruptor sí/no.",
+      "hora": "Hora con botones \"Ahora\" y \"Hora personalizada\".",
+      "texto": "Texto libre breve.",
+      "checklist": "Lista de \"items\"; cada ítem es sí/no.",
+      "calculado": "Lo calcula el sistema (⚡); no se tipea. Ver \"logica\"."
+    },
+    "obligatorio": "\"obligatorio\": true → si el campo está visible, la hoja no se cierra con él vacío. \"obligatorio_si\" → obligatorio solo cuando se cumple esa condición.",
+    "condiciones": {
+      "formato": "{\"campo\": \"<id>\", \"op\": \"<operador>\", \"valor\": ...}. Se combinan con {\"todas\": [...]} (Y) o {\"alguna\": [...]} (O). \"mostrar_si_texto\" describe en palabras una condición que depende de otra pestaña.",
+      "operadores": {
+        "eq": "igual a",
+        "neq": "distinto de",
+        "in": "está en la lista",
+        "not_in": "no está en la lista",
+        "contiene": "una selección múltiple incluye el código",
+        "contiene_alguna": "una selección múltiple incluye al menos uno de los códigos",
+        "gte": "mayor o igual (numérico)",
+        "lt": "menor (numérico)",
+        "lleno": "tiene valor",
+        "es_verdadero": "sí/no = sí",
+        "es_falso": "sí/no = no"
+      }
+    },
+    "otras_claves": {
+      "ambito": "\"caso\" = una vez por anestesia; \"evento\" = se repite (cada acceso o maniobra) y guarda su hora.",
+      "por_defecto": "Valor preseleccionado, visible y editable.",
+      "abre": "Campos o secciones que se muestran al elegir esa opción (equivale a la flecha → del Word).",
+      "alertas": "Lista de {\"si\", \"nivel\" (roja | amarilla | info | bloqueo), \"mensaje\"}. \"bloqueo\" impide cerrar la hoja o el paso indicado.",
+      "sugerencia": "Valor que el sistema propone (tablas o fórmulas); el clínico confirma.",
+      "valor": "Valor numérico asociado a una opción, para cálculos."
+    },
+    "definiciones": {
+      "intento": "Cada punción de piel. Redirigir la aguja sin salir de la piel no es un intento nuevo.",
+      "exito_primer_intento": "Acceso funcionando con la primera punción (ver calculados).",
+      "acceso_venoso_dificil_real": "2 o más intentos fallidos, o necesidad de ecografía u otro operador para lograrlo (ver calculados).",
+      "flebitis": "Escala VIP (Visual Infusion Phlebitis) 0–5; VIP ≥2 = flebitis."
+    }
+  },
+  "configuracion": {
+    "corte_version_pediatrica": {
+      "regla": "edad_anios < 15",
+      "nota": "Corte a definir por el equipo; permitir cambiarlo a mano por paciente."
+    },
+    "datos_del_paciente_que_se_usan": ["edad_anios","edad_meses","peso_kg","talla_cm","sexo"],
+    "guardar": "Guardar códigos, no etiquetas. La opción \"otro\" abre texto libre y se guarda código + texto.",
+    "borrar": "Anular con motivo, usuario y hora; nunca eliminar el dato (trazabilidad de la ficha clínica).",
+    "valores_por_defecto": "Solo donde el campo trae \"por_defecto\". Nunca preseleccionar intentos, escalas, capnografía ni complicaciones.",
+    "flujo": "Se mantiene el flujo actual de la app: tipo → campos → \"Agregar ahora\" o \"Agregar a hora personalizada\". Puede haber varios accesos por caso; cada uno es un evento con hora.",
+    "extremidades": "Las opciones de sitio, vena o arteria traen \"extremidad\" (superior, inferior, cabeza_cuello). Con el lado (acc.lado) se compara contra acc.extremidad_restringida."
+  },
+  "ruta_corta": {
+    "descripcion": "VVP instalada en pabellón sin problemas: ~9 toques, sin tipear nada (mostrar sitio + lado en un mismo chip, como hoy: \"Mano derecha\").",
+    "campos": [
+      "acc.tipo",
+      "acc.procedencia",
+      "acc.quien",
+      "acc.guia",
+      "acc.intentos",
+      "vvp.calibre",
+      "vvp.sitio",
+      "acc.lado",
+      "acc.complicaciones"
+    ]
+  },
+  "tarjeta_resumen": {
+    "plantilla": "{acc.tipo.abrev} {calibre.abrev} · {sitio.etiqueta} {acc.lado.abrev} · {hora} · {acc.procedencia.abrev} · {acc.quien.abrev | \"VIP \" + acc.flebitis_vip.valor}",
+    "ejemplos": ["VVP 18G · Antebrazo izq. · 19:40 · Pabellón · Enf.","VVP 20G · Mano der. · 19:10 · Pieza · VIP 0"],
+    "nota": "Si el acceso viene de otro lugar, el último término muestra la flebitis (VIP) en vez de quién lo instaló."
+  },
+  "secciones": [
+    {
+      "id": "antes",
+      "numero": "1",
+      "titulo": "Antes de puncionar",
+      "ambito": "caso",
+      "campos": [
+        {
+          "id": "acc.extremidad_restringida",
+          "numero": "1.1",
+          "etiqueta": "Extremidad restringida (no puncionar ni poner manguito)",
+          "tipo": "multiple",
+          "obligatorio": true,
+          "exclusivas": ["ninguna"],
+          "opciones": [
+            {"codigo":"ninguna","etiqueta":"Ninguna"},
+            {"codigo":"brazo_der","etiqueta":"Brazo derecho"},
+            {"codigo":"brazo_izq","etiqueta":"Brazo izquierdo"},
+            {"codigo":"pierna_der","etiqueta":"Pierna derecha"},
+            {"codigo":"pierna_izq","etiqueta":"Pierna izquierda"}
+          ],
+          "alertas": [
+            {
+              "si_texto": "Se elige un sitio cuya extremidad + lado está restringida",
+              "nivel": "roja",
+              "mensaje": "Extremidad restringida: no puncionar ni poner el manguito de presión aquí."
+            }
+          ]
+        },
+        {
+          "id": "acc.extremidad_motivo",
+          "numero": "1.2",
+          "etiqueta": "Motivo",
+          "tipo": "unica",
+          "obligatorio": false,
+          "mostrar_si": {
+            "campo": "acc.extremidad_restringida",
+            "op": "contiene_alguna",
+            "valor": ["brazo_der","brazo_izq","pierna_der","pierna_izq"]
+          },
+          "opciones": [
+            {"codigo":"fav_dialisis","etiqueta":"Fístula arteriovenosa o acceso de diálisis"},
+            {"codigo":"vaciamiento_linfedema","etiqueta":"Vaciamiento axilar / linfedema"},
+            {"codigo":"trombosis","etiqueta":"Trombosis venosa"},
+            {"codigo":"lesion_cirugia","etiqueta":"Lesión o cirugía en esa extremidad"},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ]
+        },
+        {
+          "id": "acc.dificil_anticipado",
+          "numero": "1.3",
+          "etiqueta": "Acceso venoso difícil anticipado",
+          "tipo": "si_no",
+          "obligatorio": true,
+          "nota": "Se contrasta con acc.dificil_real (calculado) para auditar la predicción."
+        }
+      ]
+    },
+    {
+      "id": "tipo",
+      "numero": "2",
+      "titulo": "Agregar acceso: tipo",
+      "ambito": "evento",
+      "registra_hora": true,
+      "campos": [
+        {
+          "id": "acc.tipo",
+          "numero": "2.1",
+          "etiqueta": "Tipo de acceso",
+          "tipo": "unica",
+          "obligatorio": true,
+          "presentacion": "botones",
+          "opciones": [
+            {
+              "codigo": "vvp",
+              "etiqueta": "Vía venosa periférica (VVP)",
+              "abrev": "VVP",
+              "abre": ["comunes","vvp"],
+              "nota": "incluye periférico largo, midline y catéter de infusión rápida"
+            },
+            {"codigo":"picc","etiqueta":"PICC","abrev":"PICC","abre":["comunes","picc"]},
+            {"codigo":"cvc","etiqueta":"Vía venosa central","abrev":"CVC","abre":["comunes","cvc"]},
+            {
+              "codigo": "arterial",
+              "etiqueta": "Línea arterial",
+              "abrev": "Línea art.",
+              "abre": ["comunes","arterial"]
+            },
+            {"codigo":"intraosea","etiqueta":"Intraósea","abrev":"IO","abre":["comunes","intraosea"]},
+            {
+              "codigo": "port_tunelizado",
+              "etiqueta": "Reservorio (port) / catéter tunelizado",
+              "abrev": "Port/tunelizado",
+              "abre": ["comunes","port_tunelizado"]
+            },
+            {
+              "codigo": "umbilical",
+              "etiqueta": "Catéter umbilical",
+              "version": "ped",
+              "abrev": "Umbilical",
+              "abre": ["comunes","umbilical"]
+            },
+            {"codigo":"otro","etiqueta":"Otro","abre":["comunes"]}
+          ],
+          "nota": "Se mantienen los 4 botones actuales y se agregan Intraósea, Reservorio/tunelizado y Umbilical (pediátrico)."
+        }
+      ]
+    },
+    {
+      "id": "comunes",
+      "numero": "3",
+      "titulo": "Campos comunes a todo acceso",
+      "ambito": "evento",
+      "nota": "Incluye los tres datos pedidos por el equipo: si se instaló en pabellón o venía de pieza, si el que llega tiene flebitis y quién lo instaló en pabellón.",
+      "campos": [
+        {
+          "id": "acc.procedencia",
+          "numero": "3.1",
+          "etiqueta": "Procedencia",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {
+              "codigo": "pabellon",
+              "etiqueta": "Instalado en pabellón",
+              "abrev": "Pabellón",
+              "abre": ["acc.quien","acc.guia","acc.intentos","acc.rescate","acc.complicaciones"]
+            },
+            {"codigo":"pieza","etiqueta":"Viene de pieza (hospitalizado)","abrev":"Pieza"},
+            {"codigo":"uci","etiqueta":"Viene de UCI / Intermedio","abrev":"UCI"},
+            {"codigo":"urgencia","etiqueta":"Viene de Urgencia","abrev":"Urgencia"},
+            {
+              "codigo": "externo",
+              "etiqueta": "Viene de otro centro o del domicilio (port, PICC)",
+              "abrev": "Externo"
+            }
+          ],
+          "nota": "Si viene de otro lugar → 3.2 a 3.4; no se pregunta técnica, intentos ni operador."
+        },
+        {
+          "id": "acc.estado_llegada",
+          "numero": "3.2",
+          "etiqueta": "Estado al llegar",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.procedencia","op":"neq","valor":"pabellon"},
+          "opciones": [
+            {"codigo":"funciona","etiqueta":"Funciona (pasa y refluye)"},
+            {"codigo":"pasa_no_refluye","etiqueta":"Pasa pero no refluye"},
+            {"codigo":"no_funciona","etiqueta":"No funciona / ocluido"},
+            {"codigo":"infiltrado","etiqueta":"Infiltrado"}
+          ]
+        },
+        {
+          "id": "acc.flebitis_vip",
+          "numero": "3.3",
+          "etiqueta": "Flebitis (escala VIP)",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {
+            "todas": [
+              {"campo":"acc.procedencia","op":"neq","valor":"pabellon"},
+              {"campo":"acc.tipo","op":"in","valor":["vvp","picc"]}
+            ]
+          },
+          "opciones": [
+            {"codigo":"vip_0","etiqueta":"0 — Sitio sano","valor":0},
+            {"codigo":"vip_1","etiqueta":"1 — Leve dolor o leve eritema en el sitio","valor":1},
+            {"codigo":"vip_2","etiqueta":"2 — Dos de: dolor, eritema o aumento de volumen","valor":2},
+            {"codigo":"vip_3","etiqueta":"3 — Dolor en el trayecto + eritema + induración","valor":3},
+            {"codigo":"vip_4","etiqueta":"4 — Lo anterior + cordón venoso palpable","valor":4},
+            {"codigo":"vip_5","etiqueta":"5 — Lo anterior + fiebre","valor":5}
+          ],
+          "alertas": [
+            {
+              "si": {"campo":"acc.flebitis_vip","op":"in","valor":["vip_2","vip_3","vip_4","vip_5"]},
+              "nivel": "amarilla",
+              "mensaje": "Flebitis (VIP ≥2): se sugiere retirar y reinstalar. Queda en el indicador de calidad de la sala."
+            }
+          ]
+        },
+        {
+          "id": "acc.infeccion_sitio",
+          "numero": "3.4",
+          "etiqueta": "Signos de infección del sitio",
+          "tipo": "si_no",
+          "obligatorio": true,
+          "mostrar_si": {
+            "todas": [
+              {"campo":"acc.procedencia","op":"neq","valor":"pabellon"},
+              {"campo":"acc.tipo","op":"in","valor":["cvc","port_tunelizado"]}
+            ]
+          }
+        },
+        {
+          "id": "acc.quien",
+          "numero": "3.5",
+          "etiqueta": "¿Quién lo instaló?",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "opciones": [
+            {"codigo":"anestesiologo","etiqueta":"Anestesiólogo/a","abrev":"Anest."},
+            {"codigo":"becado","etiqueta":"Becado/a de anestesia","abrev":"Becado"},
+            {"codigo":"enfermero","etiqueta":"Enfermero/a","abrev":"Enf."},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ],
+          "nota": "Idealmente con el nombre, elegido de la lista del equipo del caso (guardar rol + nombre)."
+        },
+        {
+          "id": "acc.guia",
+          "numero": "3.6",
+          "etiqueta": "Guía",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "opciones": [
+            {"codigo":"anatomica","etiqueta":"Anatómica (visión / palpación)"},
+            {"codigo":"eco","etiqueta":"Ecoguiada","abrev":"Eco"},
+            {"codigo":"visualizador","etiqueta":"Visualizador de venas / transiluminación"}
+          ]
+        },
+        {
+          "id": "acc.intentos",
+          "numero": "3.7",
+          "etiqueta": "Intentos",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "opciones": [
+            {"codigo":"1","etiqueta":"1","valor":1},
+            {"codigo":"2","etiqueta":"2","valor":2},
+            {"codigo":"3","etiqueta":"3","valor":3},
+            {"codigo":"4_mas","etiqueta":"4 o más","valor":4}
+          ]
+        },
+        {
+          "id": "acc.rescate",
+          "numero": "3.8",
+          "etiqueta": "Rescate",
+          "tipo": "multiple",
+          "obligatorio": false,
+          "mostrar_si": {
+            "todas": [
+              {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+              {"campo":"acc.intentos","op":"in","valor":["2","3","4_mas"]}
+            ]
+          },
+          "exclusivas": ["ninguno"],
+          "opciones": [
+            {"codigo":"eco","etiqueta":"Se pasó a ecografía"},
+            {"codigo":"cambio_operador","etiqueta":"Cambió el operador"},
+            {"codigo":"ninguno","etiqueta":"Ninguno"}
+          ]
+        },
+        {
+          "id": "acc.lado",
+          "numero": "3.9",
+          "etiqueta": "Lado",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"derecho","etiqueta":"Derecho","abrev":"der."},
+            {"codigo":"izquierdo","etiqueta":"Izquierdo","abrev":"izq."},
+            {"codigo":"no_aplica","etiqueta":"No aplica"}
+          ]
+        },
+        {
+          "id": "acc.complicaciones",
+          "numero": "3.10",
+          "etiqueta": "Complicaciones",
+          "tipo": "multiple",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "exclusivas": ["ninguna"],
+          "opciones": [
+            {"codigo":"ninguna","etiqueta":"Ninguna"},
+            {"codigo":"hematoma","etiqueta":"Hematoma"},
+            {"codigo":"puncion_arterial","etiqueta":"Punción arterial inadvertida"},
+            {
+              "codigo": "extravasacion",
+              "etiqueta": "Infiltración / extravasación",
+              "pide_texto": "fármaco, si era vasoactivo o irritante"
+            },
+            {"codigo":"no_se_logro","etiqueta":"No se logró"},
+            {"codigo":"otra","etiqueta":"Otra"}
+          ],
+          "nota": "\"Ninguna\" se marca explícitamente. Cada tipo de acceso suma sus complicaciones propias (campo *.complicaciones_propias) y se guardan juntas."
+        },
+        {
+          "id": "acc.al_salir",
+          "numero": "3.11",
+          "etiqueta": "Al salir de pabellón",
+          "tipo": "unica",
+          "obligatorio": true,
+          "por_defecto": "queda_instalado",
+          "opciones": [
+            {"codigo":"queda_instalado","etiqueta":"Queda instalado y funcionando"},
+            {"codigo":"retirado","etiqueta":"Retirado en pabellón","abre":["acc.motivo_retiro"]}
+          ]
+        },
+        {
+          "id": "acc.motivo_retiro",
+          "numero": "3.12",
+          "etiqueta": "Motivo de retiro",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"acc.al_salir","op":"eq","valor":"retirado"},
+          "registra_hora": true,
+          "opciones": [
+            {"codigo":"fin_uso","etiqueta":"Fin de uso"},
+            {"codigo":"flebitis","etiqueta":"Flebitis"},
+            {"codigo":"no_funciona","etiqueta":"No funciona"},
+            {"codigo":"complicacion","etiqueta":"Complicación"},
+            {"codigo":"accidental","etiqueta":"Retiro accidental"}
+          ],
+          "nota": "Guardar también la hora del retiro (por defecto, la actual)."
+        }
+      ]
+    },
+    {
+      "id": "vvp",
+      "numero": "4",
+      "titulo": "Vía venosa periférica",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"vvp"},
+      "campos": [
+        {
+          "id": "vvp.tipo",
+          "numero": "4.1",
+          "etiqueta": "Tipo",
+          "tipo": "unica",
+          "obligatorio": true,
+          "por_defecto": "corto",
+          "opciones": [
+            {"codigo":"corto","etiqueta":"Corto (estándar)"},
+            {"codigo":"largo_midline","etiqueta":"Periférico largo / midline (ecoguiado)"},
+            {"codigo":"ric","etiqueta":"Catéter de infusión rápida (RIC)"}
+          ]
+        },
+        {
+          "id": "vvp.calibre",
+          "numero": "4.2",
+          "etiqueta": "Calibre",
+          "tipo": "unica",
+          "obligatorio": true,
+          "presentacion": "botón pintado con su color ISO 10555-5",
+          "opciones": [
+            {
+              "codigo": "14g",
+              "etiqueta": "14G (naranjo)",
+              "abrev": "14G",
+              "color_hex": "#F7941D",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "16g",
+              "etiqueta": "16G (gris)",
+              "abrev": "16G",
+              "color_hex": "#8C8C8C",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "18g",
+              "etiqueta": "18G (verde)",
+              "abrev": "18G",
+              "color_hex": "#00843D",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "20g",
+              "etiqueta": "20G (rosado)",
+              "abrev": "20G",
+              "color_hex": "#F49AC1",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "22g",
+              "etiqueta": "22G (azul)",
+              "abrev": "22G",
+              "color_hex": "#005EB8",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "24g",
+              "etiqueta": "24G (amarillo)",
+              "abrev": "24G",
+              "color_hex": "#FFD100",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "26g",
+              "etiqueta": "26G (violeta)",
+              "version": "ped",
+              "abrev": "26G",
+              "color_hex": "#7B4FA0",
+              "mostrar_si": {"campo":"vvp.tipo","op":"in","valor":["corto","largo_midline"]}
+            },
+            {
+              "codigo": "3fr",
+              "etiqueta": "3 Fr",
+              "abrev": "3 Fr",
+              "mostrar_si": {"campo":"vvp.tipo","op":"eq","valor":"largo_midline"}
+            },
+            {
+              "codigo": "4fr",
+              "etiqueta": "4 Fr",
+              "abrev": "4 Fr",
+              "mostrar_si": {"campo":"vvp.tipo","op":"eq","valor":"largo_midline"}
+            },
+            {
+              "codigo": "5fr",
+              "etiqueta": "5 Fr",
+              "abrev": "5 Fr",
+              "mostrar_si": {"campo":"vvp.tipo","op":"eq","valor":"largo_midline"}
+            },
+            {
+              "codigo": "7fr",
+              "etiqueta": "7 Fr",
+              "abrev": "RIC 7 Fr",
+              "mostrar_si": {"campo":"vvp.tipo","op":"eq","valor":"ric"}
+            },
+            {
+              "codigo": "8_5fr",
+              "etiqueta": "8,5 Fr",
+              "abrev": "RIC 8,5 Fr",
+              "mostrar_si": {"campo":"vvp.tipo","op":"eq","valor":"ric"}
+            }
+          ],
+          "nota": "Colores hex aproximados; ajustar al catálogo de la clínica. Se encuentra \"el verde\" más rápido que \"18G\"."
+        },
+        {
+          "id": "vvp.sitio",
+          "numero": "4.3",
+          "etiqueta": "Sitio",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"dorso_mano","etiqueta":"Dorso de la mano","extremidad":"superior","abrev":"Mano"},
+            {"codigo":"muneca","etiqueta":"Muñeca","extremidad":"superior"},
+            {"codigo":"antebrazo","etiqueta":"Antebrazo","extremidad":"superior"},
+            {"codigo":"pliegue_codo","etiqueta":"Pliegue del codo","extremidad":"superior"},
+            {"codigo":"brazo","etiqueta":"Brazo (sobre el pliegue)","extremidad":"superior"},
+            {"codigo":"yugular_externa","etiqueta":"Yugular externa","extremidad":"cabeza_cuello"},
+            {"codigo":"pie_tobillo","etiqueta":"Pie / tobillo","extremidad":"inferior"},
+            {
+              "codigo": "cuero_cabelludo",
+              "etiqueta": "Cuero cabelludo",
+              "version": "ped",
+              "extremidad": "cabeza_cuello"
+            },
+            {"codigo":"otro","etiqueta":"Otro"}
+          ],
+          "nota": "En pantalla, sitio + lado juntos (\"Mano derecha\"), como hoy; en la base de datos, separados (acc.lado)."
+        }
+      ]
+    },
+    {
+      "id": "picc",
+      "numero": "5",
+      "titulo": "PICC",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"picc"},
+      "campos": [
+        {
+          "id": "picc.vena",
+          "numero": "5.1",
+          "etiqueta": "Vena",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"basilica","etiqueta":"Basílica","extremidad":"superior"},
+            {"codigo":"braquial","etiqueta":"Braquial","extremidad":"superior"},
+            {"codigo":"cefalica","etiqueta":"Cefálica","extremidad":"superior"},
+            {
+              "codigo": "miembro_inferior",
+              "etiqueta": "Miembro inferior (safena / poplítea)",
+              "version": "ped",
+              "extremidad": "inferior"
+            },
+            {"codigo":"otra","etiqueta":"Otra"}
+          ]
+        },
+        {
+          "id": "picc.calibre",
+          "numero": "5.2",
+          "etiqueta": "Calibre",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"1_9fr","etiqueta":"1,9 Fr","version":"ped"},
+            {"codigo":"2_3fr","etiqueta":"2–3 Fr","version":"ped"},
+            {"codigo":"4fr","etiqueta":"4 Fr"},
+            {"codigo":"5fr","etiqueta":"5 Fr"},
+            {"codigo":"6fr","etiqueta":"6 Fr"}
+          ]
+        },
+        {
+          "id": "picc.lumenes",
+          "numero": "5.3",
+          "etiqueta": "Lúmenes",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [{"codigo":"1","etiqueta":"1"},{"codigo":"2","etiqueta":"2"},{"codigo":"3","etiqueta":"3"}]
+        },
+        {
+          "id": "picc.largo_insertado_cm",
+          "numero": "5.4",
+          "etiqueta": "Largo insertado",
+          "tipo": "numero",
+          "obligatorio": true,
+          "unidad": "cm",
+          "min": 1,
+          "max": 70
+        },
+        {
+          "id": "picc.confirmacion_punta",
+          "numero": "5.5",
+          "etiqueta": "Confirmación de la punta",
+          "tipo": "multiple",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"ecg_intracavitario","etiqueta":"ECG intracavitario"},
+            {"codigo":"eco","etiqueta":"Ecografía"},
+            {"codigo":"rx_solicitada","etiqueta":"Radiografía (solicitada)"},
+            {"codigo":"fluoroscopia","etiqueta":"Fluoroscopía"}
+          ]
+        },
+        {
+          "id": "picc.barreras_maximas",
+          "numero": "5.6",
+          "etiqueta": "Barreras máximas completas",
+          "tipo": "si_no",
+          "obligatorio": true,
+          "significa": [
+            "higiene de manos",
+            "clorhexidina en alcohol",
+            "gorro",
+            "mascarilla",
+            "bata estéril",
+            "guantes estériles",
+            "campo grande estéril",
+            "funda estéril del transductor"
+          ],
+          "nota": "Un solo clic. Equivale a la medida ASA/MIPS #76."
+        },
+        {
+          "id": "picc.barreras_motivo",
+          "numero": "5.6b",
+          "etiqueta": "Motivo de barreras incompletas",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"picc.barreras_maximas","op":"es_falso"},
+          "opciones": [{"codigo":"urgencia","etiqueta":"Urgencia"},{"codigo":"otro","etiqueta":"Otro"}]
+        },
+        {
+          "id": "picc.complicaciones_propias",
+          "numero": "5.7",
+          "etiqueta": "Complicaciones propias",
+          "tipo": "multiple",
+          "obligatorio": false,
+          "nota": "Se suman a acc.complicaciones (3.10).",
+          "opciones": [
+            {"codigo":"malposicion","etiqueta":"Malposición"},
+            {"codigo":"arritmia","etiqueta":"Arritmia"},
+            {"codigo":"puncion_braquial","etiqueta":"Punción de arteria braquial"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cvc",
+      "numero": "6",
+      "titulo": "Vía venosa central",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"cvc"},
+      "campos": [
+        {
+          "id": "cvc.vena",
+          "numero": "6.1",
+          "etiqueta": "Vena",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"yugular_interna","etiqueta":"Yugular interna","extremidad":"cabeza_cuello"},
+            {"codigo":"subclavia","etiqueta":"Subclavia"},
+            {"codigo":"axilar","etiqueta":"Axilar"},
+            {"codigo":"femoral","etiqueta":"Femoral","extremidad":"inferior"},
+            {"codigo":"otra","etiqueta":"Otra"}
+          ]
+        },
+        {
+          "id": "cvc.tipo",
+          "numero": "6.2",
+          "etiqueta": "Tipo de catéter",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"multilumen","etiqueta":"Multilumen"},
+            {"codigo":"introductor","etiqueta":"Introductor 8,5–9 Fr"},
+            {"codigo":"hemodialisis","etiqueta":"Hemodiálisis"},
+            {"codigo":"swan_ganz","etiqueta":"Swan-Ganz por introductor","abre":["cvc.swan_enclavamiento_cm"]},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ]
+        },
+        {
+          "id": "cvc.swan_enclavamiento_cm",
+          "numero": "6.3",
+          "etiqueta": "Swan-Ganz: profundidad de enclavamiento",
+          "tipo": "numero",
+          "obligatorio": false,
+          "unidad": "cm",
+          "min": 20,
+          "max": 80,
+          "mostrar_si": {"campo":"cvc.tipo","op":"eq","valor":"swan_ganz"}
+        },
+        {
+          "id": "cvc.calibre",
+          "numero": "6.4",
+          "etiqueta": "Calibre",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"3_4fr","etiqueta":"3–4 Fr","version":"ped"},
+            {"codigo":"5_5_5fr","etiqueta":"5–5,5 Fr","version":"ped"},
+            {"codigo":"7fr","etiqueta":"7 Fr"},
+            {"codigo":"8_5fr","etiqueta":"8,5 Fr"},
+            {"codigo":"9fr","etiqueta":"9 Fr"},
+            {"codigo":"hd_11_5_14fr","etiqueta":"11,5–14 Fr (hemodiálisis)"}
+          ]
+        },
+        {
+          "id": "cvc.lumenes",
+          "numero": "6.5",
+          "etiqueta": "Lúmenes",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"1","etiqueta":"1"},
+            {"codigo":"2","etiqueta":"2"},
+            {"codigo":"3","etiqueta":"3"},
+            {"codigo":"4_mas","etiqueta":"4 o más"}
+          ]
+        },
+        {
+          "id": "cvc.fijado_cm",
+          "numero": "6.6",
+          "etiqueta": "Fijado en la piel a",
+          "tipo": "numero",
+          "obligatorio": true,
+          "unidad": "cm",
+          "min": 3,
+          "max": 35,
+          "sugerencia": {
+            "nota": "Mostrar como sugerencia junto al campo; es orientativa y no reemplaza confirmar la punta.",
+            "adulto_peres": [
+              {"vena":"yugular_interna","lado":"derecho","formula":"talla_cm / 10"},
+              {"vena":"subclavia","lado":"derecho","formula":"talla_cm / 10 - 2"},
+              {"vena":"yugular_interna","lado":"izquierdo","formula":"talla_cm / 10 + 4"},
+              {"vena":"subclavia","lado":"izquierdo","formula":"talla_cm / 10 + 2"}
+            ],
+            "pediatrica_andropoulos": {
+              "version": "ped",
+              "aplica_a": [{"vena":"yugular_interna","lado":"derecho"},{"vena":"subclavia","lado":"derecho"}],
+              "reglas": [
+                {"si":"talla_cm <= 100","formula":"talla_cm / 10 - 1"},
+                {"si":"talla_cm > 100","formula":"talla_cm / 10 - 2"}
+              ]
+            }
+          }
+        },
+        {
+          "id": "cvc.seguridad",
+          "numero": "6.7",
+          "etiqueta": "Seguridad de la inserción",
+          "tipo": "checklist",
+          "obligatorio": true,
+          "items": [
+            {"codigo":"barreras_maximas","etiqueta":"Barreras máximas completas","nota":"igual que 5.6"},
+            {
+              "codigo": "vena_confirmada",
+              "etiqueta": "Vena confirmada antes de dilatar",
+              "nota": "guía vista dentro de la vena por eco, manometría o curva de presión; el color de la sangre no basta (ASA 2020)"
+            },
+            {
+              "codigo": "guia_retirada",
+              "etiqueta": "Guía metálica retirada completa",
+              "nota": "evita la guía retenida"
+            }
+          ],
+          "alertas": [
+            {
+              "si_texto": "Cualquier ítem = no",
+              "nivel": "roja",
+              "mensaje": "Punto de seguridad del CVC no cumplido: revisar ahora."
+            }
+          ]
+        },
+        {
+          "id": "cvc.confirmacion_punta",
+          "numero": "6.8",
+          "etiqueta": "Confirmación de la punta",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"rx_solicitada","etiqueta":"Radiografía (solicitada)"},
+            {"codigo":"ecg_intracavitario","etiqueta":"ECG intracavitario"},
+            {"codigo":"eco_burbuja","etiqueta":"Ecografía (test de burbuja)"},
+            {"codigo":"fluoroscopia","etiqueta":"Fluoroscopía"},
+            {
+              "codigo": "no_aplica_femoral",
+              "etiqueta": "No aplica (femoral)",
+              "mostrar_si": {"campo":"cvc.vena","op":"eq","valor":"femoral"}
+            }
+          ]
+        },
+        {
+          "id": "cvc.complicaciones_propias",
+          "numero": "6.9",
+          "etiqueta": "Complicaciones propias",
+          "tipo": "multiple",
+          "obligatorio": false,
+          "nota": "Se suman a acc.complicaciones (3.10).",
+          "opciones": [
+            {"codigo":"neumotorax_hemotorax","etiqueta":"Neumotórax / hemotórax"},
+            {"codigo":"canulacion_arterial","etiqueta":"Canulación arterial"},
+            {"codigo":"arritmia","etiqueta":"Arritmia"},
+            {"codigo":"malposicion","etiqueta":"Malposición"},
+            {"codigo":"embolia_aerea","etiqueta":"Embolia aérea"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arterial",
+      "numero": "7",
+      "titulo": "Línea arterial",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"arterial"},
+      "campos": [
+        {
+          "id": "art.arteria",
+          "numero": "7.1",
+          "etiqueta": "Arteria",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"radial","etiqueta":"Radial","extremidad":"superior"},
+            {"codigo":"cubital","etiqueta":"Cubital","extremidad":"superior"},
+            {"codigo":"braquial","etiqueta":"Braquial","extremidad":"superior"},
+            {"codigo":"axilar","etiqueta":"Axilar","extremidad":"superior"},
+            {"codigo":"femoral","etiqueta":"Femoral","extremidad":"inferior"},
+            {"codigo":"pedia","etiqueta":"Pedia","extremidad":"inferior"},
+            {
+              "codigo": "tibial_posterior",
+              "etiqueta": "Tibial posterior",
+              "version": "ped",
+              "extremidad": "inferior"
+            },
+            {
+              "codigo": "umbilical",
+              "etiqueta": "Umbilical",
+              "version": "ped",
+              "nota": "redirige al tipo \"Catéter umbilical\" (sección 10)"
+            },
+            {"codigo":"otra","etiqueta":"Otra"}
+          ]
+        },
+        {
+          "id": "art.calibre",
+          "numero": "7.2",
+          "etiqueta": "Calibre",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"18g","etiqueta":"18G"},
+            {"codigo":"20g","etiqueta":"20G"},
+            {"codigo":"22g","etiqueta":"22G"},
+            {"codigo":"24g","etiqueta":"24G","version":"ped"}
+          ]
+        },
+        {
+          "id": "art.transductor_nivel",
+          "numero": "7.3",
+          "etiqueta": "Transductor nivelado en",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"corazon","etiqueta":"Corazón (eje flebostático)"},
+            {
+              "codigo": "conducto_auditivo",
+              "etiqueta": "Conducto auditivo externo (silla de playa, neurocirugía)"
+            }
+          ],
+          "nota": "Con el paciente sentado y el cero en el corazón, la presión que llega al cerebro es menor que la del monitor (~0,75 mmHg por cm de altura)."
+        },
+        {
+          "id": "art.complicaciones_propias",
+          "numero": "7.4",
+          "etiqueta": "Complicaciones propias",
+          "tipo": "multiple",
+          "obligatorio": false,
+          "nota": "Se suman a acc.complicaciones (3.10).",
+          "opciones": [
+            {"codigo":"isquemia_distal","etiqueta":"Isquemia distal"},
+            {"codigo":"vasoespasmo","etiqueta":"Vasoespasmo"},
+            {"codigo":"inyeccion_intraarterial","etiqueta":"Inyección intraarterial inadvertida"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "intraosea",
+      "numero": "8",
+      "titulo": "Intraósea",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"intraosea"},
+      "campos": [
+        {
+          "id": "io.sitio",
+          "numero": "8.1",
+          "etiqueta": "Sitio",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"humero_proximal","etiqueta":"Húmero proximal","extremidad":"superior"},
+            {"codigo":"tibia_proximal","etiqueta":"Tibia proximal","extremidad":"inferior"},
+            {"codigo":"tibia_distal","etiqueta":"Tibia distal","extremidad":"inferior"},
+            {"codigo":"femur_distal","etiqueta":"Fémur distal","version":"ped","extremidad":"inferior"},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ]
+        },
+        {
+          "id": "io.aguja",
+          "numero": "8.2",
+          "etiqueta": "Aguja",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {
+              "codigo": "ezio_15",
+              "etiqueta": "15 mm rosada (3–39 kg)",
+              "version": "ped",
+              "peso_min_kg": 3,
+              "peso_max_kg": 39
+            },
+            {"codigo":"ezio_25","etiqueta":"25 mm azul (≥3 kg)","peso_min_kg":3},
+            {"codigo":"ezio_45","etiqueta":"45 mm amarilla (≥40 kg o mucho tejido)","peso_min_kg":40},
+            {"codigo":"manual_otro","etiqueta":"Manual / otro dispositivo"}
+          ],
+          "sugerencia": {"version":"ped","regla":"Sugerir por peso_kg según peso_min_kg / peso_max_kg de cada aguja."}
+        },
+        {
+          "id": "io.posicion_confirmada",
+          "numero": "8.3",
+          "etiqueta": "Posición confirmada",
+          "tipo": "si_no",
+          "obligatorio": true,
+          "significa": "aguja estable y aspira o pasa sin extravasación",
+          "alertas": [
+            {
+              "si_texto": "Han pasado 24 h desde la hora de instalación",
+              "nivel": "amarilla",
+              "mensaje": "IO con 24 h: retirar apenas haya otro acceso."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "port_tunelizado",
+      "numero": "9",
+      "titulo": "Reservorio (port) y catéter tunelizado",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"port_tunelizado"},
+      "nota": "Casi siempre llegan instalados (3.1 = externo o pieza), así que 3.2 y 3.4 ya cubren su estado e infección.",
+      "campos": [
+        {
+          "id": "port.tipo",
+          "numero": "9.1",
+          "etiqueta": "Tipo",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"port_toracico","etiqueta":"Port torácico"},
+            {"codigo":"port_braquial","etiqueta":"Port braquial","extremidad":"superior"},
+            {"codigo":"tunelizado","etiqueta":"Tunelizado (Hickman / Broviac)"},
+            {"codigo":"tunelizado_hd","etiqueta":"Tunelizado de hemodiálisis"},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ]
+        },
+        {
+          "id": "port.uso",
+          "numero": "9.2",
+          "etiqueta": "Uso en pabellón",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"no_se_usa","etiqueta":"No se usa"},
+            {"codigo":"se_punciona","etiqueta":"Se punciona en pabellón","abre":["port.aguja_huber"]},
+            {"codigo":"en_uso","etiqueta":"Llega puncionado / en uso"}
+          ]
+        },
+        {
+          "id": "port.aguja_huber",
+          "numero": "9.3",
+          "etiqueta": "Aguja Huber",
+          "tipo": "unica",
+          "obligatorio": true,
+          "mostrar_si": {"campo":"port.uso","op":"eq","valor":"se_punciona"},
+          "opciones": [
+            {"codigo":"19g","etiqueta":"19G"},
+            {"codigo":"20g","etiqueta":"20G"},
+            {"codigo":"22g","etiqueta":"22G"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "umbilical",
+      "numero": "10",
+      "titulo": "Catéter umbilical",
+      "version": "ped",
+      "ambito": "evento",
+      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"umbilical"},
+      "campos": [
+        {
+          "id": "umb.tipo",
+          "numero": "10.1",
+          "etiqueta": "Tipo",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [{"codigo":"cvu","etiqueta":"Venoso (CVU)"},{"codigo":"cau","etiqueta":"Arterial (CAU)"}]
+        },
+        {
+          "id": "umb.calibre",
+          "numero": "10.2",
+          "etiqueta": "Calibre",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {"codigo":"3_5fr","etiqueta":"3,5 Fr"},
+            {"codigo":"5fr","etiqueta":"5 Fr"},
+            {"codigo":"otro","etiqueta":"Otro"}
+          ]
+        },
+        {
+          "id": "umb.fijado_cm",
+          "numero": "10.3",
+          "etiqueta": "Fijado a",
+          "tipo": "numero",
+          "obligatorio": true,
+          "unidad": "cm",
+          "min": 1,
+          "max": 25
+        },
+        {
+          "id": "umb.punta",
+          "numero": "10.4",
+          "etiqueta": "Punta",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {
+              "codigo": "cau_alta",
+              "etiqueta": "CAU alta (T6–T9)",
+              "mostrar_si": {"campo":"umb.tipo","op":"eq","valor":"cau"}
+            },
+            {
+              "codigo": "cau_baja",
+              "etiqueta": "CAU baja (L3–L4)",
+              "mostrar_si": {"campo":"umb.tipo","op":"eq","valor":"cau"}
+            },
+            {
+              "codigo": "cvu_union",
+              "etiqueta": "CVU en unión cava inferior–aurícula (≈T8–T9)",
+              "mostrar_si": {"campo":"umb.tipo","op":"eq","valor":"cvu"}
+            },
+            {"codigo":"malposicion","etiqueta":"Malposición"},
+            {"codigo":"no_evaluada","etiqueta":"No evaluada"}
+          ]
+        }
+      ]
+    }
+  ],
+  "calculados": [
+    {
+      "id": "acc.exito_primer_intento",
+      "etiqueta": "Éxito al primer intento",
+      "aplica_si": "acc.procedencia == pabellon",
+      "logica": "acc.intentos == 1 AND NOT contiene(acc.complicaciones, no_se_logro)"
+    },
+    {
+      "id": "acc.dificil_real",
+      "etiqueta": "Acceso venoso difícil real",
+      "aplica_si": "acc.procedencia == pabellon",
+      "logica": "acc.intentos >= 3 OR (acc.intentos == 2 AND contiene(acc.complicaciones, no_se_logro)) OR contiene_alguna(acc.rescate, [eco, cambio_operador])"
+    },
+    {
+      "id": "acc.flebitis",
+      "etiqueta": "Flebitis al llegar",
+      "aplica_si": "acc.procedencia != pabellon",
+      "logica": "acc.flebitis_vip.valor >= 2"
+    },
+    {
+      "id": "cvc.seguridad_completa",
+      "etiqueta": "CVC con los 3 puntos de seguridad",
+      "aplica_si": "acc.tipo == cvc",
+      "logica": "todos los ítems de cvc.seguridad = sí"
+    }
+  ],
+  "indicadores": [
+    {
+      "id": "ind.exito_primer_intento",
+      "etiqueta": "Éxito al primer intento",
+      "numerador": "acc.exito_primer_intento = sí",
+      "denominador": "accesos instalados en pabellón",
+      "desglose": ["acc.tipo","acc.quien","acc.guia"]
+    },
+    {
+      "id": "ind.flebitis_llegada",
+      "etiqueta": "Accesos que llegan de pieza con flebitis",
+      "numerador": "acc.flebitis = sí",
+      "denominador": "VVP y PICC que vienen de otro lugar",
+      "extra": "y % retirados en pabellón (acc.motivo_retiro = flebitis)"
+    },
+    {
+      "id": "ind.dificil_anticipado_vs_real",
+      "etiqueta": "Acceso difícil: anticipado vs real",
+      "logica": "tabla 2×2 entre acc.dificil_anticipado y acc.dificil_real"
+    },
+    {
+      "id": "ind.cvc_seguridad",
+      "etiqueta": "Vías centrales seguras",
+      "numerador": "cvc.seguridad_completa = sí",
+      "denominador": "CVC instalados en pabellón",
+      "meta": "100%"
+    },
+    {
+      "id": "ind.complicaciones",
+      "etiqueta": "Complicaciones por 100 accesos",
+      "numerador": "accesos con alguna complicación (3.10 + propias) distinta de \"ninguna\"",
+      "denominador": "accesos instalados en pabellón / 100",
+      "desglose": ["acc.tipo"]
+    }
+  ],
+  "referencias": [
+    "ASA Task Force on Central Venous Access. Practice Guidelines for Central Venous Access 2020. Anesthesiology 2020;132:8–43.",
+    "O'Grady NP, et al. Guidelines for the Prevention of Intravascular Catheter-Related Infections (CDC). Clin Infect Dis 2011;52:e162–93.",
+    "ASA / CMS. Quality ID #76 (NQF 2726): Prevention of Central Venous Catheter-Related Bloodstream Infections.",
+    "Nickel B, et al. Infusion Therapy Standards of Practice, 9th ed. J Infus Nurs 2024;47(1S):S1–S285.",
+    "Jackson A. Infection control: a battle in vein — infusion phlebitis. Nurs Times 1998;94(4):68–71 (escala VIP).",
+    "Peres PW. Positioning central venous catheters: a prospective survey. Anaesth Intensive Care 1990;18:536–9.",
+    "Andropoulos DB, et al. The optimal length of insertion of central venous catheters for pediatric patients. Anesth Analg 2001;93:883–6.",
+    "Teleflex. Arrow EZ-IO: agujas de 15, 25 y 45 mm, rangos de peso y tiempo de permanencia (instrucciones del fabricante)."
+  ]
+}

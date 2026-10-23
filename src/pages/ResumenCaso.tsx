@@ -4,7 +4,7 @@ import { LineaTiempoFarmacos } from '../components/farmacos/LineaTiempoFarmacos'
 import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
-import { chequeoVVC, tituloAcceso, ubicacionAcceso } from '../utils/accesos'
+import { ResumenAccesos, ResumenViaAerea } from '../components/ResumenMenus'
 import { duracionesFlags, etiquetaFlag } from '../utils/flags'
 import { db } from '../db'
 import type { CasoAnestesico } from '../types'
@@ -12,6 +12,7 @@ import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
 import { anestesiologoActual, esCambioAnestesiologo, marcasCambiosAnestesiologo, textoAlergias } from '../utils/caso'
 import { hitosDelCaso } from '../utils/hitos'
+import { definicionExamen, resumenExamen } from '../utils/laboratorio'
 import { resumenVentilacion } from '../utils/ventilacion'
 import { serieVitales } from '../utils/vitales'
 import { formatFechaHora, formatHora, duracionDesde } from '../utils/tiempo'
@@ -124,7 +125,7 @@ export default function ResumenCaso() {
         </SeccionResumen>
 
         {(caso.manejoViaAerea.tipo || caso.manejoViaAerea.dispositivosAdicionales.length > 0) && (
-          <SeccionResumen titulo="Vía aérea">
+          <SeccionResumen titulo="Vía aérea (registro anterior)">
             <Grid>
               <Dato label="Manejo avanzado" valor={caso.manejoViaAerea.tipo} />
               <Dato label="Tamaño del tubo" valor={caso.manejoViaAerea.tamanoTubo} />
@@ -135,6 +136,12 @@ export default function ResumenCaso() {
                 valor={caso.manejoViaAerea.dispositivosAdicionales.map(describirDispositivo(caso.manejoViaAerea)).join(', ')}
               />
             </Grid>
+          </SeccionResumen>
+        )}
+
+        {(caso.viaAereaMenu.eventos.length > 0 || Object.keys(caso.viaAereaMenu.valores).length > 0) && (
+          <SeccionResumen titulo="Vía aérea">
+            <ResumenViaAerea caso={caso} />
           </SeccionResumen>
         )}
 
@@ -152,19 +159,9 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {caso.accesosVasculares.length > 0 && (
+        {(caso.accesosVasculares.length > 0 || Object.keys(caso.accesosCaso).length > 0) && (
           <SeccionResumen titulo="Accesos vasculares">
-            <ul className="flex flex-col gap-1 text-sm text-slate-700">
-              {[...caso.accesosVasculares]
-                .sort((a, b) => a.hora.localeCompare(b.hora))
-                .map((a) => (
-                  <li key={a.id}>
-                    <span className="font-mono text-xs text-slate-400">{formatHora(a.hora)}</span> — {tituloAcceso(a)},{' '}
-                    {ubicacionAcceso(a).toLowerCase()}
-                    {a.tipo === 'VVC' && ` (${chequeoVVC(a).map((c) => `${c.etiqueta.toLowerCase()}: ${c.hecho ? 'sí' : 'no'}`).join(', ')})`}
-                  </li>
-                ))}
-            </ul>
+            <ResumenAccesos caso={caso} />
           </SeccionResumen>
         )}
 
@@ -248,6 +245,21 @@ export default function ResumenCaso() {
                 .sort((a, b) => a.hora.localeCompare(b.hora))
                 .map((f) => [formatHora(f.hora), f.tipo, `${f.volumenMl} ml`, f.entrada ? 'Entrada' : 'Salida'])}
             />
+          </SeccionResumen>
+        )}
+
+        {caso.laboratorio.length > 0 && (
+          <SeccionResumen titulo="Exámenes de laboratorio">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {[...caso.laboratorio]
+                .sort((a, b) => a.hora.localeCompare(b.hora))
+                .map((e) => (
+                  <li key={e.id}>
+                    <span className="font-mono text-xs text-slate-400">{formatHora(e.hora)}</span> — <strong>{definicionExamen(e.tipo).etiqueta}</strong>:{' '}
+                    {resumenExamen(e)}
+                  </li>
+                ))}
+            </ul>
           </SeccionResumen>
         )}
 

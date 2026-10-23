@@ -1,3 +1,5 @@
+import type { TipoExamen } from './types'
+
 export const ANESTESIOLOGOS = ['Álvarez', 'Canepa', 'Gutiérrez', 'Jankelevich']
 
 export const OPCIONES_ASA: { value: string; label: string }[] = [
@@ -192,6 +194,51 @@ export const COMPLICACIONES = [
   'Laringoespasmo',
   'Anafilaxia',
   'PCR',
+]
+
+export interface CampoExamen {
+  clave: string
+  etiqueta: string
+  unidad: string
+  // Sin min/max el campo es de texto libre.
+  min?: number
+  max?: number
+}
+
+const gas = (p: string): CampoExamen[] => [
+  { clave: 'ph', etiqueta: 'pH', unidad: '', min: 6.5, max: 7.8 },
+  { clave: 'pco2', etiqueta: `${p}CO2`, unidad: 'mmHg', min: 5, max: 150 },
+  { clave: 'po2', etiqueta: `${p}O2`, unidad: 'mmHg', min: 10, max: 700 },
+  { clave: 'hco3', etiqueta: 'HCO3', unidad: 'mEq/L', min: 3, max: 50 },
+  { clave: 'eb', etiqueta: 'EB', unidad: 'mEq/L', min: -30, max: 30 },
+  { clave: 'lactato', etiqueta: 'Lactato', unidad: 'mmol/L', min: 0, max: 30 },
+  { clave: 'sat', etiqueta: 'Saturación', unidad: '%', min: 0, max: 100 },
+]
+
+export const EXAMENES_LAB: { id: TipoExamen; etiqueta: string; campos: CampoExamen[] }[] = [
+  { id: 'HGT', etiqueta: 'HGT', campos: [{ clave: 'glicemia', etiqueta: 'Glicemia', unidad: 'mg/dL', min: 10, max: 1000 }] },
+  {
+    id: 'HCTO_HB',
+    etiqueta: 'Hcto / Hb',
+    campos: [
+      { clave: 'hcto', etiqueta: 'Hcto', unidad: '%', min: 5, max: 70 },
+      { clave: 'hb', etiqueta: 'Hb', unidad: 'g/dL', min: 2, max: 25 },
+    ],
+  },
+  {
+    id: 'ELP',
+    etiqueta: 'ELP',
+    campos: [
+      { clave: 'na', etiqueta: 'Na', unidad: 'mEq/L', min: 100, max: 180 },
+      { clave: 'k', etiqueta: 'K', unidad: 'mEq/L', min: 1, max: 10 },
+      { clave: 'cl', etiqueta: 'Cl', unidad: 'mEq/L', min: 70, max: 140 },
+      { clave: 'cai', etiqueta: 'Ca iónico', unidad: 'mmol/L', min: 0.3, max: 3 },
+    ],
+  },
+  { id: 'GASES_ART', etiqueta: 'Gases arteriales', campos: gas('Pa') },
+  { id: 'GASES_VEN', etiqueta: 'Gases venosos', campos: gas('Pv') },
+  { id: 'ROTEM', etiqueta: 'ROTEM', campos: [{ clave: 'resultado', etiqueta: 'Resultado (CT, CFT, A10, MCF…)', unidad: '' }] },
+  { id: 'ACT', etiqueta: 'ACT', campos: [{ clave: 'act', etiqueta: 'ACT', unidad: 's', min: 50, max: 1500 }] },
 ]
 
 export const DESTINOS_PACIENTE = [

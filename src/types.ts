@@ -1,3 +1,4 @@
+import type { RegistroMenu, Valores } from './menus/tipos'
 export type ASA = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI'
 
 export type EstadoCaso = 'planificado' | 'en_curso' | 'finalizado'
@@ -17,6 +18,7 @@ export interface DatosPaciente {
   sexo: 'F' | 'M' | 'Otro' | ''
   peso: number | ''
   altura: number | ''
+  edadMeses?: number | ''
   asa: ASA | ''
   grupoSanguineo: string
   alergias: string
@@ -104,19 +106,18 @@ export interface RegistroVentilacion {
   fio2: number | null
 }
 
-export type TipoAcceso = 'VVP' | 'PICC' | 'VVC' | 'LINEA_ARTERIAL'
+export type TipoExamen = 'HGT' | 'HCTO_HB' | 'ELP' | 'GASES_ART' | 'GASES_VEN' | 'ROTEM' | 'ACT'
 
-export interface AccesoVascular {
+export interface ExamenLab {
   id: string
   hora: string
-  tipo: TipoAcceso
-  ubicacion: string
-  lado: '' | 'Derecho' | 'Izquierdo'
-  calibre: string
-  tecnicaEsteril: boolean
-  apoyoRadioscopia: boolean
-  ecoguiado: boolean
+  tipo: TipoExamen
+  // Resultados por campo (texto, para admitir coma decimal); las claves dependen del tipo de examen.
+  valores: Record<string, string>
+  notas: string
 }
+
+export type AccesoVascular = RegistroMenu
 
 export type EventoFarmaco = 'bolo' | 'inicio' | 'cambio' | 'fin'
 
@@ -177,6 +178,12 @@ export interface ManejoViaAerea {
   tuboDobleLumen: { numero: string; lado: '' | 'Derecho' | 'Izquierdo' }
 }
 
+export interface ViaAereaMenu {
+  valores: Valores
+  eventos: RegistroMenu[]
+  vadDeclarada: string | null
+}
+
 export interface CasoAnestesico {
   id: string
   estado: EstadoCaso
@@ -187,8 +194,13 @@ export interface CasoAnestesico {
   checklist: string[]
   manejoViaAerea: ManejoViaAerea
   accesosVasculares: AccesoVascular[]
+  accesosCaso: Valores
+  viaAereaMenu: ViaAereaMenu
+  // Versión de los menús de clic: automática por edad (< 15 años = pediátrica) o fijada a mano.
+  versionMenus: 'auto' | 'adulto' | 'ped'
   timeFlags: TimeFlag[]
   ventilacion: RegistroVentilacion[]
+  laboratorio: ExamenLab[]
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
   carritoFarmacos: ItemCarrito[]

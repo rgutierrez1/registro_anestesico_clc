@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import { MONITORIZACION_ESTANDAR } from './constants'
-import type { CasoAnestesico, ManejoViaAerea, RegistroFarmaco } from './types'
+import { migrarAccesoLegado } from './menus/accesos'
+import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, ViaAereaMenu } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
   casos!: Table<CasoAnestesico, string>
@@ -154,6 +155,33 @@ class RegistroAnestesicoDB extends Dexie {
             caso.ventilacion ??= []
           }),
       )
+    this.version(13)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.laboratorio ??= []
+          }),
+      )
+    this.version(14)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.accesosVasculares = (caso.accesosVasculares ?? []).map(migrarAcceso)
+            caso.accesosCaso ??= {}
+            caso.viaAereaMenu ??= vacioViaAerea()
+            caso.versionMenus ??= 'auto'
+          }),
+      )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }
@@ -187,6 +215,13 @@ export function crearManejoViaAereaVacio(): ManejoViaAerea {
   }
 }
 
+const vacioViaAerea = (): ViaAereaMenu => ({ valores: {}, eventos: [], vadDeclarada: null })
+
+// Los accesos guardados antes de los menús de clic se convierten a códigos (sin perder el original).
+function migrarAcceso(a: AccesoVascular | Record<string, unknown>): AccesoVascular {
+  return 'valores' in a ? (a as AccesoVascular) : migrarAccesoLegado(a as never)
+}
+
 // Completa los campos que un caso guardado en una versión anterior pueda no tener,
 // para que ninguna pantalla falle por un dato faltante.
 export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
@@ -196,6 +231,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     paciente: {
       ...c.paciente,
       grupoSanguineo: c.paciente?.grupoSanguineo ?? '',
+      edadMeses: c.paciente?.edadMeses ?? '',
       alergiasLista: c.paciente?.alergiasLista ?? [],
       alergiasOtros: c.paciente?.alergiasOtros ?? '',
     },
@@ -204,9 +240,13 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     monitorizacion: c.monitorizacion ?? [],
     checklist: c.checklist ?? [],
     carritoFarmacos: c.carritoFarmacos ?? [],
-    accesosVasculares: c.accesosVasculares ?? [],
+    accesosVasculares: (c.accesosVasculares ?? []).map(migrarAcceso),
+    accesosCaso: c.accesosCaso ?? {},
+    viaAereaMenu: { ...vacioViaAerea(), ...c.viaAereaMenu },
+    versionMenus: c.versionMenus ?? 'auto',
     timeFlags: c.timeFlags ?? [],
     ventilacion: c.ventilacion ?? [],
+    laboratorio: c.laboratorio ?? [],
     tecnicasRegionales: c.tecnicasRegionales ?? [],
     signosVitales: c.signosVitales ?? [],
     farmacos: c.farmacos ?? [],
@@ -240,6 +280,7 @@ export function crearCasoVacio(): CasoAnestesico {
       asa: '',
       alergias: '',
       grupoSanguineo: '',
+      edadMeses: '',
       alergiasLista: [],
       alergiasOtros: '',
       antecedentes: '',
@@ -258,8 +299,12 @@ export function crearCasoVacio(): CasoAnestesico {
     checklist: [],
     manejoViaAerea: crearManejoViaAereaVacio(),
     accesosVasculares: [],
+    accesosCaso: {},
+    viaAereaMenu: vacioViaAerea(),
+    versionMenus: 'auto',
     timeFlags: [],
     ventilacion: [],
+    laboratorio: [],
     tecnicasRegionales: [],
     signosVitales: [],
     carritoFarmacos: [],
