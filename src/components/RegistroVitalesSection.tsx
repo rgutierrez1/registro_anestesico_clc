@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { CasoAnestesico, RegistroVital, TimeFlag, ValoresVitales } from '../types'
 import { agregarFlag, editarFlag, eliminarFlag, errorFlag, posicionEn } from '../utils/flags'
+import { anestesiologoActual, marcasCambiosAnestesiologo } from '../utils/caso'
 import { hitosDelCaso } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { useAhora } from '../utils/useAhora'
@@ -127,6 +128,11 @@ export function RegistroVitalesSection({
           flags={caso.timeFlags}
           onAgregar={agregarEventoTemporal}
           onEditar={editarEventoTemporal}
+          cambios={caso.eventos.filter((e) => e.cambioAnestesiologo)}
+          anestesiologoActual={anestesiologoActual(caso)}
+          onRegistrarCambio={(e) => onActualizar((c) => ({ eventos: [...c.eventos, e] }))}
+          onEditarCambio={(e) => onActualizar((c) => ({ eventos: c.eventos.map((x) => (x.id === e.id ? e : x)) }))}
+          onEliminarCambio={(id) => onActualizar((c) => ({ eventos: c.eventos.filter((x) => x.id !== id) }))}
           onEliminar={(id) => onActualizar((c) => eliminarFlag(c, id))}
           onCerrar={() => setPanelFlags(false)}
         />
@@ -174,6 +180,7 @@ export function RegistroVitalesSection({
               hitos={hitosDelCaso(caso)}
               flags={caso.timeFlags}
               ventilacion={caso.ventilacion}
+              marcasExtra={marcasCambiosAnestesiologo(caso.eventos)}
               pendiente={pendiente}
               seleccionHora={editandoHora}
               onSolicitarCambio={solicitarCambio}

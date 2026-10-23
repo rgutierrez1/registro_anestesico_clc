@@ -34,6 +34,8 @@ export const OPCIONES_MONITORIZACION = [
   'NIRS',
 ]
 
+export const GRUPOS_SANGUINEOS = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−', 'No se conoce']
+
 export const ALERGIAS_OPCIONES = ['Látex', 'Penicilina', 'Otros']
 export const ALERGIA_OTROS = 'Otros'
 
@@ -175,6 +177,21 @@ export const TIPOS_FLUIDO = [
   'Sangrado estimado',
   'Diuresis',
   'Otras pérdidas',
+]
+
+export const COMPLICACIONES = [
+  'Intubación difícil',
+  'Apnea',
+  'Hipotermia',
+  'Hipotensión (PAM < 60)',
+  'Shock',
+  'Arritmia',
+  'Recuperación prolongada',
+  'Reintubación',
+  'Broncoespasmo',
+  'Laringoespasmo',
+  'Anafilaxia',
+  'PCR',
 ]
 
 export const DESTINOS_PACIENTE = [

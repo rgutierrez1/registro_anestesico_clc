@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { DEF_FLAGS, POSICIONES, PRESION_ISQUEMIA_POR_DEFECTO } from '../../constants'
-import type { Posicion, TimeFlag, TipoFlag } from '../../types'
+import type { Evento, Posicion, TimeFlag, TipoFlag } from '../../types'
 import { defFlag, duracionesFlags, etiquetaFlag } from '../../utils/flags'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../../utils/tiempo'
 import { useAhora } from '../../utils/useAhora'
 import { BotonesAgregar } from '../farmacos/BotonesAgregar'
+import { EditorCambio, FormularioCambio } from './CambioAnestesiologo'
 import { Button, Field, Input, Pill, Select } from '../ui'
 
 export function IconoReloj() {
@@ -32,8 +33,18 @@ export function PanelEventosTemporales({
   onEditar,
   onEliminar,
   onCerrar,
+  cambios,
+  anestesiologoActual,
+  onRegistrarCambio,
+  onEditarCambio,
+  onEliminarCambio,
 }: {
   flags: TimeFlag[]
+  cambios: Evento[]
+  anestesiologoActual: string
+  onRegistrarCambio: (e: Evento) => void
+  onEditarCambio: (e: Evento) => void
+  onEliminarCambio: (id: string) => void
   onAgregar: (flag: TimeFlag) => string | void
   onEditar: (flag: TimeFlag) => string | void
   onEliminar: (id: string) => void
@@ -45,6 +56,8 @@ export function PanelEventosTemporales({
   const [posicion, setPosicion] = useState<Posicion | ''>('')
   const [error, setError] = useState('')
   const [editando, setEditando] = useState<TimeFlag | null>(null)
+  const [modoCambio, setModoCambio] = useState(false)
+  const [editandoCambioId, setEditandoCambioId] = useState<string | null>(null)
   const [horaEdicion, setHoraEdicion] = useState('')
 
   const presionNumero = Number.parseFloat(presion.replace(',', '.'))
@@ -53,7 +66,10 @@ export function PanelEventosTemporales({
     (tipo !== 'posicion' || posicion !== '') &&
     (tipo !== 'inicioIsquemia' || Number.isFinite(presionNumero))
   const duraciones = duracionesFlags(flags, ahora)
-  const ordenados = [...flags].sort((a, b) => a.hora.localeCompare(b.hora))
+  const ordenados = [
+    ...flags.map((f) => ({ hora: f.hora, flag: f, cambio: null as Evento | null })),
+    ...cambios.map((e) => ({ hora: e.hora, flag: null as TimeFlag | null, cambio: e })),
+  ].sort((a, b) => a.hora.localeCompare(b.hora))
 
   function agregar(hora?: string) {
     if (!tipo) return
@@ -121,12 +137,23 @@ export function PanelEventosTemporales({
               active={tipo === d.tipo}
               onClick={() => {
                 setTipo(d.tipo)
+                setModoCambio(false)
                 setError('')
               }}
             >
               {d.etiqueta}
             </Pill>
           ))}
+          <Pill
+            active={modoCambio}
+            onClick={() => {
+              setModoCambio(true)
+              setTipo(null)
+              setError('')
+            }}
+          >
+            Cambio de anestesiólogo
+          </Pill>
         </div>
       )}
 
@@ -175,6 +202,15 @@ export function PanelEventosTemporales({
           </Button>
         </div>
       )}
+      {modoCambio && !editando && (
+        <FormularioCambio
+          anestesiologoActual={anestesiologoActual}
+          onRegistrar={(e) => {
+            onRegistrarCambio(e)
+            setModoCambio(false)
+          }}
+        />
+      )}
       {tipo && !editando && (
         <div className="mt-3">
           <BotonesAgregar
@@ -189,7 +225,41 @@ export function PanelEventosTemporales({
 
       {ordenados.length > 0 && (
         <ul className="mt-4 flex flex-col gap-1 border-t border-sky-200 pt-3">
-          {ordenados.map((f) => {
+          {ordenados.map((item) => {
+            if (item.cambio) {
+              const e = item.cambio
+              if (editandoCambioId === e.id) {
+                return (
+                  <li key={e.id}>
+                    <EditorCambio
+                      evento={e}
+                      onGuardar={(nuevo) => {
+                        onEditarCambio(nuevo)
+                        setEditandoCambioId(null)
+                      }}
+                      onCancelar={() => setEditandoCambioId(null)}
+                    />
+                  </li>
+                )
+              }
+              return (
+                <li key={e.id} className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-sm">
+                  <span>
+                    <span className="mr-2 font-mono text-xs font-semibold text-slate-500">{formatHora(e.hora)}</span>
+                    {e.descripcion}
+                  </span>
+                  <span className="flex shrink-0">
+                    <button type="button" onClick={() => setEditandoCambioId(e.id)} className="min-h-[36px] px-2 text-xs text-sky-600">
+                      Editar
+                    </button>
+                    <button type="button" onClick={() => onEliminarCambio(e.id)} className="min-h-[36px] px-2 text-xs text-rose-500">
+                      Borrar
+                    </button>
+                  </span>
+                </li>
+              )
+            }
+            const f = item.flag!
             const duracion = duraciones.get(f.id)
             return (
               <li key={f.id} className="flex items-center justify-between gap-2 rounded-lg bg-white px-3 py-2 text-sm">

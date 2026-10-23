@@ -10,7 +10,7 @@ import { db } from '../db'
 import type { CasoAnestesico } from '../types'
 import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
-import { anestesiologoActual, textoAlergias } from '../utils/caso'
+import { anestesiologoActual, esCambioAnestesiologo, marcasCambiosAnestesiologo, textoAlergias } from '../utils/caso'
 import { hitosDelCaso } from '../utils/hitos'
 import { resumenVentilacion } from '../utils/ventilacion'
 import { serieVitales } from '../utils/vitales'
@@ -68,6 +68,7 @@ export default function ResumenCaso() {
             <Dato label="Peso" valor={paciente.peso ? `${paciente.peso} kg` : ''} />
             <Dato label="Altura" valor={paciente.altura ? `${paciente.altura} cm` : ''} />
             <Dato label="ASA" valor={paciente.asa} />
+            <Dato label="Grupo sanguíneo" valor={paciente.grupoSanguineo} />
             <Dato label="Ayuno" valor={paciente.ayuno} />
             <Dato label="Vía aérea" valor={paciente.viaAerea} />
           </Grid>
@@ -206,6 +207,7 @@ export default function ResumenCaso() {
             hitos={hitosDelCaso(caso)}
             flags={caso.timeFlags}
             ventilacion={caso.ventilacion}
+            marcasExtra={marcasCambiosAnestesiologo(caso.eventos)}
             controles={false}
           />
         </SeccionResumen>
@@ -249,11 +251,45 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {caso.eventos.length > 0 && (
+        {caso.eventos.some((e) => e.complicacion) && (
+          <SeccionResumen titulo="Complicaciones">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {caso.eventos
+                .filter((e) => e.complicacion)
+                .sort((a, b) => a.hora.localeCompare(b.hora))
+                .map((e) => (
+                  <li key={e.id}>
+                    <span className="font-mono text-xs text-slate-400">{formatHora(e.hora)}</span> —{' '}
+                    <strong>{e.complicacion?.tipo}</strong>
+                    {e.complicacion?.detalle && `. ${e.complicacion.detalle}`}
+                  </li>
+                ))}
+            </ul>
+          </SeccionResumen>
+        )}
+
+        {caso.eventos.some(esCambioAnestesiologo) && (
+          <SeccionResumen titulo="Cambios de anestesiólogo">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {caso.eventos
+                .filter(esCambioAnestesiologo)
+                .sort((a, b) => a.hora.localeCompare(b.hora))
+                .map((e) => (
+                  <li key={e.id}>
+                    <span className="font-mono text-xs text-slate-400">{formatHora(e.hora)}</span> — {e.cambioAnestesiologo?.de || 'sin definir'} →{' '}
+                    <strong>{e.cambioAnestesiologo?.a}</strong> · Entrega formal del paciente:{' '}
+                    {e.cambioAnestesiologo?.entregaFormal ? 'sí' : 'no'}
+                  </li>
+                ))}
+            </ul>
+          </SeccionResumen>
+        )}
+
+        {caso.eventos.some((e) => !e.complicacion && !esCambioAnestesiologo(e)) && (
           <SeccionResumen titulo="Eventos e incidencias">
             <ul className="flex flex-col gap-1 text-sm text-slate-700">
               {caso.eventos
-                .slice()
+                .filter((e) => !e.complicacion && !esCambioAnestesiologo(e))
                 .sort((a, b) => a.hora.localeCompare(b.hora))
                 .map((e) => (
                   <li key={e.id}>

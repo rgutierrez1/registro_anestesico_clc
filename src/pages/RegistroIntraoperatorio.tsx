@@ -133,9 +133,10 @@ export default function RegistroIntraoperatorio() {
               {caso.cirugia.cirujano && `Cirujano/a: ${caso.cirugia.cirujano} · `}
               {anestesiologoActual(caso) && `Anestesiólogo/a: ${anestesiologoActual(caso)}`}
             </p>
-            {textoAlergias(caso.paciente) && (
-              <p className="mt-1">
-                <Badge tone="red">Alergias: {textoAlergias(caso.paciente)}</Badge>
+            {(textoAlergias(caso.paciente) || caso.paciente.grupoSanguineo) && (
+              <p className="mt-1 flex flex-wrap gap-2">
+                {caso.paciente.grupoSanguineo && <Badge tone="sky">Grupo: {caso.paciente.grupoSanguineo}</Badge>}
+                {textoAlergias(caso.paciente) && <Badge tone="red">Alergias: {textoAlergias(caso.paciente)}</Badge>}
               </p>
             )}
             <button
@@ -292,7 +293,6 @@ export default function RegistroIntraoperatorio() {
         />
         <EventosSection
           eventos={caso.eventos}
-          anestesiologoActual={anestesiologoActual(caso)}
           onAgregar={agregarEvento}
           onEliminar={eliminarEvento}
           onEditar={(nuevo) => patch((c) => ({ eventos: c.eventos.map((e) => (e.id === nuevo.id ? nuevo : e)) }))}

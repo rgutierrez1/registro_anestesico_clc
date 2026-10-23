@@ -5,7 +5,7 @@ import { formatHora } from '../utils/tiempo'
 import { calcularPam, formatTemp, valoresDe } from '../utils/vitales'
 import { cortaPosicion, marcasFlags, segmentosPosicion } from '../utils/flags'
 import { CAMPOS_VENTILACION, segmentosVentilacion } from '../utils/ventilacion'
-import { disponerMarcas, marcasDeHitos, MarcasHitos } from './MarcasHitos'
+import { disponerMarcas, marcasDeHitos, MarcasHitos, type MarcaTemporal } from './MarcasHitos'
 
 const ALTO = 260
 const ALTO_FILA_TIRA = 17
@@ -75,6 +75,7 @@ export function VitalesChart({
   hitos = [],
   flags = [],
   ventilacion = [],
+  marcasExtra = [],
   pendiente = null,
   seleccionHora = null,
   onSolicitarCambio,
@@ -86,6 +87,7 @@ export function VitalesChart({
   hitos?: Hito[]
   flags?: TimeFlag[]
   ventilacion?: RegistroVentilacion[]
+  marcasExtra?: MarcaTemporal[]
   pendiente?: CambioPendiente | null
   seleccionHora?: string | null
   onSolicitarCambio?: (hora: string, nuevos: ValoresVitales) => void
@@ -137,6 +139,7 @@ export function VitalesChart({
     ...hitos.map((h) => Date.parse(h.hora)),
     ...flags.map((f) => Date.parse(f.hora)),
     ...ventilacion.map((v) => Date.parse(v.hora)),
+    ...marcasExtra.map((m) => Date.parse(m.hora)),
   ]
   const t0Base = inicio ? Date.parse(inicio) : Date.parse(visibles[0].hora)
   const t0 = Math.min(t0Base, Date.parse(visibles[0].hora), ...tiemposMarcas)
@@ -153,7 +156,7 @@ export function VitalesChart({
 
   const xTiempo = (t: number) => PAD_IZQ + ((t - t0) / span) * anchoInterior
   const x = (hora: string) => xTiempo(Date.parse(hora))
-  const banda = disponerMarcas([...marcasDeHitos(hitos), ...marcasFlags(flags)], xTiempo, ancho - 4)
+  const banda = disponerMarcas([...marcasDeHitos(hitos), ...marcasFlags(flags), ...marcasExtra], xTiempo, ancho - 4)
   const desfase = banda.alto
   const filasVentilacion = ventilacion.length > 0 ? CAMPOS_VENTILACION.length : 0
   const filaPosicion = FILAS_TIRA.length + filasVentilacion

@@ -1,4 +1,4 @@
-import { ALERGIA_OTROS, ALERGIAS_OPCIONES, ANESTESIOLOGOS, OPCIONES_ASA } from '../constants'
+import { ALERGIA_OTROS, ALERGIAS_OPCIONES, ANESTESIOLOGOS, GRUPOS_SANGUINEOS, OPCIONES_ASA } from '../constants'
 import type { DatosCirugia, DatosPaciente } from '../types'
 import { Field, Input, Pill, Section, Select } from './ui'
 
@@ -67,12 +67,22 @@ export function DatosCasoForm({
               onChange={(e) => onPaciente('altura', numero(e.target.value))}
             />
           </Field>
-          <Field label="ASA" className="col-span-2 sm:col-span-4">
+          <Field label="ASA" className="col-span-2">
             <Select value={paciente.asa} onChange={(e) => onPaciente('asa', e.target.value as DatosPaciente['asa'])}>
               <option value="">Seleccionar…</option>
               {OPCIONES_ASA.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Grupo sanguíneo" className="col-span-2">
+            <Select value={paciente.grupoSanguineo} onChange={(e) => onPaciente('grupoSanguineo', e.target.value)}>
+              <option value="">Seleccionar…</option>
+              {GRUPOS_SANGUINEOS.map((g) => (
+                <option key={g} value={g}>
+                  {g}
                 </option>
               ))}
             </Select>

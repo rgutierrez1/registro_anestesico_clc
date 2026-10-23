@@ -195,6 +195,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     ...c,
     paciente: {
       ...c.paciente,
+      grupoSanguineo: c.paciente?.grupoSanguineo ?? '',
       alergiasLista: c.paciente?.alergiasLista ?? [],
       alergiasOtros: c.paciente?.alergiasOtros ?? '',
     },
@@ -238,6 +239,7 @@ export function crearCasoVacio(): CasoAnestesico {
       altura: '',
       asa: '',
       alergias: '',
+      grupoSanguineo: '',
       alergiasLista: [],
       alergiasOtros: '',
       antecedentes: '',
