@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Field, Input, Pill, Section, Select, TextArea } from '../components/ui'
-import { OPCIONES_ASA, OPCIONES_MONITORIZACION, TIPOS_ANESTESIA } from '../constants'
+import { Button, Field, Input, Pill, Section, Select } from '../components/ui'
+import { ANESTESIOLOGOS, OPCIONES_ASA, OPCIONES_MONITORIZACION, TIPOS_ANESTESIA } from '../constants'
 import { crearCasoVacio, db } from '../db'
 import type { CasoAnestesico, TipoAnestesia } from '../types'
 
@@ -35,6 +35,7 @@ export default function NuevoCaso() {
     }))
   }
 
+  const numero = (valor: string): number | '' => (valor === '' ? '' : Number(valor))
   const puedeGuardar = caso.paciente.nombre.trim().length > 0 && caso.cirugia.procedimiento.trim().length > 0
 
   async function guardarYContinuar() {
@@ -53,26 +54,21 @@ export default function NuevoCaso() {
       </header>
 
       <div className="flex flex-col gap-4">
-        <Section title="Datos del paciente">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Nombre y apellido" className="sm:col-span-2">
+        <Section title="Paciente">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <Field label="Nombre y apellido" className="col-span-2 sm:col-span-4">
               <Input
                 value={caso.paciente.nombre}
                 onChange={(e) => updatePaciente('nombre', e.target.value)}
                 placeholder="Nombre del paciente"
               />
             </Field>
-            <Field label="N° de historia clínica">
-              <Input
-                value={caso.paciente.historiaClinica}
-                onChange={(e) => updatePaciente('historiaClinica', e.target.value)}
-              />
-            </Field>
             <Field label="Edad">
               <Input
                 type="number"
+                inputMode="numeric"
                 value={caso.paciente.edad}
-                onChange={(e) => updatePaciente('edad', e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) => updatePaciente('edad', numero(e.target.value))}
               />
             </Field>
             <Field label="Sexo">
@@ -89,19 +85,24 @@ export default function NuevoCaso() {
             <Field label="Peso (kg)">
               <Input
                 type="number"
+                inputMode="decimal"
                 value={caso.paciente.peso}
-                onChange={(e) => updatePaciente('peso', e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) => updatePaciente('peso', numero(e.target.value))}
               />
             </Field>
-            <Field label="Altura (cm)">
+            <Field label="Talla (cm)">
               <Input
                 type="number"
+                inputMode="numeric"
                 value={caso.paciente.altura}
-                onChange={(e) => updatePaciente('altura', e.target.value === '' ? '' : Number(e.target.value))}
+                onChange={(e) => updatePaciente('altura', numero(e.target.value))}
               />
             </Field>
-            <Field label="Clasificación ASA">
-              <Select value={caso.paciente.asa} onChange={(e) => updatePaciente('asa', e.target.value as CasoAnestesico['paciente']['asa'])}>
+            <Field label="ASA" className="col-span-2 sm:col-span-4">
+              <Select
+                value={caso.paciente.asa}
+                onChange={(e) => updatePaciente('asa', e.target.value as CasoAnestesico['paciente']['asa'])}
+              >
                 <option value="">Seleccionar…</option>
                 {OPCIONES_ASA.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -110,49 +111,23 @@ export default function NuevoCaso() {
                 ))}
               </Select>
             </Field>
-            <Field label="Ayuno">
-              <Input
-                value={caso.paciente.ayuno}
-                onChange={(e) => updatePaciente('ayuno', e.target.value)}
-                placeholder="Ej: 8 horas sólidos"
-              />
-            </Field>
-            <Field label="Vía aérea (evaluación)">
-              <Input
-                value={caso.paciente.viaAerea}
-                onChange={(e) => updatePaciente('viaAerea', e.target.value)}
-                placeholder="Ej: Mallampati II, apertura bucal normal"
-              />
-            </Field>
-            <Field label="Alergias" className="sm:col-span-2">
-              <Input value={caso.paciente.alergias} onChange={(e) => updatePaciente('alergias', e.target.value)} />
-            </Field>
-            <Field label="Antecedentes relevantes" className="sm:col-span-2">
-              <TextArea
-                value={caso.paciente.antecedentes}
-                onChange={(e) => updatePaciente('antecedentes', e.target.value)}
-                rows={3}
-              />
-            </Field>
           </div>
         </Section>
 
         <Section title="Cirugía">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Procedimiento quirúrgico" className="sm:col-span-2">
-              <Input
-                value={caso.cirugia.procedimiento}
-                onChange={(e) => updateCirugia('procedimiento', e.target.value)}
-              />
+            <Field label="Cirugía" className="sm:col-span-2">
+              <Input value={caso.cirugia.procedimiento} onChange={(e) => updateCirugia('procedimiento', e.target.value)} />
             </Field>
-            <Field label="Cirujano/a">
-              <Input value={caso.cirugia.cirujano} onChange={(e) => updateCirugia('cirujano', e.target.value)} />
-            </Field>
-            <Field label="Anestesiólogo/a">
-              <Input
-                value={caso.cirugia.anestesiologo}
-                onChange={(e) => updateCirugia('anestesiologo', e.target.value)}
-              />
+            <Field label="Anestesiólogo">
+              <Select value={caso.cirugia.anestesiologo} onChange={(e) => updateCirugia('anestesiologo', e.target.value)}>
+                <option value="">Seleccionar…</option>
+                {ANESTESIOLOGOS.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </Select>
             </Field>
             <Field label="Fecha">
               <Input type="date" value={caso.cirugia.fecha} onChange={(e) => updateCirugia('fecha', e.target.value)} />
@@ -160,7 +135,7 @@ export default function NuevoCaso() {
           </div>
         </Section>
 
-        <Section title="Tipo de anestesia planeada">
+        <Section title="Tipo de anestesia">
           <div className="flex flex-wrap gap-2">
             {TIPOS_ANESTESIA.map((tipo) => (
               <Pill key={tipo} active={caso.tiposAnestesia.includes(tipo)} onClick={() => toggleAnestesia(tipo)}>
@@ -170,7 +145,7 @@ export default function NuevoCaso() {
           </div>
         </Section>
 
-        <Section title="Monitorización planeada">
+        <Section title="Monitorización">
           <div className="flex flex-wrap gap-2">
             {OPCIONES_MONITORIZACION.map((opcion) => (
               <Pill key={opcion} active={caso.monitorizacion.includes(opcion)} onClick={() => toggleMonitor(opcion)}>

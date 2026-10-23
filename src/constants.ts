@@ -1,3 +1,5 @@
+export const ANESTESIOLOGOS = ['Álvarez', 'Canepa', 'Gutiérrez', 'Jankelevich']
+
 export const OPCIONES_ASA: { value: string; label: string }[] = [
   { value: 'I', label: 'ASA I — sano' },
   { value: 'II', label: 'ASA II — enfermedad sistémica leve' },
