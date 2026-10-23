@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TIPOS_TECNICA_REGIONAL } from '../constants'
 import type { TecnicaRegional } from '../types'
-import { formatHora } from '../utils/tiempo'
+import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { Button, Field, Input, Select, Section } from './ui'
 
 function tecnicaVacia(): Omit<TecnicaRegional, 'id' | 'hora'> {
@@ -12,19 +12,48 @@ export function TecnicasRegionalesSection({
   tecnicas,
   onAgregar,
   onEliminar,
+  onEditar,
 }: {
   tecnicas: TecnicaRegional[]
   onAgregar: (t: TecnicaRegional) => void
   onEliminar: (id: string) => void
+  onEditar: (t: TecnicaRegional) => void
 }) {
   const [borrador, setBorrador] = useState(tecnicaVacia())
   const [expandido, setExpandido] = useState(false)
+  const [editando, setEditando] = useState<TecnicaRegional | null>(null)
+  const [horaEdicion, setHoraEdicion] = useState('')
+  const [errorEdicion, setErrorEdicion] = useState('')
 
   function agregar() {
     if (!borrador.tipo) return
     onAgregar({ id: crypto.randomUUID(), hora: new Date().toISOString(), ...borrador })
     setBorrador(tecnicaVacia())
     setExpandido(false)
+  }
+
+  function empezarEdicion(t: TecnicaRegional) {
+    const { id: _id, hora, ...resto } = t
+    void _id
+    setBorrador(resto)
+    setEditando(t)
+    setHoraEdicion(hhmmLocal(hora))
+    setErrorEdicion('')
+    setExpandido(true)
+  }
+
+  function cerrarFormulario() {
+    setExpandido(false)
+    setEditando(null)
+    setBorrador(tecnicaVacia())
+  }
+
+  function guardarEdicion() {
+    if (!editando || !horaEdicion) return
+    const iso = horaCercanaIso(horaEdicion, editando.hora)
+    if (Date.parse(iso) > Date.now() + 60000) return setErrorEdicion('La hora no puede ser posterior a la hora actual.')
+    onEditar({ id: editando.id, hora: iso, ...borrador })
+    cerrarFormulario()
   }
 
   return (
@@ -75,11 +104,25 @@ export function TecnicasRegionalesSection({
               <Input value={borrador.notas} onChange={(e) => setBorrador((b) => ({ ...b, notas: e.target.value }))} />
             </Field>
           </div>
+          {editando && (
+            <div className="mt-3 max-w-xs">
+              <Field label="Hora">
+                <Input type="time" value={horaEdicion} onChange={(e) => setHoraEdicion(e.target.value)} />
+              </Field>
+              {errorEdicion && <p className="mt-1 text-sm text-rose-700">{errorEdicion}</p>}
+            </div>
+          )}
           <div className="mt-3 flex justify-end gap-2">
-            <Button variant="secondary" onClick={() => setExpandido(false)}>
+            <Button variant="secondary" onClick={cerrarFormulario}>
               Cancelar
             </Button>
-            <Button onClick={agregar}>Guardar técnica</Button>
+            {editando ? (
+              <Button onClick={guardarEdicion} disabled={!horaEdicion}>
+                Guardar cambios
+              </Button>
+            ) : (
+              <Button onClick={agregar}>Guardar técnica</Button>
+            )}
           </div>
         </div>
       )}
@@ -99,9 +142,20 @@ export function TecnicasRegionalesSection({
                 {formatHora(t.hora)} {t.farmaco && `· ${t.farmaco} ${t.dosis}`} {t.notas && `· ${t.notas}`}
               </p>
             </div>
-            <button onClick={() => onEliminar(t.id)} className="shrink-0 text-xs text-rose-500">
-              Borrar
-            </button>
+            <div className="flex shrink-0 gap-3">
+              <button onClick={() => empezarEdicion(t)} className="min-h-[32px] text-xs text-sky-600">
+                Editar
+              </button>
+              <button
+                onClick={() => {
+                  if (editando?.id === t.id) cerrarFormulario()
+                  onEliminar(t.id)
+                }}
+                className="min-h-[32px] text-xs text-rose-500"
+              >
+                Borrar
+              </button>
+            </div>
           </div>
         ))}
       </div>

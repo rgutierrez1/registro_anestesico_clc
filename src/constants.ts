@@ -30,7 +30,12 @@ export const OPCIONES_MONITORIZACION = [
   'Diuresis',
   'PVC',
   'Gasto cardíaco',
+  'Eco TE',
+  'NIRS',
 ]
+
+export const ALERGIAS_OPCIONES = ['Látex', 'Penicilina', 'Otros']
+export const ALERGIA_OTROS = 'Otros'
 
 export const TIPOS_ACCESO = [
   { id: 'VVP', etiqueta: 'Vía venosa periférica', corta: 'VVP' },

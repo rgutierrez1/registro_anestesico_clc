@@ -1,20 +1,27 @@
 import { useState } from 'react'
 import { TIPOS_FLUIDO } from '../constants'
 import type { RegistroFluido } from '../types'
-import { formatHora } from '../utils/tiempo'
+import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { Button, Field, Input, Select, Section } from './ui'
 
 export function RegistroFluidosSection({
   registros,
   onAgregar,
   onEliminar,
+  onEditar,
 }: {
   registros: RegistroFluido[]
   onAgregar: (f: RegistroFluido) => void
   onEliminar: (id: string) => void
+  onEditar: (f: RegistroFluido) => void
 }) {
   const [tipo, setTipo] = useState(TIPOS_FLUIDO[0])
   const [volumen, setVolumen] = useState('')
+  const [editando, setEditando] = useState<RegistroFluido | null>(null)
+  const [edTipo, setEdTipo] = useState('')
+  const [edVolumen, setEdVolumen] = useState('')
+  const [edHora, setEdHora] = useState('')
+  const [edError, setEdError] = useState('')
 
   const esSalida = tipo === 'Sangrado estimado' || tipo === 'Diuresis' || tipo === 'Otras pérdidas'
 
@@ -23,6 +30,25 @@ export function RegistroFluidosSection({
     if (!volumen || Number.isNaN(vol)) return
     onAgregar({ id: crypto.randomUUID(), hora: new Date().toISOString(), tipo, volumenMl: vol, entrada: !esSalida })
     setVolumen('')
+  }
+
+  function empezarEdicion(f: RegistroFluido) {
+    setEditando(f)
+    setEdTipo(f.tipo)
+    setEdVolumen(String(f.volumenMl))
+    setEdHora(hhmmLocal(f.hora))
+    setEdError('')
+  }
+
+  function guardarEdicion() {
+    if (!editando) return
+    const vol = Number(edVolumen)
+    if (!edVolumen || Number.isNaN(vol) || vol <= 0) return setEdError('Indicá un volumen válido.')
+    const iso = horaCercanaIso(edHora, editando.hora)
+    if (Date.parse(iso) > Date.now() + 60000) return setEdError('La hora no puede ser posterior a la hora actual.')
+    const salida = edTipo === 'Sangrado estimado' || edTipo === 'Diuresis' || edTipo === 'Otras pérdidas'
+    onEditar({ ...editando, tipo: edTipo, volumenMl: vol, hora: iso, entrada: !salida })
+    setEditando(null)
   }
 
   const entradas = registros.filter((r) => r.entrada)
@@ -84,7 +110,16 @@ export function RegistroFluidosSection({
                   <td className="px-2 py-2 text-right text-slate-600">{f.volumenMl} ml</td>
                   <td className="px-2 py-2 text-slate-600">{f.entrada ? 'Entrada' : 'Salida'}</td>
                   <td className="px-2 py-2 text-right">
-                    <button onClick={() => onEliminar(f.id)} className="text-xs text-rose-500">
+                    <button onClick={() => empezarEdicion(f)} className="mr-3 text-xs text-sky-600">
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (editando?.id === f.id) setEditando(null)
+                        onEliminar(f.id)
+                      }}
+                      className="text-xs text-rose-500"
+                    >
                       Borrar
                     </button>
                   </td>
@@ -94,6 +129,38 @@ export function RegistroFluidosSection({
           </table>
         )}
       </div>
+
+      {editando && (
+        <div className="mt-3 rounded-xl border border-amber-300 bg-amber-50 p-3">
+          <p className="mb-2 text-sm font-semibold text-amber-900">Editar registro de las {formatHora(editando.hora)}</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <Field label="Tipo">
+              <Select value={edTipo} onChange={(e) => setEdTipo(e.target.value)}>
+                {TIPOS_FLUIDO.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Volumen (ml)">
+              <Input type="number" inputMode="numeric" value={edVolumen} onChange={(e) => setEdVolumen(e.target.value)} />
+            </Field>
+            <Field label="Hora">
+              <Input type="time" value={edHora} onChange={(e) => setEdHora(e.target.value)} />
+            </Field>
+          </div>
+          {edError && <p className="mt-2 text-sm text-rose-700">{edError}</p>}
+          <div className="mt-3 flex justify-end gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setEditando(null)}>
+              Cancelar
+            </Button>
+            <Button size="sm" onClick={guardarEdicion} disabled={!edHora}>
+              Guardar cambios
+            </Button>
+          </div>
+        </div>
+      )}
     </Section>
   )
 }

@@ -8,6 +8,7 @@ import {
   agregarRegistroDesdeItem,
   alternarFarmacoEnCarrito,
   aplicarPack,
+  editarRegistro,
   cambiarHoraRegistro,
   cambiarInfusion,
   crearItemPersonalizado,
@@ -187,8 +188,8 @@ export function FarmacosSection({
             key={registroEditando.id}
             registro={registroEditando}
             registros={caso.farmacos}
-            onGuardar={(hora) => {
-              onActualizar((c) => cambiarHoraRegistro(c, registroEditando.id, hora))
+            onGuardar={(hora, valor) => {
+              onActualizar((c) => editarRegistro(c, registroEditando.id, hora, valor))
               setEditandoId(null)
             }}
             onCerrar={() => setEditandoId(null)}

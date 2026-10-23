@@ -181,6 +181,12 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
   const via = c.manejoViaAerea ?? crearManejoViaAereaVacio()
   return {
     ...c,
+    paciente: {
+      ...c.paciente,
+      alergiasLista: c.paciente?.alergiasLista ?? [],
+      alergiasOtros: c.paciente?.alergiasOtros ?? '',
+    },
+    cirugia: { ...c.cirugia, diagnostico: c.cirugia?.diagnostico ?? '' },
     tiposAnestesia: c.tiposAnestesia ?? [],
     monitorizacion: c.monitorizacion ?? [],
     checklist: c.checklist ?? [],
@@ -219,11 +225,14 @@ export function crearCasoVacio(): CasoAnestesico {
       altura: '',
       asa: '',
       alergias: '',
+      alergiasLista: [],
+      alergiasOtros: '',
       antecedentes: '',
       ayuno: '',
       viaAerea: '',
     },
     cirugia: {
+      diagnostico: '',
       procedimiento: '',
       cirujano: '',
       fecha: ahora.slice(0, 10),

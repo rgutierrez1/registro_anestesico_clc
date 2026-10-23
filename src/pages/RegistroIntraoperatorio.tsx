@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { AccesosVascularesSection } from '../components/AccesosVascularesSection'
 import { ChecklistSection } from '../components/ChecklistSection'
 import { Cronometro } from '../components/Cronometro'
+import { EditarDatosCaso } from '../components/EditarDatosCaso'
 import { TipoAnestesiaSection } from '../components/TipoAnestesiaSection'
 import { EventosSection } from '../components/EventosSection'
 import { FarmacosSection } from '../components/FarmacosSection'
@@ -16,6 +17,7 @@ import { ViaAereaSection } from '../components/ViaAereaSection'
 import { Badge, Button, Field, Input, Select, TextArea } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
+import { anestesiologoActual, textoAlergias } from '../utils/caso'
 import { cambiarHito, errorHito, type ClaveHito } from '../utils/hitos'
 import { formatHora, hhmmLocal, horaPersonalizadaIso } from '../utils/tiempo'
 import { cargarPrimerRegistro, prepararPrimerRegistro } from '../utils/vitales'
@@ -31,6 +33,7 @@ export default function RegistroIntraoperatorio() {
   const navigate = useNavigate()
   const caso = useLiveQuery(() => (id ? db.casos.get(id) : undefined), [id])
   const [finalizando, setFinalizando] = useState(false)
+  const [editandoDatos, setEditandoDatos] = useState(false)
   const [destino, setDestino] = useState(DESTINOS_PACIENTE[0])
   const [notas, setNotas] = useState('')
   const [finHora, setFinHora] = useState('')
@@ -122,7 +125,26 @@ export default function RegistroIntraoperatorio() {
                 {caso.estado === 'planificado' ? 'Planificado' : 'En curso'}
               </Badge>
             </h1>
-            <p className="text-sm text-slate-500">{caso.cirugia.procedimiento}</p>
+            <p className="text-sm text-slate-500">
+              {caso.cirugia.diagnostico && `${caso.cirugia.diagnostico} · `}
+              {caso.cirugia.procedimiento}
+            </p>
+            <p className="text-xs text-slate-500">
+              {caso.cirugia.cirujano && `Cirujano/a: ${caso.cirugia.cirujano} · `}
+              {anestesiologoActual(caso) && `Anestesiólogo/a: ${anestesiologoActual(caso)}`}
+            </p>
+            {textoAlergias(caso.paciente) && (
+              <p className="mt-1">
+                <Badge tone="red">Alergias: {textoAlergias(caso.paciente)}</Badge>
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setEditandoDatos((v) => !v)}
+              className="mt-1 min-h-[32px] text-xs font-medium text-sky-600"
+            >
+              {editandoDatos ? 'Cerrar edición' : 'Editar datos del caso'}
+            </button>
           </div>
         </div>
         <div className="flex items-center gap-4">
@@ -152,6 +174,18 @@ export default function RegistroIntraoperatorio() {
           )}
         </div>
       </header>
+
+      {editandoDatos && (
+        <EditarDatosCaso
+          paciente={caso.paciente}
+          cirugia={caso.cirugia}
+          onCancelar={() => setEditandoDatos(false)}
+          onGuardar={(paciente, cirugia) => {
+            patch(() => ({ paciente, cirugia }))
+            setEditandoDatos(false)
+          }}
+        />
+      )}
 
       {finalizando && (
         <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-4">
@@ -240,6 +274,7 @@ export default function RegistroIntraoperatorio() {
           accesos={caso.accesosVasculares}
           onAgregar={(a) => patch((c) => ({ accesosVasculares: [...c.accesosVasculares, a] }))}
           onEliminar={(id) => patch((c) => ({ accesosVasculares: c.accesosVasculares.filter((x) => x.id !== id) }))}
+          onEditar={(a) => patch((c) => ({ accesosVasculares: c.accesosVasculares.map((x) => (x.id === a.id ? a : x)) }))}
         />
         <RegistroVitalesSection caso={caso} onActualizar={patch} />
         <FarmacosSection caso={caso} onActualizar={patch} />
@@ -247,9 +282,21 @@ export default function RegistroIntraoperatorio() {
           tecnicas={caso.tecnicasRegionales}
           onAgregar={agregarTecnica}
           onEliminar={eliminarTecnica}
+          onEditar={(t) => patch((c) => ({ tecnicasRegionales: c.tecnicasRegionales.map((x) => (x.id === t.id ? t : x)) }))}
         />
-        <RegistroFluidosSection registros={caso.fluidos} onAgregar={agregarFluido} onEliminar={eliminarFluido} />
-        <EventosSection eventos={caso.eventos} onAgregar={agregarEvento} onEliminar={eliminarEvento} />
+        <RegistroFluidosSection
+          registros={caso.fluidos}
+          onAgregar={agregarFluido}
+          onEliminar={eliminarFluido}
+          onEditar={(f) => patch((c) => ({ fluidos: c.fluidos.map((x) => (x.id === f.id ? f : x)) }))}
+        />
+        <EventosSection
+          eventos={caso.eventos}
+          anestesiologoActual={anestesiologoActual(caso)}
+          onAgregar={agregarEvento}
+          onEliminar={eliminarEvento}
+          onEditar={(nuevo) => patch((c) => ({ eventos: c.eventos.map((e) => (e.id === nuevo.id ? nuevo : e)) }))}
+        />
       </div>
       {promptVitales && caso.signosVitales.length === 0 && (
         <ModalSignosIniciales

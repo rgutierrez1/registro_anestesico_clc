@@ -81,6 +81,13 @@ export function agregarFlag(c: CasoAnestesico, flag: TimeFlag): Partial<CasoAnes
   return { timeFlags: [...c.timeFlags, flag] }
 }
 
+// Reemplaza un evento validándolo contra los demás (sin contarse a sí mismo).
+export function editarFlag(c: CasoAnestesico, flag: TimeFlag): Partial<CasoAnestesico> {
+  const otros = c.timeFlags.filter((f) => f.id !== flag.id)
+  if (errorFlag(otros, flag) !== null) return {}
+  return { timeFlags: c.timeFlags.map((f) => (f.id === flag.id ? flag : f)) }
+}
+
 export function eliminarFlag(c: CasoAnestesico, id: string): Partial<CasoAnestesico> {
   return { timeFlags: c.timeFlags.filter((f) => f.id !== id) }
 }

@@ -123,12 +123,37 @@ export function Pill({
   )
 }
 
-export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: 'slate' | 'green' | 'amber' | 'sky' }) {
+export function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: 'slate' | 'green' | 'amber' | 'sky' | 'red' }) {
   const tones = {
     slate: 'bg-slate-100 text-slate-700',
     green: 'bg-emerald-100 text-emerald-800',
     amber: 'bg-amber-100 text-amber-800',
     sky: 'bg-sky-100 text-sky-800',
+    red: 'bg-rose-100 text-rose-800',
   }
   return <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${tones[tone]}`}>{children}</span>
+}
+
+export function Casilla({ etiqueta, marcada, onAlternar }: { etiqueta: string; marcada: boolean; onAlternar: () => void }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={marcada}
+      onClick={onAlternar}
+      className={`flex min-h-[44px] items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
+        marcada ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-sky-300'
+      }`}
+    >
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 text-base font-bold leading-none ${
+          marcada ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white text-transparent'
+        }`}
+        aria-hidden="true"
+      >
+        ✓
+      </span>
+      {etiqueta}
+    </button>
+  )
 }

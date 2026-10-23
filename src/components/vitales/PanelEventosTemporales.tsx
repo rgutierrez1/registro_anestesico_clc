@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { DEF_FLAGS, POSICIONES, PRESION_ISQUEMIA_POR_DEFECTO } from '../../constants'
 import type { Posicion, TimeFlag, TipoFlag } from '../../types'
-import { duracionesFlags, etiquetaFlag } from '../../utils/flags'
-import { formatHora } from '../../utils/tiempo'
+import { defFlag, duracionesFlags, etiquetaFlag } from '../../utils/flags'
+import { formatHora, hhmmLocal, horaCercanaIso } from '../../utils/tiempo'
 import { useAhora } from '../../utils/useAhora'
 import { BotonesAgregar } from '../farmacos/BotonesAgregar'
 import { Button, Field, Input, Pill, Select } from '../ui'
@@ -29,11 +29,13 @@ export function IconoReloj() {
 export function PanelEventosTemporales({
   flags,
   onAgregar,
+  onEditar,
   onEliminar,
   onCerrar,
 }: {
   flags: TimeFlag[]
   onAgregar: (flag: TimeFlag) => string | void
+  onEditar: (flag: TimeFlag) => string | void
   onEliminar: (id: string) => void
   onCerrar: () => void
 }) {
@@ -42,6 +44,8 @@ export function PanelEventosTemporales({
   const [presion, setPresion] = useState(String(PRESION_ISQUEMIA_POR_DEFECTO))
   const [posicion, setPosicion] = useState<Posicion | ''>('')
   const [error, setError] = useState('')
+  const [editando, setEditando] = useState<TimeFlag | null>(null)
+  const [horaEdicion, setHoraEdicion] = useState('')
 
   const presionNumero = Number.parseFloat(presion.replace(',', '.'))
   const listo =
@@ -67,6 +71,35 @@ export function PanelEventosTemporales({
     setError('')
   }
 
+  function reiniciar() {
+    setTipo(null)
+    setPosicion('')
+    setPresion(String(PRESION_ISQUEMIA_POR_DEFECTO))
+    setError('')
+    setEditando(null)
+  }
+
+  function empezarEdicion(f: TimeFlag) {
+    setEditando(f)
+    setTipo(f.tipo)
+    setPresion(String(f.presionMmHg ?? PRESION_ISQUEMIA_POR_DEFECTO))
+    setPosicion(f.posicion ?? '')
+    setHoraEdicion(hhmmLocal(f.hora))
+    setError('')
+  }
+
+  function guardarEdicion() {
+    if (!editando || !tipo || !horaEdicion) return
+    const resultado = onEditar({
+      ...editando,
+      hora: horaCercanaIso(horaEdicion, editando.hora),
+      presionMmHg: tipo === 'inicioIsquemia' ? presionNumero : null,
+      posicion: tipo === 'posicion' && posicion ? posicion : null,
+    })
+    if (resultado) return setError(resultado)
+    reiniciar()
+  }
+
   return (
     <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50 p-3">
       <div className="mb-2 flex items-center justify-between">
@@ -76,20 +109,26 @@ export function PanelEventosTemporales({
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        {DEF_FLAGS.map((d) => (
-          <Pill
-            key={d.tipo}
-            active={tipo === d.tipo}
-            onClick={() => {
-              setTipo(d.tipo)
-              setError('')
-            }}
-          >
-            {d.etiqueta}
-          </Pill>
-        ))}
-      </div>
+      {editando ? (
+        <p className="text-sm font-medium text-amber-900">
+          Editando: {defFlag(editando.tipo).etiqueta} a las {formatHora(editando.hora)}
+        </p>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {DEF_FLAGS.map((d) => (
+            <Pill
+              key={d.tipo}
+              active={tipo === d.tipo}
+              onClick={() => {
+                setTipo(d.tipo)
+                setError('')
+              }}
+            >
+              {d.etiqueta}
+            </Pill>
+          ))}
+        </div>
+      )}
 
       {tipo === 'inicioIsquemia' && (
         <Field label="Presión de isquemia (mmHg)" className="mt-3 max-w-xs">
@@ -116,7 +155,27 @@ export function PanelEventosTemporales({
         </Field>
       )}
 
-      {tipo && (
+      {editando && (
+        <div className="mt-3 flex flex-wrap items-end gap-2">
+          <Field label="Hora">
+            <Input
+              type="time"
+              value={horaEdicion}
+              onChange={(e) => {
+                setHoraEdicion(e.target.value)
+                setError('')
+              }}
+            />
+          </Field>
+          <Button size="sm" disabled={!listo || !horaEdicion} onClick={guardarEdicion}>
+            Guardar cambios
+          </Button>
+          <Button size="sm" variant="ghost" onClick={reiniciar}>
+            Cancelar
+          </Button>
+        </div>
+      )}
+      {tipo && !editando && (
         <div className="mt-3">
           <BotonesAgregar
             listo={listo}
@@ -143,9 +202,21 @@ export function PanelEventosTemporales({
                     </span>
                   )}
                 </span>
-                <button type="button" onClick={() => onEliminar(f.id)} className="min-h-[36px] shrink-0 px-2 text-xs text-rose-500">
-                  Borrar
-                </button>
+                <span className="flex shrink-0">
+                  <button type="button" onClick={() => empezarEdicion(f)} className="min-h-[36px] px-2 text-xs text-sky-600">
+                    Editar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editando?.id === f.id) reiniciar()
+                      onEliminar(f.id)
+                    }}
+                    className="min-h-[36px] px-2 text-xs text-rose-500"
+                  >
+                    Borrar
+                  </button>
+                </span>
               </li>
             )
           })}

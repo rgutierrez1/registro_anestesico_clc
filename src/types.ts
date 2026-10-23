@@ -19,12 +19,15 @@ export interface DatosPaciente {
   altura: number | ''
   asa: ASA | ''
   alergias: string
+  alergiasLista: string[]
+  alergiasOtros: string
   antecedentes: string
   ayuno: string
   viaAerea: string
 }
 
 export interface DatosCirugia {
+  diagnostico: string
   procedimiento: string
   cirujano: string
   fecha: string
@@ -139,6 +142,7 @@ export interface Evento {
   id: string
   hora: string
   descripcion: string
+  cambioAnestesiologo?: { de: string; a: string; entregaFormal: boolean }
 }
 
 export type TipoManejoViaAerea =

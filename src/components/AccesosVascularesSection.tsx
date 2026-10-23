@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { CALIBRES_VVP, TIPOS_ACCESO, UBICACIONES_ACCESO, UBICACIONES_VVC_CON_LADO } from '../constants'
 import type { AccesoVascular, TipoAcceso } from '../types'
 import { chequeoVVC, tituloAcceso, ubicacionAcceso } from '../utils/accesos'
-import { formatHora } from '../utils/tiempo'
+import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { BotonesAgregar } from './farmacos/BotonesAgregar'
-import { Field, Pill, Section, Select } from './ui'
+import { Button, Casilla, Field, Input, Pill, Section, Select } from './ui'
 
 interface Borrador {
   tipo: TipoAcceso | null
@@ -30,23 +30,29 @@ export function AccesosVascularesSection({
   accesos,
   onAgregar,
   onEliminar,
+  onEditar,
 }: {
   accesos: AccesoVascular[]
   onAgregar: (a: AccesoVascular) => void
   onEliminar: (id: string) => void
+  onEditar: (a: AccesoVascular) => void
 }) {
   const [borrador, setBorrador] = useState<Borrador>(BORRADOR_VACIO)
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [horaEdicion, setHoraEdicion] = useState('')
+  const [errorEdicion, setErrorEdicion] = useState('')
+  const original = accesos.find((a) => a.id === editandoId)
   const { tipo } = borrador
   const ubicaciones = tipo ? UBICACIONES_ACCESO[tipo] : []
   const pideLado = tipo === 'VVC' && UBICACIONES_VVC_CON_LADO.includes(borrador.ubicacion)
   const listo = tipo !== null && borrador.ubicacion !== '' && (tipo !== 'VVP' || borrador.calibre !== '')
   const ordenados = [...accesos].sort((a, b) => a.hora.localeCompare(b.hora))
 
-  function agregar(hora?: string) {
-    if (!tipo || !listo) return
-    onAgregar({
-      id: crypto.randomUUID(),
-      hora: hora ?? new Date().toISOString(),
+  function construir(id: string, hora: string): AccesoVascular | null {
+    if (!tipo || !listo) return null
+    return {
+      id,
+      hora,
       tipo,
       ubicacion: borrador.ubicacion,
       lado: pideLado ? borrador.lado : '',
@@ -54,8 +60,44 @@ export function AccesosVascularesSection({
       tecnicaEsteril: tipo === 'VVC' && borrador.tecnicaEsteril,
       apoyoRadioscopia: tipo === 'VVC' && borrador.apoyoRadioscopia,
       ecoguiado: tipo === 'VVC' && borrador.ecoguiado,
-    })
+    }
+  }
+
+  function agregar(hora?: string) {
+    const nuevo = construir(crypto.randomUUID(), hora ?? new Date().toISOString())
+    if (!nuevo) return
+    onAgregar(nuevo)
     setBorrador(BORRADOR_VACIO)
+  }
+
+  function empezarEdicion(a: AccesoVascular) {
+    setEditandoId(a.id)
+    setHoraEdicion(hhmmLocal(a.hora))
+    setErrorEdicion('')
+    setBorrador({
+      tipo: a.tipo,
+      ubicacion: a.ubicacion,
+      lado: a.lado,
+      calibre: a.calibre,
+      tecnicaEsteril: a.tecnicaEsteril,
+      apoyoRadioscopia: a.apoyoRadioscopia,
+      ecoguiado: a.ecoguiado,
+    })
+  }
+
+  function cancelarEdicion() {
+    setEditandoId(null)
+    setBorrador(BORRADOR_VACIO)
+  }
+
+  function guardarEdicion() {
+    if (!original || !horaEdicion) return
+    const iso = horaCercanaIso(horaEdicion, original.hora)
+    if (Date.parse(iso) > Date.now() + 60000) return setErrorEdicion('La hora no puede ser posterior a la hora actual.')
+    const editado = construir(original.id, iso)
+    if (!editado) return
+    onEditar(editado)
+    cancelarEdicion()
   }
 
   return (
@@ -78,16 +120,30 @@ export function AccesosVascularesSection({
                   )}
                 </p>
               </div>
-              <button type="button" onClick={() => onEliminar(a.id)} className="min-h-[36px] shrink-0 px-2 text-xs text-rose-500">
-                Borrar
-              </button>
+              <div className="flex shrink-0 gap-2">
+                <button type="button" onClick={() => empezarEdicion(a)} className="min-h-[36px] px-2 text-xs text-sky-600">
+                  Editar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (editandoId === a.id) cancelarEdicion()
+                    onEliminar(a.id)
+                  }}
+                  className="min-h-[36px] px-2 text-xs text-rose-500"
+                >
+                  Borrar
+                </button>
+              </div>
             </li>
           ))}
         </ul>
       )}
 
-      <div className="rounded-xl border border-slate-200 p-3">
-        <p className="mb-2 text-sm font-medium text-slate-600">Agregar acceso</p>
+      <div className={`rounded-xl border p-3 ${original ? 'border-amber-300 bg-amber-50' : 'border-slate-200'}`}>
+        <p className="mb-2 text-sm font-medium text-slate-600">
+          {original ? `Editar acceso colocado a las ${formatHora(original.hora)}` : 'Agregar acceso'}
+        </p>
         <div className="flex flex-wrap gap-2">
           {TIPOS_ACCESO.map((t) => (
             <Pill key={t.id} active={tipo === t.id} onClick={() => setBorrador({ ...BORRADOR_VACIO, tipo: t.id })}>
@@ -161,41 +217,39 @@ export function AccesosVascularesSection({
               </div>
             )}
 
-            <div className="mt-3">
-              <BotonesAgregar
-                listo={listo}
-                etiquetaAhora="Agregar ahora"
-                etiquetaPersonalizada="Agregar a hora personalizada"
-                onAgregar={agregar}
-              />
-            </div>
+            {original ? (
+              <div className="mt-3 flex flex-wrap items-end gap-2">
+                <Field label="Hora de colocación">
+                  <Input
+                    type="time"
+                    value={horaEdicion}
+                    onChange={(e) => {
+                      setHoraEdicion(e.target.value)
+                      setErrorEdicion('')
+                    }}
+                  />
+                </Field>
+                <Button size="sm" disabled={!listo || !horaEdicion} onClick={guardarEdicion}>
+                  Guardar cambios
+                </Button>
+                <Button size="sm" variant="ghost" onClick={cancelarEdicion}>
+                  Cancelar
+                </Button>
+                {errorEdicion && <p className="w-full text-sm text-rose-700">{errorEdicion}</p>}
+              </div>
+            ) : (
+              <div className="mt-3">
+                <BotonesAgregar
+                  listo={listo}
+                  etiquetaAhora="Agregar ahora"
+                  etiquetaPersonalizada="Agregar a hora personalizada"
+                  onAgregar={agregar}
+                />
+              </div>
+            )}
           </>
         )}
       </div>
     </Section>
-  )
-}
-
-function Casilla({ etiqueta, marcada, onAlternar }: { etiqueta: string; marcada: boolean; onAlternar: () => void }) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={marcada}
-      onClick={onAlternar}
-      className={`flex min-h-[44px] items-center gap-2 rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
-        marcada ? 'border-emerald-300 bg-emerald-50 text-emerald-900' : 'border-slate-200 bg-white text-slate-800 hover:border-sky-300'
-      }`}
-    >
-      <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-2 text-base font-bold leading-none ${
-          marcada ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-slate-400 bg-white text-transparent'
-        }`}
-        aria-hidden="true"
-      >
-        ✓
-      </span>
-      {etiqueta}
-    </button>
   )
 }

@@ -10,6 +10,7 @@ import { db } from '../db'
 import type { CasoAnestesico } from '../types'
 import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
+import { anestesiologoActual, textoAlergias } from '../utils/caso'
 import { hitosDelCaso } from '../utils/hitos'
 import { serieVitales } from '../utils/vitales'
 import { formatFechaHora, formatHora, duracionDesde } from '../utils/tiempo'
@@ -36,6 +37,17 @@ export default function ResumenCaso() {
               Volver al registro en vivo
             </Button>
           )}
+          {caso.estado === 'finalizado' && (
+            <Button
+              variant="secondary"
+              onClick={async () => {
+                await db.casos.update(caso.id, { estado: 'en_curso', updatedAt: new Date().toISOString() })
+                navigate(`/caso/${caso.id}`)
+              }}
+            >
+              Reabrir para editar
+            </Button>
+          )}
           <Button onClick={() => window.print()}>Imprimir / Exportar PDF</Button>
         </div>
       </div>
@@ -58,15 +70,19 @@ export default function ResumenCaso() {
             <Dato label="Ayuno" valor={paciente.ayuno} />
             <Dato label="Vía aérea" valor={paciente.viaAerea} />
           </Grid>
-          {paciente.alergias && <Dato label="Alergias" valor={paciente.alergias} full />}
+          <Dato label="Alergias conocidas" valor={textoAlergias(paciente)} full />
           {paciente.antecedentes && <Dato label="Antecedentes" valor={paciente.antecedentes} full />}
         </SeccionResumen>
 
         <SeccionResumen titulo="Cirugía y anestesia">
           <Grid>
+            <Dato label="Diagnóstico quirúrgico" valor={cirugia.diagnostico} />
             <Dato label="Procedimiento" valor={cirugia.procedimiento} />
             <Dato label="Cirujano/a" valor={cirugia.cirujano} />
             <Dato label="Anestesiólogo/a" valor={cirugia.anestesiologo} />
+            {anestesiologoActual(caso) !== cirugia.anestesiologo && (
+              <Dato label="Anestesiólogo/a al cierre" valor={anestesiologoActual(caso)} />
+            )}
             <Dato label="Tipo de anestesia" valor={caso.tiposAnestesia.join(', ')} />
             <Dato
               label="Inicio anestésico"

@@ -114,11 +114,22 @@ export function limitesHora(registros: RegistroFarmaco[], id: string): { min: nu
   }
 }
 
+// Cambia la dosis numérica de un registro (no aplica a los que llevan una dosis en texto libre).
+export function cambiarDosisRegistro(c: CasoAnestesico, id: string, valor: number): Partial<CasoAnestesico> {
+  if (!Number.isFinite(valor) || valor < 0) return {}
+  return { farmacos: c.farmacos.map((r) => (r.id === id && r.valor !== null && !r.dosisTexto ? { ...r, valor } : r)) }
+}
+
 export function cambiarHoraRegistro(c: CasoAnestesico, id: string, hora: string): Partial<CasoAnestesico> {
   const t = Date.parse(hora)
   const { min, max } = limitesHora(c.farmacos, id)
   if (Number.isNaN(t) || (min !== null && t <= min) || (max !== null && t >= max)) return {}
   return { farmacos: c.farmacos.map((r) => (r.id === id ? { ...r, hora } : r)) }
+}
+
+export function editarRegistro(c: CasoAnestesico, id: string, hora: string, valor: number | null): Partial<CasoAnestesico> {
+  const conHora = { ...c, ...cambiarHoraRegistro(c, id, hora) }
+  return valor === null ? { farmacos: conHora.farmacos } : cambiarDosisRegistro(conHora, id, valor)
 }
 
 function registroDesdeItem(item: ItemCarrito, hora: string, previos: RegistroFarmaco[]): RegistroFarmaco | null {

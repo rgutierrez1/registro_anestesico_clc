@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { CasoAnestesico, RegistroVital, TimeFlag, ValoresVitales } from '../types'
-import { agregarFlag, eliminarFlag, errorFlag, posicionEn } from '../utils/flags'
+import { agregarFlag, editarFlag, eliminarFlag, errorFlag, posicionEn } from '../utils/flags'
 import { hitosDelCaso } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { useAhora } from '../utils/useAhora'
@@ -64,6 +64,15 @@ export function RegistroVitalesSection({
     onActualizar((c) => agregarFlag(c, flag))
   }
 
+  function editarEventoTemporal(flag: TimeFlag): string | void {
+    const problema = errorFlag(
+      caso.timeFlags.filter((f) => f.id !== flag.id),
+      flag,
+    )
+    if (problema) return problema
+    onActualizar((c) => editarFlag(c, flag))
+  }
+
   function seleccionar(hora: string) {
     setPendiente(null)
     setNuevosValores(false)
@@ -102,6 +111,7 @@ export function RegistroVitalesSection({
         <PanelEventosTemporales
           flags={caso.timeFlags}
           onAgregar={agregarEventoTemporal}
+          onEditar={editarEventoTemporal}
           onEliminar={(id) => onActualizar((c) => eliminarFlag(c, id))}
           onCerrar={() => setPanelFlags(false)}
         />
