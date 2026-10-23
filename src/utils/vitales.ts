@@ -1,6 +1,7 @@
 import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
 import { cambiarHito, errorHito } from './hitos'
 import { horaPersonalizadaIso } from './tiempo'
+import { errorVentilacion, type ValoresVentilacion } from './ventilacion'
 
 export const PASO_VITALES_MS = 5 * 60000
 
@@ -122,13 +123,14 @@ export function eliminarRegistroVital(c: CasoAnestesico, id: string): Partial<Ca
 export interface ExtrasPrimerRegistro {
   inicio?: string
   fin?: string
+  ventilacion?: ValoresVentilacion
 }
 
 // Convierte las horas (HH:MM) del primer registro y las valida contra los hitos existentes.
 export function prepararPrimerRegistro(
   c: CasoAnestesico,
   extras: ExtrasPrimerRegistro,
-): { error: string | null; inicioIso?: string; finIso?: string } {
+): { error: string | null; inicioIso?: string; finIso?: string; ventilacion?: ValoresVentilacion } {
   let simulado = c
   let inicioIso: string | undefined
   let finIso: string | undefined
@@ -143,14 +145,18 @@ export function prepararPrimerRegistro(
     const problema = errorHito(simulado, 'finAnestesia', finIso)
     if (problema) return { error: `Fin de anestesia: ${problema}` }
   }
-  return { error: null, inicioIso, finIso }
+  if (extras.ventilacion) {
+    const problema = errorVentilacion({ id: '', hora: inicioIso ?? c.horaInicioAnestesia ?? new Date().toISOString(), ...extras.ventilacion })
+    if (problema) return { error: problema }
+  }
+  return { error: null, inicioIso, finIso, ventilacion: extras.ventilacion }
 }
 
 // El primer registro parte de la hora de inicio de anestesia y se repite cada 5 min hasta ahora o hasta el fin.
 export function cargarPrimerRegistro(
   c: CasoAnestesico,
   valores: ValoresVitales,
-  extras: { inicioIso?: string; finIso?: string },
+  extras: { inicioIso?: string; finIso?: string; ventilacion?: ValoresVentilacion },
 ): Partial<CasoAnestesico> {
   let base = c
   let cambios: Partial<CasoAnestesico> = {}
@@ -165,5 +171,9 @@ export function cargarPrimerRegistro(
     base = { ...base, ...h }
   }
   const ancla = agregarAncla(base, valores, base.horaInicioAnestesia ?? new Date().toISOString())
-  return { ...cambios, ...ancla }
+  const horaInicial = base.horaInicioAnestesia ?? new Date().toISOString()
+  const ventilacion = extras.ventilacion
+    ? { ventilacion: [...base.ventilacion, { id: crypto.randomUUID(), hora: horaInicial, ...extras.ventilacion }] }
+    : {}
+  return { ...cambios, ...ancla, ...ventilacion }
 }

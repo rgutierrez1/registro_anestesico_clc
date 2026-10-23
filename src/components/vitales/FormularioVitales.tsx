@@ -1,26 +1,38 @@
 import { useState, type ReactNode } from 'react'
-import type { ValoresVitales } from '../../types'
+import type { DatosPaciente, ValoresVitales } from '../../types'
 import { hhmmLocal } from '../../utils/tiempo'
+import { valoresDePartida, type ValoresVentilacion } from '../../utils/ventilacion'
 import { calcularPam, CAMPOS_VITALES, conPam, validarValores, type ClaveVital } from '../../utils/vitales'
 import { Button, Field, Input } from '../ui'
+import { borradorDesde, CamposVentilacion, valoresDeBorrador, type BorradorVentilacion } from './CamposVentilacion'
+import { DeslizadorVertical } from './DeslizadorVertical'
 
-type Textos = Record<ClaveVital, string>
+type Numeros = Record<ClaveVital, number | null>
 
-function aTextos(v: ValoresVitales | null): Textos {
-  const t = (n: number | null | undefined) => (n === null || n === undefined ? '' : String(n))
-  return { pas: t(v?.pas), pad: t(v?.pad), fc: t(v?.fc), etco2: t(v?.etco2), spo2: t(v?.spo2), temp: t(v?.temp) }
+// Valores con los que parte el primer registro; después se ajustan con los deslizadores.
+const PARTIDA: Record<ClaveVital, number> = { pas: 120, pad: 70, fc: 70, etco2: 35, spo2: 98, temp: 36 }
+
+// Rango de cada deslizador (más acotado que el rango válido, para tener precisión al arrastrar).
+const RANGO_DESLIZADOR: Record<ClaveVital, [number, number]> = {
+  pas: [40, 240],
+  pad: [20, 150],
+  fc: [20, 200],
+  etco2: [0, 60],
+  spo2: [50, 100],
+  temp: [30, 42],
 }
 
-function aNumero(s: string): number | null {
-  const n = Number.parseFloat(s.replace(',', '.'))
-  return Number.isFinite(n) ? n : null
+function aNumeros(v: ValoresVitales | null): Numeros {
+  if (!v) return { ...PARTIDA }
+  return { pas: v.pas, pad: v.pad, fc: v.fc, etco2: v.etco2, spo2: v.spo2, temp: v.temp ?? null }
 }
 
-const ORDEN: (ClaveVital | 'pam')[] = ['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2', 'temp']
+const ORDEN: ClaveVital[] = ['pas', 'pad', 'fc', 'etco2', 'spo2', 'temp']
 
 export interface HorasPrimerRegistro {
   inicio?: string
   fin?: string
+  ventilacion?: ValoresVentilacion
 }
 
 export function FormularioVitales({
@@ -30,9 +42,9 @@ export function FormularioVitales({
   onCancelar,
   textoCancelar = 'Cancelar',
   ayuda,
-  autoFocus = false,
   pedirInicio = false,
   pedirFin = false,
+  paciente,
 }: {
   inicial: ValoresVitales | null
   textoGuardar: string
@@ -40,33 +52,28 @@ export function FormularioVitales({
   onCancelar?: () => void
   textoCancelar?: string
   ayuda?: ReactNode
-  autoFocus?: boolean
   pedirInicio?: boolean
   pedirFin?: boolean
+  // Si se indica, se piden también los parámetros ventilatorios de partida (primer registro).
+  paciente?: DatosPaciente
 }) {
-  const [textos, setTextos] = useState<Textos>(() => aTextos(inicial))
+  const [numeros, setNumeros] = useState<Numeros>(() => aNumeros(inicial))
   const [error, setError] = useState('')
   const [inicioHora, setInicioHora] = useState(() => hhmmLocal(new Date().toISOString()))
   const [finHora, setFinHora] = useState('')
+  const [ventilacion, setVentilacion] = useState<BorradorVentilacion | null>(() => (paciente ? borradorDesde(valoresDePartida(paciente)) : null))
 
-  const parcial = {
-    pas: aNumero(textos.pas),
-    pad: aNumero(textos.pad),
-    fc: aNumero(textos.fc),
-    etco2: aNumero(textos.etco2),
-    spo2: aNumero(textos.spo2),
-    temp: aNumero(textos.temp),
-  }
-  const pam = calcularPam(parcial.pas, parcial.pad)
+  const pam = calcularPam(numeros.pas, numeros.pad)
 
   function enviar() {
-    const valores = conPam(parcial)
+    const valores = conPam(numeros)
     const problema = validarValores(valores)
     if (problema) return setError(problema)
     if (pedirInicio && !inicioHora) return setError('Indicá la hora de inicio de anestesia.')
     const errorExterno = onGuardar(valores, {
       inicio: pedirInicio ? inicioHora : undefined,
       fin: pedirFin && finHora ? finHora : undefined,
+      ventilacion: (ventilacion && valoresDeBorrador(ventilacion)) ?? undefined,
     })
     if (errorExterno) setError(errorExterno)
   }
@@ -79,38 +86,45 @@ export function FormularioVitales({
       }}
     >
       {ayuda && <div className="mb-3 text-sm text-slate-600">{ayuda}</div>}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {ORDEN.map((clave, i) => {
-          if (clave === 'pam') {
-            return (
-              <div key="pam" className="flex flex-col gap-1">
-                <span className="text-sm font-medium text-slate-600">PAM (calculada)</span>
-                <div className="flex min-h-[44px] items-center rounded-lg border border-slate-200 bg-slate-100 px-3 text-lg font-semibold text-slate-800">
-                  {pam ?? '—'} <span className="ml-1 text-xs font-normal text-slate-500">mmHg</span>
-                </div>
-              </div>
-            )
-          }
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {ORDEN.map((clave) => {
           const campo = CAMPOS_VITALES.find((c) => c.clave === clave)!
+          const [min, max] = RANGO_DESLIZADOR[clave]
           return (
-            <Field key={clave} label={`${campo.etiqueta} (${campo.unidad})`}>
-              <Input
-                type="number"
-                inputMode={campo.paso < 1 ? 'decimal' : 'numeric'}
-                min={campo.min}
-                max={campo.max}
-                step={campo.paso}
-                autoFocus={autoFocus && i === 0}
-                value={textos[clave]}
-                onChange={(e) => {
-                  setTextos((t) => ({ ...t, [clave]: e.target.value }))
-                  setError('')
-                }}
-              />
-            </Field>
+            <DeslizadorVertical
+              key={clave}
+              etiqueta={campo.etiqueta}
+              unidad={campo.unidad}
+              valor={numeros[clave]}
+              min={min}
+              max={max}
+              paso={campo.paso}
+              porDefecto={PARTIDA[clave]}
+              onChange={(v) => {
+                setNumeros((n) => ({ ...n, [clave]: v }))
+                setError('')
+              }}
+            />
           )
         })}
       </div>
+      <p className="mt-2 text-sm text-slate-600">
+        PAM (calculada): <span className="font-semibold text-slate-800">{pam ?? '—'}</span> mmHg
+      </p>
+      {ventilacion && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+          <p className="mb-2 text-sm font-medium text-slate-600">
+            Parámetros ventilatorios de partida (opcional: si no eliges el tipo de ventilación, no se registran).
+          </p>
+          <CamposVentilacion
+            borrador={ventilacion}
+            onCambiar={(clave, valor) => {
+              setVentilacion((b) => b && { ...b, [clave]: valor })
+              setError('')
+            }}
+          />
+        </div>
+      )}
       {(pedirInicio || pedirFin) && (
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
           <p className="mb-2 text-sm font-medium text-slate-600">
@@ -162,10 +176,12 @@ export function ModalSignosIniciales({
   onGuardar,
   onCerrar,
   pedirFin = false,
+  paciente,
 }: {
   onGuardar: (v: ValoresVitales, horas: HorasPrimerRegistro) => string | void
   onCerrar: () => void
   pedirFin?: boolean
+  paciente?: DatosPaciente
 }) {
   return (
     <div
@@ -174,11 +190,11 @@ export function ModalSignosIniciales({
       aria-modal="true"
       aria-label="Primer registro de signos vitales"
     >
-      <div className="w-full max-w-xl rounded-2xl bg-white p-5 shadow-xl">
+      <div className="max-h-full w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-5 shadow-xl">
         <h2 className="mb-1 text-lg font-bold text-slate-900">Primer registro de signos vitales</h2>
         <FormularioVitales
           inicial={null}
-          autoFocus
+          paciente={paciente}
           pedirFin={pedirFin}
           textoGuardar="Guardar y repetir cada 5 min"
           textoCancelar="Más tarde"

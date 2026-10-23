@@ -12,6 +12,7 @@ import { formatDosis } from '../utils/dosis'
 import { ETIQUETA_EVENTO } from '../utils/farmacos'
 import { anestesiologoActual, textoAlergias } from '../utils/caso'
 import { hitosDelCaso } from '../utils/hitos'
+import { resumenVentilacion } from '../utils/ventilacion'
 import { serieVitales } from '../utils/vitales'
 import { formatFechaHora, formatHora, duracionDesde } from '../utils/tiempo'
 
@@ -184,12 +185,27 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
+        {caso.ventilacion.length > 0 && (
+          <SeccionResumen titulo="Parámetros ventilatorios">
+            <ul className="flex flex-col gap-1 text-sm text-slate-700">
+              {[...caso.ventilacion]
+                .sort((a, b) => a.hora.localeCompare(b.hora))
+                .map((v) => (
+                  <li key={v.id}>
+                    <span className="font-mono text-xs text-slate-400">{formatHora(v.hora)}</span> — {resumenVentilacion(v)}
+                  </li>
+                ))}
+            </ul>
+          </SeccionResumen>
+        )}
+
         <SeccionResumen titulo="Signos vitales">
           <VitalesChart
             serie={serieVitales(caso.signosVitales, Date.parse(caso.horaFinAnestesia ?? new Date().toISOString()))}
             inicio={caso.horaInicioAnestesia}
             hitos={hitosDelCaso(caso)}
             flags={caso.timeFlags}
+            ventilacion={caso.ventilacion}
             controles={false}
           />
         </SeccionResumen>

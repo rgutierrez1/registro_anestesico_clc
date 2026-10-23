@@ -300,6 +300,7 @@ export default function RegistroIntraoperatorio() {
       </div>
       {promptVitales && caso.signosVitales.length === 0 && (
         <ModalSignosIniciales
+          paciente={caso.paciente}
           pedirFin={!caso.horaFinAnestesia}
           onCerrar={() => setPromptVitales(false)}
           onGuardar={(valores, horas) => {

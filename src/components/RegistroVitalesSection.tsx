@@ -4,6 +4,7 @@ import { agregarFlag, editarFlag, eliminarFlag, errorFlag, posicionEn } from '..
 import { hitosDelCaso } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { useAhora } from '../utils/useAhora'
+import { agregarVentilacion, editarVentilacion, eliminarVentilacion } from '../utils/ventilacion'
 import {
   agregarAncla,
   aplicarEdicionVital,
@@ -23,6 +24,7 @@ import { VitalesChart, type CambioPendiente } from './VitalesChart'
 import { Button, Section } from './ui'
 import { FormularioVitales } from './vitales/FormularioVitales'
 import { IconoReloj, PanelEventosTemporales } from './vitales/PanelEventosTemporales'
+import { IconoVentilacion, PanelVentilacion } from './vitales/PanelVentilacion'
 
 export function RegistroVitalesSection({
   caso,
@@ -36,6 +38,7 @@ export function RegistroVitalesSection({
   const serie = useMemo(() => serieVitales(caso.signosVitales, hasta), [caso.signosVitales, hasta])
   const [mostrarTabla, setMostrarTabla] = useState(false)
   const [panelFlags, setPanelFlags] = useState(false)
+  const [panelVentilacion, setPanelVentilacion] = useState(false)
   const [nuevosValores, setNuevosValores] = useState(false)
   const [editandoHora, setEditandoHora] = useState<string | null>(null)
   const [pendiente, setPendiente] = useState<CambioPendiente | null>(null)
@@ -91,6 +94,18 @@ export function RegistroVitalesSection({
           )}
           <button
             type="button"
+            title="Parámetros ventilatorios"
+            aria-label="Parámetros ventilatorios"
+            aria-pressed={panelVentilacion}
+            onClick={() => setPanelVentilacion((v) => !v)}
+            className={`inline-flex h-[44px] w-[44px] items-center justify-center rounded-xl text-white transition-colors ${
+              panelVentilacion ? 'bg-sky-800' : 'bg-sky-600 hover:bg-sky-700'
+            }`}
+          >
+            <IconoVentilacion />
+          </button>
+          <button
+            type="button"
             title="Eventos temporales"
             aria-label="Eventos temporales"
             aria-pressed={panelFlags}
@@ -116,11 +131,21 @@ export function RegistroVitalesSection({
           onCerrar={() => setPanelFlags(false)}
         />
       )}
+      {panelVentilacion && (
+        <PanelVentilacion
+          caso={caso}
+          onAgregar={(r) => onActualizar((c) => agregarVentilacion(c, r))}
+          onEditar={(r) => onActualizar((c) => editarVentilacion(c, r))}
+          onEliminar={(id) => onActualizar((c) => eliminarVentilacion(c, id))}
+          onCerrar={() => setPanelVentilacion(false)}
+        />
+      )}
       {sinRegistros ? (
         <div className="rounded-xl border border-sky-200 bg-sky-50 p-4">
           <h3 className="mb-2 font-semibold text-sky-900">Primer registro</h3>
           <FormularioVitales
             inicial={null}
+            paciente={caso.paciente}
             textoGuardar="Guardar y repetir cada 5 min"
             ayuda="Estos valores se repetirán automáticamente cada 5 minutos durante toda la anestesia. Después podés editar cada registro."
             pedirInicio={!caso.horaInicioAnestesia}
@@ -148,6 +173,7 @@ export function RegistroVitalesSection({
               inicio={caso.horaInicioAnestesia}
               hitos={hitosDelCaso(caso)}
               flags={caso.timeFlags}
+              ventilacion={caso.ventilacion}
               pendiente={pendiente}
               seleccionHora={editandoHora}
               onSolicitarCambio={solicitarCambio}

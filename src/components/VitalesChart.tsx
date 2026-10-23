@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import type { RegistroVital, TimeFlag, ValoresVitales } from '../types'
+import type { RegistroVentilacion, RegistroVital, TimeFlag, ValoresVitales } from '../types'
 import type { Hito } from '../utils/hitos'
 import { formatHora } from '../utils/tiempo'
 import { calcularPam, formatTemp, valoresDe } from '../utils/vitales'
 import { cortaPosicion, marcasFlags, segmentosPosicion } from '../utils/flags'
+import { CAMPOS_VENTILACION, segmentosVentilacion } from '../utils/ventilacion'
 import { disponerMarcas, marcasDeHitos, MarcasHitos } from './MarcasHitos'
 
 const ALTO = 260
-const ALTO_TIRA = 72
+const ALTO_FILA_TIRA = 17
 const ANCHO_EJE = 82
 const PAD_IZQ = 32
 const PAD_DER = 32
@@ -73,6 +74,7 @@ export function VitalesChart({
   inicio,
   hitos = [],
   flags = [],
+  ventilacion = [],
   pendiente = null,
   seleccionHora = null,
   onSolicitarCambio,
@@ -83,6 +85,7 @@ export function VitalesChart({
   inicio: string | null
   hitos?: Hito[]
   flags?: TimeFlag[]
+  ventilacion?: RegistroVentilacion[]
   pendiente?: CambioPendiente | null
   seleccionHora?: string | null
   onSolicitarCambio?: (hora: string, nuevos: ValoresVitales) => void
@@ -130,7 +133,11 @@ export function VitalesChart({
 
   const altoInterior = ALTO - PAD_TOP - PAD_BOTTOM
 
-  const tiemposMarcas = [...hitos.map((h) => Date.parse(h.hora)), ...flags.map((f) => Date.parse(f.hora))]
+  const tiemposMarcas = [
+    ...hitos.map((h) => Date.parse(h.hora)),
+    ...flags.map((f) => Date.parse(f.hora)),
+    ...ventilacion.map((v) => Date.parse(v.hora)),
+  ]
   const t0Base = inicio ? Date.parse(inicio) : Date.parse(visibles[0].hora)
   const t0 = Math.min(t0Base, Date.parse(visibles[0].hora), ...tiemposMarcas)
   const tUltimo = Math.max(Date.parse(visibles[visibles.length - 1].hora), ...tiemposMarcas)
@@ -148,7 +155,9 @@ export function VitalesChart({
   const x = (hora: string) => xTiempo(Date.parse(hora))
   const banda = disponerMarcas([...marcasDeHitos(hitos), ...marcasFlags(flags)], xTiempo, ancho - 4)
   const desfase = banda.alto
-  const altoSvg = ALTO + desfase + ALTO_TIRA
+  const filasVentilacion = ventilacion.length > 0 ? CAMPOS_VENTILACION.length : 0
+  const filaPosicion = FILAS_TIRA.length + filasVentilacion
+  const altoSvg = ALTO + desfase + (filaPosicion + 1) * ALTO_FILA_TIRA + 4
   const yCero = desfase + PAD_TOP + altoInterior
   const y = (valor: number) => yCero - (Math.min(Math.max(valor, 0), ESCALA_MAX) / ESCALA_MAX) * altoInterior
 
@@ -269,7 +278,13 @@ export function VitalesChart({
               {f.etiqueta}
             </text>
           ))}
-          <text x={6} y={ALTO + desfase + 15 + FILAS_TIRA.length * 17} fontSize={10} fontWeight={700} fill="#1e293b">
+          {ventilacion.length > 0 &&
+            CAMPOS_VENTILACION.map((c, k) => (
+              <text key={c.clave} x={6} y={ALTO + desfase + 15 + (FILAS_TIRA.length + k) * ALTO_FILA_TIRA} fontSize={10} fontWeight={700} fill="#1e293b">
+                {c.etiqueta}
+              </text>
+            ))}
+          <text x={6} y={ALTO + desfase + 15 + filaPosicion * ALTO_FILA_TIRA} fontSize={10} fontWeight={700} fill="#1e293b">
             Posición
           </text>
         </svg>
@@ -419,29 +434,15 @@ export function VitalesChart({
                 </g>
               ) : null,
             )}
-            {segmentosPosicion(flags, Date.parse(visibles[0].hora), tUltimo).map((seg, i) => {
-              const xs = xTiempo(seg.desde)
-              const xe = xTiempo(seg.hasta)
-              const nombre = cortaPosicion(seg.posicion)
-              const anchoNombre = nombre.length * 6.6 + 8
-              const flechas = Math.max(0, Math.floor((xe - xs - anchoNombre - 4) / 7.5))
-              return (
-                <text
-                  key={`pos-${i}`}
-                  x={xs - 4}
-                  y={ALTO + desfase + 15 + FILAS_TIRA.length * 17}
-                  fontSize={11}
-                  fontWeight={700}
-                  fill="#1e293b"
-                  pointerEvents="none"
-                >
-                  {nombre}
-                  <tspan fill="#94a3b8" fontWeight={400} dx={6}>
-                    {'>'.repeat(flechas)}
-                  </tspan>
-                </text>
-              )
-            })}
+            {ventilacion.length > 0 &&
+              CAMPOS_VENTILACION.map((c, k) =>
+                segmentosVentilacion(ventilacion, c.clave, tUltimo).map((seg, i) =>
+                  filaConFlechas(`vent-${c.clave}-${i}`, seg.texto, xTiempo(seg.desde), xTiempo(seg.hasta), ALTO + desfase + 15 + (FILAS_TIRA.length + k) * ALTO_FILA_TIRA),
+                ),
+              )}
+            {segmentosPosicion(flags, Date.parse(visibles[0].hora), tUltimo).map((seg, i) =>
+              filaConFlechas(`pos-${i}`, cortaPosicion(seg.posicion), xTiempo(seg.desde), xTiempo(seg.hasta), ALTO + desfase + 15 + filaPosicion * ALTO_FILA_TIRA),
+            )}
           </svg>
         </div>
       </div>
@@ -453,6 +454,20 @@ export function VitalesChart({
         <Leyenda color={COLOR_PAM} simbolo="◆" label="PAM" />
       </div>
     </div>
+  )
+}
+
+// Valor en negrita al inicio del tramo, rellenado con >>>> hasta que cambie.
+function filaConFlechas(clave: string, texto: string, xs: number, xe: number, yTexto: number) {
+  const anchoTexto = texto.length * 6.6 + 8
+  const flechas = Math.max(0, Math.floor((xe - xs - anchoTexto - 4) / 7.5))
+  return (
+    <text key={clave} x={xs - 4} y={yTexto} fontSize={11} fontWeight={700} fill="#1e293b" pointerEvents="none">
+      {texto}
+      <tspan fill="#94a3b8" fontWeight={400} dx={6}>
+        {'>'.repeat(flechas)}
+      </tspan>
+    </text>
   )
 }
 

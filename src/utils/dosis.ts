@@ -16,14 +16,20 @@ export interface PesoDosificacion {
   detalle: string
 }
 
+// Peso ideal (Devine); null si faltan altura o sexo.
+export function pesoIdeal(p: DatosPaciente): number | null {
+  if (p.altura === '' || (p.sexo !== 'M' && p.sexo !== 'F')) return null
+  return (p.sexo === 'M' ? 50 : 45.5) + 2.3 * (p.altura / 2.54 - 60)
+}
+
 // Peso ajustado = ideal (Devine) + 0,4 × (real − ideal). Si el paciente pesa menos que su
 // peso ideal, o faltan altura/sexo para calcularlo, se usa el peso real.
 export function pesoParaDosificar(p: DatosPaciente): PesoDosificacion | null {
   if (p.peso === '' || p.peso <= 0) return null
-  if (p.altura === '' || (p.sexo !== 'M' && p.sexo !== 'F')) {
+  const ideal = pesoIdeal(p)
+  if (ideal === null) {
     return { kg: p.peso, base: 'real', detalle: 'peso real: faltan altura o sexo para calcular el peso ajustado' }
   }
-  const ideal = (p.sexo === 'M' ? 50 : 45.5) + 2.3 * (p.altura / 2.54 - 60)
   if (p.peso <= ideal) {
     return { kg: p.peso, base: 'real', detalle: 'peso real: es menor o igual al peso ideal' }
   }

@@ -142,6 +142,18 @@ class RegistroAnestesicoDB extends Dexie {
             caso.timeFlags ??= []
           }),
       )
+    this.version(12)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.ventilacion ??= []
+          }),
+      )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }
@@ -193,6 +205,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     carritoFarmacos: c.carritoFarmacos ?? [],
     accesosVasculares: c.accesosVasculares ?? [],
     timeFlags: c.timeFlags ?? [],
+    ventilacion: c.ventilacion ?? [],
     tecnicasRegionales: c.tecnicasRegionales ?? [],
     signosVitales: c.signosVitales ?? [],
     farmacos: c.farmacos ?? [],
@@ -244,6 +257,7 @@ export function crearCasoVacio(): CasoAnestesico {
     manejoViaAerea: crearManejoViaAereaVacio(),
     accesosVasculares: [],
     timeFlags: [],
+    ventilacion: [],
     tecnicasRegionales: [],
     signosVitales: [],
     carritoFarmacos: [],

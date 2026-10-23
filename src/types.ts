@@ -90,6 +90,19 @@ export interface TimeFlag {
   posicion: Posicion | null
 }
 
+export type TipoVentilacion = 'Espontánea' | 'Volumen control' | 'Presión control' | 'SIMV' | 'Presión soporte' | 'JET'
+
+// Cada registro es una fotografía de los parámetros desde ese momento; rigen hasta el siguiente registro.
+export interface RegistroVentilacion {
+  id: string
+  hora: string
+  tipo: TipoVentilacion
+  vt: number | null
+  fr: number | null
+  peep: number | null
+  fio2: number | null
+}
+
 export type TipoAcceso = 'VVP' | 'PICC' | 'VVC' | 'LINEA_ARTERIAL'
 
 export interface AccesoVascular {
@@ -173,6 +186,7 @@ export interface CasoAnestesico {
   manejoViaAerea: ManejoViaAerea
   accesosVasculares: AccesoVascular[]
   timeFlags: TimeFlag[]
+  ventilacion: RegistroVentilacion[]
   tecnicasRegionales: TecnicaRegional[]
   signosVitales: RegistroVital[]
   carritoFarmacos: ItemCarrito[]

@@ -78,6 +78,17 @@ export const POSICION_INICIAL = 'Supino'
 
 export const PRESION_ISQUEMIA_POR_DEFECTO = 250
 
+export const TIPOS_VENTILACION = [
+  { id: 'Espontánea', corta: 'Espontánea' },
+  { id: 'Volumen control', corta: 'Vol. control' },
+  { id: 'Presión control', corta: 'Pres. control' },
+  { id: 'SIMV', corta: 'SIMV' },
+  { id: 'Presión soporte', corta: 'Pres. soporte' },
+  { id: 'JET', corta: 'JET' },
+] as const
+
+export const VENTILACION_POR_DEFECTO = { vtMlPorKg: 7, fr: 12, peep: 6, fio2: 100 }
+
 // Orden en el que se ofrecen al registrar un evento temporal.
 export const DEF_FLAGS = [
   { tipo: 'listo', etiqueta: 'Paciente listo para ser operado', corta: 'Paciente listo', color: '#0369a1' },
