@@ -7,9 +7,11 @@ import {
   agregarAncla,
   aplicarEdicionVital,
   CAMPOS_VITALES,
+  cargarPrimerRegistro,
   eliminarRegistroVital,
   esCopia,
   formatTemp,
+  prepararPrimerRegistro,
   serieVitales,
   ultimosValores,
   valoresDe,
@@ -77,9 +79,13 @@ export function RegistroVitalesSection({
             inicial={null}
             textoGuardar="Guardar y repetir cada 5 min"
             ayuda="Estos valores se repetirán automáticamente cada 5 minutos durante toda la anestesia. Después podés editar cada registro."
-            onGuardar={(valores) =>
-              onActualizar((c) => agregarAncla(c, valores, c.horaInicioAnestesia ?? new Date().toISOString()))
-            }
+            pedirInicio={!caso.horaInicioAnestesia}
+            pedirFin={!caso.horaFinAnestesia}
+            onGuardar={(valores, horas) => {
+              const preparado = prepararPrimerRegistro(caso, horas)
+              if (preparado.error) return preparado.error
+              onActualizar((c) => cargarPrimerRegistro(c, valores, preparado))
+            }}
           />
         </div>
       ) : (

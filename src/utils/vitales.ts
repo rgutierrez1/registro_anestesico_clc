@@ -1,4 +1,6 @@
 import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
+import { cambiarHito, errorHito } from './hitos'
+import { horaPersonalizadaIso } from './tiempo'
 
 export const PASO_VITALES_MS = 5 * 60000
 
@@ -115,4 +117,53 @@ export function aplicarEdicionVital(
 
 export function eliminarRegistroVital(c: CasoAnestesico, id: string): Partial<CasoAnestesico> {
   return { signosVitales: c.signosVitales.filter((r) => r.id !== id) }
+}
+
+export interface ExtrasPrimerRegistro {
+  inicio?: string
+  fin?: string
+}
+
+// Convierte las horas (HH:MM) del primer registro y las valida contra los hitos existentes.
+export function prepararPrimerRegistro(
+  c: CasoAnestesico,
+  extras: ExtrasPrimerRegistro,
+): { error: string | null; inicioIso?: string; finIso?: string } {
+  let simulado = c
+  let inicioIso: string | undefined
+  let finIso: string | undefined
+  if (extras.inicio) {
+    inicioIso = horaPersonalizadaIso(extras.inicio)
+    const problema = errorHito(c, 'inicioAnestesia', inicioIso)
+    if (problema) return { error: `Inicio de anestesia: ${problema}` }
+    simulado = { ...c, horaInicioAnestesia: inicioIso }
+  }
+  if (extras.fin) {
+    finIso = horaPersonalizadaIso(extras.fin)
+    const problema = errorHito(simulado, 'finAnestesia', finIso)
+    if (problema) return { error: `Fin de anestesia: ${problema}` }
+  }
+  return { error: null, inicioIso, finIso }
+}
+
+// El primer registro parte de la hora de inicio de anestesia y se repite cada 5 min hasta ahora o hasta el fin.
+export function cargarPrimerRegistro(
+  c: CasoAnestesico,
+  valores: ValoresVitales,
+  extras: { inicioIso?: string; finIso?: string },
+): Partial<CasoAnestesico> {
+  let base = c
+  let cambios: Partial<CasoAnestesico> = {}
+  if (extras.inicioIso) {
+    const h = cambiarHito(base, 'inicioAnestesia', extras.inicioIso)
+    cambios = { ...cambios, ...h }
+    base = { ...base, ...h }
+  }
+  if (extras.finIso) {
+    const h = cambiarHito(base, 'finAnestesia', extras.finIso)
+    cambios = { ...cambios, ...h }
+    base = { ...base, ...h }
+  }
+  const ancla = agregarAncla(base, valores, base.horaInicioAnestesia ?? new Date().toISOString())
+  return { ...cambios, ...ancla }
 }

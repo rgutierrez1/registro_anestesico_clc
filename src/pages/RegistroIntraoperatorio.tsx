@@ -17,7 +17,7 @@ import { CHECKLIST_SEGURIDAD, DESTINOS_PACIENTE } from '../constants'
 import { db } from '../db'
 import { cambiarHito, errorHito, type ClaveHito } from '../utils/hitos'
 import { formatHora, hhmmLocal, horaPersonalizadaIso } from '../utils/tiempo'
-import { agregarAncla } from '../utils/vitales'
+import { cargarPrimerRegistro, prepararPrimerRegistro } from '../utils/vitales'
 import type {
   CasoAnestesico,
   Evento,
@@ -230,9 +230,12 @@ export default function RegistroIntraoperatorio() {
       </div>
       {promptVitales && caso.signosVitales.length === 0 && (
         <ModalSignosIniciales
+          pedirFin={!caso.horaFinAnestesia}
           onCerrar={() => setPromptVitales(false)}
-          onGuardar={(valores) => {
-            patch((c) => agregarAncla(c, valores, c.horaInicioAnestesia ?? new Date().toISOString()))
+          onGuardar={(valores, horas) => {
+            const preparado = prepararPrimerRegistro(caso, horas)
+            if (preparado.error) return preparado.error
+            patch((c) => cargarPrimerRegistro(c, valores, preparado))
             setPromptVitales(false)
           }}
         />

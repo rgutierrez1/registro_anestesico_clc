@@ -68,7 +68,14 @@ export function cambiarHito(c: CasoAnestesico, clave: ClaveHito, iso: string | n
   if (!def) return {}
   if (iso !== null && errorHito(c, clave, iso) !== null) return {}
   const cambios: Partial<CasoAnestesico> = { [def.campo]: iso }
-  if (clave === 'inicioAnestesia' && iso !== null && c.estado === 'planificado') cambios.estado = 'en_curso'
+  if (clave === 'inicioAnestesia' && iso !== null) {
+    if (c.estado === 'planificado') cambios.estado = 'en_curso'
+    // El primer registro de signos vitales parte siempre de la hora de inicio de anestesia.
+    const primera = c.signosVitales.filter((r) => r.propaga).sort((a, b) => a.hora.localeCompare(b.hora))[0]
+    if (primera && (c.horaInicioAnestesia === null || primera.hora === c.horaInicioAnestesia)) {
+      cambios.signosVitales = c.signosVitales.map((r) => (r.id === primera.id ? { ...r, hora: iso } : r))
+    }
+  }
   return cambios
 }
 

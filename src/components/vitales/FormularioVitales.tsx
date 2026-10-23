@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import type { ValoresVitales } from '../../types'
+import { hhmmLocal } from '../../utils/tiempo'
 import { calcularPam, CAMPOS_VITALES, conPam, validarValores, type ClaveVital } from '../../utils/vitales'
 import { Button, Field, Input } from '../ui'
 
@@ -17,6 +18,11 @@ function aNumero(s: string): number | null {
 
 const ORDEN: (ClaveVital | 'pam')[] = ['pas', 'pad', 'pam', 'fc', 'etco2', 'spo2', 'temp']
 
+export interface HorasPrimerRegistro {
+  inicio?: string
+  fin?: string
+}
+
 export function FormularioVitales({
   inicial,
   textoGuardar,
@@ -25,17 +31,23 @@ export function FormularioVitales({
   textoCancelar = 'Cancelar',
   ayuda,
   autoFocus = false,
+  pedirInicio = false,
+  pedirFin = false,
 }: {
   inicial: ValoresVitales | null
   textoGuardar: string
-  onGuardar: (v: ValoresVitales) => void
+  onGuardar: (v: ValoresVitales, horas: HorasPrimerRegistro) => string | void
   onCancelar?: () => void
   textoCancelar?: string
   ayuda?: ReactNode
   autoFocus?: boolean
+  pedirInicio?: boolean
+  pedirFin?: boolean
 }) {
   const [textos, setTextos] = useState<Textos>(() => aTextos(inicial))
   const [error, setError] = useState('')
+  const [inicioHora, setInicioHora] = useState(() => hhmmLocal(new Date().toISOString()))
+  const [finHora, setFinHora] = useState('')
 
   const parcial = {
     pas: aNumero(textos.pas),
@@ -51,7 +63,12 @@ export function FormularioVitales({
     const valores = conPam(parcial)
     const problema = validarValores(valores)
     if (problema) return setError(problema)
-    onGuardar(valores)
+    if (pedirInicio && !inicioHora) return setError('Indicá la hora de inicio de anestesia.')
+    const errorExterno = onGuardar(valores, {
+      inicio: pedirInicio ? inicioHora : undefined,
+      fin: pedirFin && finHora ? finHora : undefined,
+    })
+    if (errorExterno) setError(errorExterno)
   }
 
   return (
@@ -94,6 +111,40 @@ export function FormularioVitales({
           )
         })}
       </div>
+      {(pedirInicio || pedirFin) && (
+        <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3">
+          <p className="mb-2 text-sm font-medium text-slate-600">
+            Horario de la anestesia: los valores parten desde el inicio y se repiten cada 5 minutos hasta ahora
+            {pedirFin ? ', o hasta el fin si la anestesia ya terminó' : ''}.
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {pedirInicio && (
+              <Field label="Hora de inicio de anestesia">
+                <Input
+                  type="time"
+                  value={inicioHora}
+                  onChange={(e) => {
+                    setInicioHora(e.target.value)
+                    setError('')
+                  }}
+                />
+              </Field>
+            )}
+            {pedirFin && (
+              <Field label="Hora de fin de anestesia (opcional, si ya terminó)">
+                <Input
+                  type="time"
+                  value={finHora}
+                  onChange={(e) => {
+                    setFinHora(e.target.value)
+                    setError('')
+                  }}
+                />
+              </Field>
+            )}
+          </div>
+        </div>
+      )}
       {error && <p className="mt-3 text-sm text-rose-700">{error}</p>}
       <div className="mt-4 flex flex-wrap justify-end gap-2">
         {onCancelar && (
@@ -110,9 +161,11 @@ export function FormularioVitales({
 export function ModalSignosIniciales({
   onGuardar,
   onCerrar,
+  pedirFin = false,
 }: {
-  onGuardar: (v: ValoresVitales) => void
+  onGuardar: (v: ValoresVitales, horas: HorasPrimerRegistro) => string | void
   onCerrar: () => void
+  pedirFin?: boolean
 }) {
   return (
     <div
@@ -126,6 +179,7 @@ export function ModalSignosIniciales({
         <FormularioVitales
           inicial={null}
           autoFocus
+          pedirFin={pedirFin}
           textoGuardar="Guardar y repetir cada 5 min"
           textoCancelar="Más tarde"
           onCancelar={onCerrar}
