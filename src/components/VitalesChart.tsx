@@ -455,6 +455,11 @@ export function VitalesChart({
         <Leyenda color={COLOR_PA} simbolo="V" label="PAS" />
         <Leyenda color={COLOR_PA} simbolo="Λ" label="PAD" />
         <Leyenda color={COLOR_PAM} simbolo="◆" label="PAM" />
+        {ventilacion.length > 0 && (
+          <span className="text-slate-500">
+            Ventilación: Espont. = espontánea · VC = volumen control · PC = presión control · PS = presión soporte
+          </span>
+        )}
       </div>
     </div>
   )

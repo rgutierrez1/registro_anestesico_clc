@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Vía aérea",
-  "version": "3.2",
+  "version": "3.3",
   "fecha": "2026-10-23",
   "autor": "Dr. Alejandro Jankelevich",
   "como_leer": {
@@ -536,19 +536,8 @@
           ]
         },
         {
-          "id": "int.fijado_cm",
-          "numero": "5.7",
-          "etiqueta": "Fijado a",
-          "tipo": "numero",
-          "obligatorio": true,
-          "unidad": "cm",
-          "min": 5,
-          "max": 35,
-          "nota": "A la comisura; a la narina si es nasal."
-        },
-        {
           "id": "int.intentos",
-          "numero": "5.8",
+          "numero": "5.7",
           "etiqueta": "Intentos",
           "tipo": "unica",
           "obligatorio": true,

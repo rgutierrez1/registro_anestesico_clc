@@ -55,22 +55,6 @@ export function sugerirDi(p: PacienteMenu, valores: Valores): Sugerencia | null 
   return { texto: `${coma(fila.di_mm)} mm con cuff (tabla por edad); tener a mano medio número más y menos`, codigos: [codigoDi(fila.di_mm)] }
 }
 
-// 5.7 Profundidad de fijación (fórmulas de A1).
-export function sugerirProfundidad(p: PacienteMenu, valores: Valores): Sugerencia | null {
-  const nasal = Array.isArray(valores['va.uso']) && valores['va.uso'].includes('tnt')
-  const di = typeof valores['int.numero_mm'] === 'string' ? Number(String(valores['int.numero_mm']).replace('_', '.')) : undefined
-  if (p.edadMeses !== undefined && p.edadMeses < 1 && p.pesoKg !== undefined) {
-    const v = p.pesoKg + 6
-    return { texto: `${coma(Math.round(v * 2) / 2)} cm (RN: peso + 6)`, valor: Math.round(v * 2) / 2 }
-  }
-  if (p.edadAnios !== undefined && p.edadAnios >= 2) {
-    const v = nasal ? p.edadAnios / 2 + 15 : p.edadAnios / 2 + 12
-    return { texto: `${coma(Math.round(v * 2) / 2)} cm (${nasal ? 'edad/2 + 15 nasal' : 'edad/2 + 12 oral'})`, valor: Math.round(v * 2) / 2 }
-  }
-  if (di !== undefined && !nasal) return { texto: `${coma(Math.round(3 * di * 2) / 2)} cm (3 × diámetro interno)`, valor: Math.round(3 * di * 2) / 2 }
-  return null
-}
-
 // 4.2 Número de la máscara laríngea por peso (A2): puede haber más de uno por solapamiento entre tamaños.
 export function sugerirDsg(p: PacienteMenu, valores: Valores): Sugerencia | null {
   if (p.pesoKg === undefined) return null
@@ -108,8 +92,6 @@ export function sugerir(campoId: string, version: VersionMenu, p: PacienteMenu, 
   switch (campoId) {
     case 'int.numero_mm':
       return sugerirDi(p, valores)
-    case 'int.fijado_cm':
-      return sugerirProfundidad(p, valores)
     case 'ml.numero':
       return sugerirDsg(p, valores)
     case 'ais.tdl_fr':

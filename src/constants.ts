@@ -83,11 +83,11 @@ export const POSICION_INICIAL = 'Supino'
 export const PRESION_ISQUEMIA_POR_DEFECTO = 250
 
 export const TIPOS_VENTILACION = [
-  { id: 'Espontánea', corta: 'Espontánea' },
-  { id: 'Volumen control', corta: 'Vol. control' },
-  { id: 'Presión control', corta: 'Pres. control' },
+  { id: 'Espontánea', corta: 'Espont.' },
+  { id: 'Volumen control', corta: 'VC' },
+  { id: 'Presión control', corta: 'PC' },
   { id: 'SIMV', corta: 'SIMV' },
-  { id: 'Presión soporte', corta: 'Pres. soporte' },
+  { id: 'Presión soporte', corta: 'PS' },
   { id: 'JET', corta: 'JET' },
 ] as const
 

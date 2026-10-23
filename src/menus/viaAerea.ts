@@ -44,7 +44,7 @@ export function pendientesVia(c: CasoAnestesico): string[] {
 const texto = (v: unknown) => (typeof v === 'string' ? v : '')
 const etiqueta = (campo: string, codigo: unknown) => buscarOpcion(DEF_VIA, campo, texto(codigo))?.etiqueta ?? ''
 
-// "{hora} · Tubo orotraqueal · 7,5 mm · fijado a 22 cm · 1 intento(s)"
+// "{hora} · Tubo orotraqueal · 7,5 mm · 1 intento(s)"
 export function tarjetaVia(r: RegistroMenu, formatHora: (iso: string) => string): string {
   const v = r.valores
   const usos = (Array.isArray(v['va.uso']) ? (v['va.uso'] as string[]) : []).map((u) => etiqueta('va.uso', u)).filter(Boolean)
@@ -56,7 +56,6 @@ export function tarjetaVia(r: RegistroMenu, formatHora: (iso: string) => string)
     etiqueta('ml.tipo', v['ml.tipo']),
     v['ml.numero'] ? `N° ${texto(v['ml.numero']).replace('_', ',')}` : '',
     mm ? `${mm} mm` : '',
-    typeof v['int.fijado_cm'] === 'number' ? `fijado a ${v['int.fijado_cm']} cm` : '',
     intentos ? `${intentos === '3_mas' ? '3 o más' : intentos} intento(s)` : '',
   ]
     .filter(Boolean)
@@ -123,7 +122,6 @@ function unirV1(v: ViaAereaV1): Valores {
   if (Array.isArray(efectivos['int.adjuntos'])) n['int.ayudas'] = (efectivos['int.adjuntos'] as string[]).filter((x) => x !== 'ninguno')
   if (typeof efectivos['int.tubo'] === 'string') n['int.tubo'] = TUBO[efectivos['int.tubo']] ?? 'otro'
   if (efectivos['int.di_mm'] !== undefined) n['int.numero_mm'] = efectivos['int.di_mm']
-  if (efectivos['int.profundidad_cm'] !== undefined) n['int.fijado_cm'] = efectivos['int.profundidad_cm']
   if (efectivos['int.intentos'] !== undefined) n['int.intentos'] = efectivos['int.intentos'] === '4_mas' || efectivos['int.intentos'] === '3' ? '3_mas' : efectivos['int.intentos']
   for (const k of ['ais.dispositivo', 'ais.tdl_fr', 'ais.bloqueador_fr'] as const) if (efectivos[k] !== undefined) n[k] = efectivos[k]
   if (efectivos['ais.confirmado_fibroscopio'] !== undefined) n['ais.fibroscopio'] = efectivos['ais.confirmado_fibroscopio']
