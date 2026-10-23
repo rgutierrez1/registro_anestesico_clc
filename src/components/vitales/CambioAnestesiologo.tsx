@@ -5,6 +5,7 @@ import { textoCambio } from '../../utils/caso'
 import { hhmmLocal, horaCercanaIso } from '../../utils/tiempo'
 import { BotonesAgregar } from '../farmacos/BotonesAgregar'
 import { Button, Casilla, Field, Input, Select } from '../ui'
+import { nuevoId } from '../../utils/id'
 
 export function FormularioCambio({
   anestesiologoActual,
@@ -19,7 +20,7 @@ export function FormularioCambio({
   function registrar(hora?: string) {
     if (!entrante) return
     onRegistrar({
-      id: crypto.randomUUID(),
+      id: nuevoId(),
       hora: hora ?? new Date().toISOString(),
       descripcion: textoCambio(anestesiologoActual, entrante, entrega),
       cambioAnestesiologo: { de: anestesiologoActual, a: entrante, entregaFormal: entrega },

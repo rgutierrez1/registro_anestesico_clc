@@ -2,6 +2,7 @@ import type { CasoAnestesico, RegistroVital, ValoresVitales } from '../types'
 import { cambiarHito, errorHito } from './hitos'
 import { horaPersonalizadaIso } from './tiempo'
 import { errorVentilacion, type ValoresVentilacion } from './ventilacion'
+import { nuevoId } from './id'
 
 export const PASO_VITALES_MS = 5 * 60000
 
@@ -89,7 +90,7 @@ export function ultimosValores(serie: RegistroVital[], hasta: number): ValoresVi
 export function agregarAncla(c: CasoAnestesico, valores: ValoresVitales, hora: string): Partial<CasoAnestesico> {
   const ms = Date.parse(hora)
   const otros = c.signosVitales.filter((r) => Date.parse(r.hora) !== ms)
-  const ancla: RegistroVital = { ...registroBase(crypto.randomUUID(), hora, conPam(valores)), propaga: true }
+  const ancla: RegistroVital = { ...registroBase(nuevoId(), hora, conPam(valores)), propaga: true }
   return { signosVitales: [...otros, ancla] }
 }
 
@@ -105,7 +106,7 @@ export function aplicarEdicionVital(
   const existente = c.signosVitales.find((r) => Date.parse(r.hora) === ms)
   const otros = c.signosVitales.filter((r) => r !== existente)
   const valores = conPam(nuevos)
-  const base = existente ?? registroBase(crypto.randomUUID(), hora, valores)
+  const base = existente ?? registroBase(nuevoId(), hora, valores)
 
   if (modo === 'siguientes') {
     return { signosVitales: [...otros, { ...base, ...valores, propaga: true, copiar: null }] }
@@ -173,7 +174,7 @@ export function cargarPrimerRegistro(
   const ancla = agregarAncla(base, valores, base.horaInicioAnestesia ?? new Date().toISOString())
   const horaInicial = base.horaInicioAnestesia ?? new Date().toISOString()
   const ventilacion = extras.ventilacion
-    ? { ventilacion: [...base.ventilacion, { id: crypto.randomUUID(), hora: horaInicial, ...extras.ventilacion }] }
+    ? { ventilacion: [...base.ventilacion, { id: nuevoId(), hora: horaInicial, ...extras.ventilacion }] }
     : {}
   return { ...cambios, ...ancla, ...ventilacion }
 }

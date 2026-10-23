@@ -75,6 +75,7 @@ export const CATALOGO_FARMACOS: FarmacoDef[] = [
     via: 'Inhalatoria',
     unidad: 'MAC',
     dosis: rango(0.5, 1.5, 0.1),
+    dosisPorDefecto: 1,
   }),
   continuo({
     id: 'desfluorano',
@@ -104,11 +105,12 @@ export const CATALOGO_FARMACOS: FarmacoDef[] = [
     etiqueta: 'Propofol (bolo)',
     categoria: 'Hipnóticos',
     unidad: 'mg',
-    dosis: rango(20, 200, 10),
+    dosis: rango(20, 300, 5),
+    dosisPorKg: 2,
   }),
 
   // BNM
-  bolo({ id: 'rocuronio', nombre: 'Rocuronio', categoria: 'BNM', unidad: 'mg', dosis: rango(5, 50, 5) }),
+  bolo({ id: 'rocuronio', nombre: 'Rocuronio', categoria: 'BNM', unidad: 'mg', dosis: rango(5, 100, 1), dosisPorKg: 0.6 }),
   bolo({ id: 'cisatracurio', nombre: 'Cisatracurio', categoria: 'BNM', unidad: 'mg', dosis: rango(2, 20, 2) }),
   bolo({ id: 'atracurio', nombre: 'Atracurio', categoria: 'BNM', unidad: 'mg', dosis: rango(5, 50, 5) }),
   bolo({ id: 'succinilcolina', nombre: 'Succinilcolina', categoria: 'BNM', unidad: 'mg', dosis: rango(20, 100, 20) }),
@@ -142,6 +144,7 @@ export const CATALOGO_FARMACOS: FarmacoDef[] = [
     categoria: 'Coadyuvantes y otros',
     unidad: 'mg',
     dosis: [1, 2, 3, 4, 8, 10, 12],
+    dosisPorDefecto: 4,
   }),
   bolo({
     id: 'ondansetron',
@@ -149,6 +152,7 @@ export const CATALOGO_FARMACOS: FarmacoDef[] = [
     categoria: 'Coadyuvantes y otros',
     unidad: 'mg',
     dosis: [1, 2, 3, 4, 8],
+    dosisPorDefecto: 4,
   }),
   bolo({
     id: 'droperidol',

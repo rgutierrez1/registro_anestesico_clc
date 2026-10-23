@@ -1,8 +1,13 @@
 import { ALERGIA_OTROS, ALERGIAS_OPCIONES, ANESTESIOLOGOS, GRUPOS_SANGUINEOS, OPCIONES_ASA } from '../constants'
 import type { DatosCirugia, DatosPaciente } from '../types'
+import { RuedaNumerica, rango } from './RuedaNumerica'
 import { Field, Input, Pill, Section, Select } from './ui'
 
-const numero = (valor: string): number | '' => (valor === '' ? '' : Number(valor))
+const EDADES = rango(0, 110)
+const MESES = rango(0, 11)
+// Medio kilo hasta los 20 kg (lactantes y niños) y de a uno después.
+const PESOS = [...rango(0.5, 20, 0.5), ...rango(21, 250)]
+const TALLAS = rango(30, 220)
 
 export function DatosCasoForm({
   paciente,
@@ -35,24 +40,8 @@ export function DatosCasoForm({
               placeholder="Nombre del paciente"
             />
           </Field>
-          <Field label="Edad">
-            <Input
-              type="number"
-              inputMode="numeric"
-              value={paciente.edad}
-              onChange={(e) => onPaciente('edad', numero(e.target.value))}
-            />
-          </Field>
-          <Field label="Meses (0–11)">
-            <Input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={11}
-              value={paciente.edadMeses ?? ''}
-              onChange={(e) => onPaciente('edadMeses', numero(e.target.value))}
-            />
-          </Field>
+          <RuedaNumerica etiqueta="Edad" unidad="años" valor={paciente.edad} opciones={EDADES} inicio={40} onChange={(v) => onPaciente('edad', v)} />
+          <RuedaNumerica etiqueta="Meses" valor={paciente.edadMeses ?? ''} opciones={MESES} inicio={0} onChange={(v) => onPaciente('edadMeses', v)} />
           <Field label="Sexo">
             <Select value={paciente.sexo} onChange={(e) => onPaciente('sexo', e.target.value as DatosPaciente['sexo'])}>
               <option value="">Seleccionar…</option>
@@ -61,22 +50,8 @@ export function DatosCasoForm({
               <option value="Otro">Otro</option>
             </Select>
           </Field>
-          <Field label="Peso (kg)">
-            <Input
-              type="number"
-              inputMode="decimal"
-              value={paciente.peso}
-              onChange={(e) => onPaciente('peso', numero(e.target.value))}
-            />
-          </Field>
-          <Field label="Talla (cm)">
-            <Input
-              type="number"
-              inputMode="numeric"
-              value={paciente.altura}
-              onChange={(e) => onPaciente('altura', numero(e.target.value))}
-            />
-          </Field>
+          <RuedaNumerica etiqueta="Peso" unidad="kg" valor={paciente.peso} opciones={PESOS} inicio={70} onChange={(v) => onPaciente('peso', v)} />
+          <RuedaNumerica etiqueta="Talla" unidad="cm" valor={paciente.altura} opciones={TALLAS} inicio={170} onChange={(v) => onPaciente('altura', v)} />
           <Field label="ASA" className="col-span-2 sm:col-span-3">
             <Select value={paciente.asa} onChange={(e) => onPaciente('asa', e.target.value as DatosPaciente['asa'])}>
               <option value="">Seleccionar…</option>

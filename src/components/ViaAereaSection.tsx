@@ -10,6 +10,7 @@ import { anestesiologoActual } from '../utils/caso'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { BotonesAgregar } from './farmacos/BotonesAgregar'
 import { Button, Field, Input, Section } from './ui'
+import { nuevoId } from '../utils/id'
 
 type Patch = (fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) => void
 
@@ -48,7 +49,7 @@ export function ViaAereaSection({ caso, patch }: { caso: CasoAnestesico; patch: 
 
   function agregar(hora?: string) {
     if (!borrador || pendientes.length) return
-    const registro: RegistroMenu = { id: crypto.randomUUID(), hora: hora ?? new Date().toISOString(), valores: guardables() }
+    const registro: RegistroMenu = { id: nuevoId(), hora: hora ?? new Date().toISOString(), valores: guardables() }
     actualizar((r) => [...r, registro])
     cerrar()
   }

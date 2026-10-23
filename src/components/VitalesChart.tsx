@@ -115,6 +115,26 @@ export function VitalesChart({
     if (onSeleccionar && contenedor) contenedor.scrollLeft = contenedor.scrollWidth
   }, [serie.length, onSeleccionar, contenedor, zoom])
 
+  // En Safari/iPad `touch-action` no se respeta sobre elementos SVG: sin esto el dedo desplaza la página
+  // (o el gráfico) en vez de arrastrar el valor. Se cancela el gesto táctil solo sobre los símbolos arrastrables.
+  const hayGrafico = serie.length > 0
+  useEffect(() => {
+    const svg = svgRef.current
+    if (!svg || !interactivo) return
+    const alTocar = (e: TouchEvent) => {
+      if (e.cancelable && (e.target as Element).closest('[data-arrastrable]')) e.preventDefault()
+    }
+    const alMover = (e: TouchEvent) => {
+      if (e.cancelable && arrastre.current) e.preventDefault()
+    }
+    svg.addEventListener('touchstart', alTocar, { passive: false })
+    svg.addEventListener('touchmove', alMover, { passive: false })
+    return () => {
+      svg.removeEventListener('touchstart', alTocar)
+      svg.removeEventListener('touchmove', alMover)
+    }
+  }, [interactivo, hayGrafico])
+
   if (serie.length === 0) {
     return (
       <div className="flex h-[260px] items-center justify-center rounded-lg border border-dashed border-slate-300 text-sm text-slate-400">
@@ -190,7 +210,11 @@ export function VitalesChart({
     if (!interactivo) return undefined
     return {
       onPointerDown: (e: ReactPointerEvent<SVGGElement>) => {
-        e.currentTarget.setPointerCapture(e.pointerId)
+        try {
+          e.currentTarget.setPointerCapture(e.pointerId)
+        } catch {
+          // sin captura de puntero: el arrastre sigue por los eventos del propio símbolo
+        }
         const original = r[campo] as number
         arrastre.current = { hora: r.hora, campo, x0: e.clientX, y0: e.clientY, movido: false, valor: original, original }
       },
@@ -353,20 +377,20 @@ export function VitalesChart({
               />
             ))}
             {con('pas').map((r) => (
-              <g key={`pas-${r.id}`} {...manejadores(r, 'pas')} style={estiloArrastre}>
-                {interactivo && <circle cx={x(r.hora)} cy={y(r.pas as number) - 4} r={11} fill="transparent" />}
+              <g key={`pas-${r.id}`} {...manejadores(r, 'pas')} data-arrastrable style={estiloArrastre}>
+                {interactivo && <circle cx={x(r.hora)} cy={y(r.pas as number) - 4} r={16} fill="transparent" />}
                 <polyline points={simboloV(x(r.hora), y(r.pas as number))} {...TRAZO_SIMBOLO} />
               </g>
             ))}
             {con('pad').map((r) => (
-              <g key={`pad-${r.id}`} {...manejadores(r, 'pad')} style={estiloArrastre}>
-                {interactivo && <circle cx={x(r.hora)} cy={y(r.pad as number) + 4} r={11} fill="transparent" />}
+              <g key={`pad-${r.id}`} {...manejadores(r, 'pad')} data-arrastrable style={estiloArrastre}>
+                {interactivo && <circle cx={x(r.hora)} cy={y(r.pad as number) + 4} r={16} fill="transparent" />}
                 <polyline points={simboloVInvertida(x(r.hora), y(r.pad as number))} {...TRAZO_SIMBOLO} />
               </g>
             ))}
             {con('fc').map((r) => (
-              <g key={`fc-${r.id}`} {...manejadores(r, 'fc')} style={estiloArrastre}>
-                {interactivo && <circle cx={x(r.hora)} cy={y(r.fc as number)} r={11} fill="transparent" />}
+              <g key={`fc-${r.id}`} {...manejadores(r, 'fc')} data-arrastrable style={estiloArrastre}>
+                {interactivo && <circle cx={x(r.hora)} cy={y(r.fc as number)} r={16} fill="transparent" />}
                 <circle
                   cx={x(r.hora)}
                   cy={y(r.fc as number)}

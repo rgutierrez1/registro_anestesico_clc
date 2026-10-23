@@ -2,6 +2,7 @@ import { obtenerFarmaco, type FarmacoDef } from '../data/catalogoFarmacos'
 import type { PackFarmacos } from '../data/packsFarmacos'
 import type { CasoAnestesico, DatosPaciente, ItemCarrito, RegistroFarmaco } from '../types'
 import { pesoParaDosificar, valorMasCercano } from './dosis'
+import { nuevoId } from './id'
 
 export const ID_PERSONALIZADO = 'personalizado'
 
@@ -17,7 +18,7 @@ export function crearItemCarrito(def: FarmacoDef, paciente: DatosPaciente): Item
   }
   if (def.dosisPorDefecto !== undefined) dosisSel = String(def.dosisPorDefecto)
   return {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     farmacoId: def.id,
     presentacionId: '',
     dosisSel,
@@ -30,7 +31,7 @@ export function crearItemCarrito(def: FarmacoDef, paciente: DatosPaciente): Item
 
 export function crearItemPersonalizado(): ItemCarrito {
   return {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     farmacoId: ID_PERSONALIZADO,
     presentacionId: '',
     dosisSel: 'otra',
@@ -137,7 +138,7 @@ function registroDesdeItem(item: ItemCarrito, hora: string, previos: RegistroFar
   if (valor === null) return null
   if (item.farmacoId === ID_PERSONALIZADO) {
     return {
-      id: crypto.randomUUID(),
+      id: nuevoId(),
       hora,
       farmacoId: ID_PERSONALIZADO,
       nombre: item.nombre.trim(),
@@ -154,7 +155,7 @@ function registroDesdeItem(item: ItemCarrito, hora: string, previos: RegistroFar
   const evento =
     def.administracion === 'bolo' ? 'bolo' : infusionActivaEn(previos, def.id, Date.parse(hora)) ? 'cambio' : 'inicio'
   return {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     hora,
     farmacoId: def.id,
     nombre: def.nombre,
@@ -183,7 +184,7 @@ export function cambiarInfusion(c: CasoAnestesico, clave: string, valor: number)
   const activa = infusionesActivas(c.farmacos).find((a) => a.clave === clave)
   if (!activa || !(valor > 0)) return {}
   const registro: RegistroFarmaco = {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     hora: new Date().toISOString(),
     farmacoId: activa.farmacoId,
     nombre: activa.nombre,
@@ -211,7 +212,7 @@ export function finalizarInfusion(c: CasoAnestesico, clave: string, hora?: strin
     if (ultimo !== null && Date.parse(hora) <= ultimo) return {}
   }
   const registro: RegistroFarmaco = {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     hora: hora ?? new Date().toISOString(),
     farmacoId: activa.farmacoId,
     nombre: activa.nombre,

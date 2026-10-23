@@ -1,5 +1,6 @@
 import { FLUIDOS_EGRESO, FLUIDOS_INGRESO, type TipoFluido } from '../constants'
 import type { RegistroFluido } from '../types'
+import { nuevoId } from './id'
 
 export interface FilaFluido extends TipoFluido {
   entrada: boolean
@@ -49,7 +50,7 @@ export function cantidadCelda(registros: RegistroFluido[], tipo: string, clave: 
 export function fijarCelda(registros: RegistroFluido[], fila: FilaFluido, columna: Columna, cantidad: number | null): RegistroFluido[] {
   const resto = registros.filter((x) => !(x.tipo === fila.id && claveColumna(x.hora) === columna.clave))
   if (cantidad === null || cantidad <= 0) return resto
-  return [...resto, { id: crypto.randomUUID(), hora: columna.hora, tipo: fila.id, cantidad, unidad: fila.unidad, entrada: fila.entrada }]
+  return [...resto, { id: nuevoId(), hora: columna.hora, tipo: fila.id, cantidad, unidad: fila.unidad, entrada: fila.entrada }]
 }
 
 export function cambiarHoraColumna(registros: RegistroFluido[], clave: string, nuevaIso: string): RegistroFluido[] {

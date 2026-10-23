@@ -7,6 +7,7 @@ import { useAhora } from '../../utils/useAhora'
 import { BotonesAgregar } from '../farmacos/BotonesAgregar'
 import { EditorCambio, FormularioCambio } from './CambioAnestesiologo'
 import { Button, Field, Input, Pill, Select } from '../ui'
+import { nuevoId } from '../../utils/id'
 
 export function IconoReloj() {
   return (
@@ -74,7 +75,7 @@ export function PanelEventosTemporales({
   function agregar(hora?: string) {
     if (!tipo) return
     const resultado = onAgregar({
-      id: crypto.randomUUID(),
+      id: nuevoId(),
       hora: hora ?? new Date().toISOString(),
       tipo,
       presionMmHg: tipo === 'inicioIsquemia' ? presionNumero : null,

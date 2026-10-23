@@ -10,6 +10,7 @@ import type { CasoAnestesico } from '../types'
 import { anestesiologoActual } from '../utils/caso'
 import { formatHora } from '../utils/tiempo'
 import { Badge, Button, Section } from './ui'
+import { nuevoId } from '../utils/id'
 
 type Patch = (fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) => void
 
@@ -58,7 +59,7 @@ export function AccesosVascularesSection({ caso, patch }: { caso: CasoAnestesico
         return { accesosVasculares: c.accesosVasculares.map((x) => (x.id === original.id ? { ...x, hora, valores: { ...valores, 'acc.hora': hora }, historial } : x)) }
       }
       const hora = horaCampo ?? new Date().toISOString()
-      return { accesosVasculares: [...c.accesosVasculares, { id: crypto.randomUUID(), hora, valores: { ...valores, 'acc.hora': hora } }] }
+      return { accesosVasculares: [...c.accesosVasculares, { id: nuevoId(), hora, valores: { ...valores, 'acc.hora': hora } }] }
     })
     cerrar()
   }

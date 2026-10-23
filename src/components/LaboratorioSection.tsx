@@ -5,6 +5,7 @@ import { definicionExamen, errorExamen, resumenExamen } from '../utils/laborator
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { BotonesAgregar } from './farmacos/BotonesAgregar'
 import { Button, Field, Input, Pill, Section } from './ui'
+import { nuevoId } from '../utils/id'
 
 export function LaboratorioSection({
   examenes,
@@ -47,7 +48,7 @@ export function LaboratorioSection({
   }
 
   function agregar(hora?: string) {
-    const nuevo = construir(crypto.randomUUID(), hora ?? new Date().toISOString())
+    const nuevo = construir(nuevoId(), hora ?? new Date().toISOString())
     if (!nuevo) return
     const problema = errorExamen(nuevo)
     if (problema) return setError(problema)

@@ -28,6 +28,7 @@ import type {
   Evento,
   TecnicaRegional,
 } from '../types'
+import { nuevoId } from '../utils/id'
 
 export default function RegistroIntraoperatorio() {
   const { id } = useParams<{ id: string }>()
@@ -256,7 +257,7 @@ export default function RegistroIntraoperatorio() {
                 c.tiposAnestesia.length > 0
                   ? [
                       {
-                        id: crypto.randomUUID(),
+                        id: nuevoId(),
                         hora: hora ?? new Date().toISOString(),
                         descripcion: `Conversión del tipo de anestesia: ${c.tiposAnestesia.join(' + ')} → ${nuevos.join(' + ')}${motivo ? `. Motivo: ${motivo}` : ''}`,
                       },

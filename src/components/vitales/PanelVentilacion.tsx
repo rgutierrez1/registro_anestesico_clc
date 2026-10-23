@@ -7,6 +7,7 @@ import { errorVentilacion, resumenVentilacion, valoresIniciales } from '../../ut
 import { BotonesAgregar } from '../farmacos/BotonesAgregar'
 import { Button, Field, Input } from '../ui'
 import { borradorDesde, CamposVentilacion, valoresDeBorrador, type BorradorVentilacion } from './CamposVentilacion'
+import { nuevoId } from '../../utils/id'
 
 export function IconoVentilacion() {
   return (
@@ -66,7 +67,7 @@ export function PanelVentilacion({
   }
 
   function agregar(hora?: string) {
-    const nuevo = construir(crypto.randomUUID(), hora ?? new Date().toISOString())
+    const nuevo = construir(nuevoId(), hora ?? new Date().toISOString())
     if (!nuevo) return
     const problema = errorVentilacion(nuevo)
     if (problema) return setError(problema)

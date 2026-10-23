@@ -3,6 +3,7 @@ import { MONITORIZACION_ESTANDAR } from './constants'
 import { migrarAccesoLegado, migrarAccesoV1 } from './menus/accesos'
 import { migrarViaAerea } from './menus/viaAerea'
 import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, ViaAereaMenu } from './types'
+import { nuevoId } from './utils/id'
 
 class RegistroAnestesicoDB extends Dexie {
   casos!: Table<CasoAnestesico, string>
@@ -299,7 +300,7 @@ export const db = new RegistroAnestesicoDB()
 export function crearCasoVacio(): CasoAnestesico {
   const ahora = new Date().toISOString()
   return {
-    id: crypto.randomUUID(),
+    id: nuevoId(),
     estado: 'planificado',
     paciente: {
       nombre: '',

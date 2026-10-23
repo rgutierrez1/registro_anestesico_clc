@@ -3,6 +3,7 @@ import { TIPOS_TECNICA_REGIONAL } from '../constants'
 import type { TecnicaRegional } from '../types'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { Button, Field, Input, Select, Section } from './ui'
+import { nuevoId } from '../utils/id'
 
 function tecnicaVacia(): Omit<TecnicaRegional, 'id' | 'hora'> {
   return { tipo: TIPOS_TECNICA_REGIONAL[0], nivel: '', agujaOKit: '', farmaco: '', dosis: '', exitosa: true, notas: '' }
@@ -27,7 +28,7 @@ export function TecnicasRegionalesSection({
 
   function agregar() {
     if (!borrador.tipo) return
-    onAgregar({ id: crypto.randomUUID(), hora: new Date().toISOString(), ...borrador })
+    onAgregar({ id: nuevoId(), hora: new Date().toISOString(), ...borrador })
     setBorrador(tecnicaVacia())
     setExpandido(false)
   }

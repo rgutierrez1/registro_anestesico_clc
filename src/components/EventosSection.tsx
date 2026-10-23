@@ -5,6 +5,7 @@ import { esCambioAnestesiologo, textoComplicacion } from '../utils/caso'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { BotonesAgregar } from './farmacos/BotonesAgregar'
 import { Button, Field, Input, Pill, Select, Section, TextArea } from './ui'
+import { nuevoId } from '../utils/id'
 
 type Modo = 'evento' | 'complicacion'
 
@@ -27,14 +28,14 @@ export function EventosSection({
 
   function agregarTexto() {
     if (!texto.trim()) return
-    onAgregar({ id: crypto.randomUUID(), hora: new Date().toISOString(), descripcion: texto.trim() })
+    onAgregar({ id: nuevoId(), hora: new Date().toISOString(), descripcion: texto.trim() })
     setTexto('')
   }
 
   function registrarComplicacion(hora?: string) {
     if (!tipoComplicacion) return
     onAgregar({
-      id: crypto.randomUUID(),
+      id: nuevoId(),
       hora: hora ?? new Date().toISOString(),
       descripcion: textoComplicacion(tipoComplicacion, detalleComplicacion),
       complicacion: { tipo: tipoComplicacion, detalle: detalleComplicacion.trim() },
