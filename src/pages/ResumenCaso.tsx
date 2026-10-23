@@ -141,7 +141,7 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {Object.keys(caso.viaAereaMenu.valores).length > 0 && (
+        {caso.viaAereaMenu.registros.length > 0 && (
           <SeccionResumen titulo="Vía aérea">
             <ResumenViaAerea caso={caso} />
           </SeccionResumen>

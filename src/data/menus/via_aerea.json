@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Vía aérea",
-  "version": "3.0",
+  "version": "3.2",
   "fecha": "2026-10-23",
   "autor": "Dr. Alejandro Jankelevich",
   "como_leer": {
@@ -27,138 +27,266 @@
           "etiqueta": "Vía aérea",
           "tipo": "multiple",
           "obligatorio": true,
-          "grupos": ["Sin vía aérea invasiva","Supraglótica","Tubo","Previa"],
+          "grupos": [
+            "Sin vía aérea invasiva",
+            "Supraglótica",
+            "Tubo",
+            "Previa"
+          ],
           "opciones": [
             {
               "codigo": "sin_dispositivo",
               "etiqueta": "Sin dispositivo (O2 por naricera o mascarilla)",
               "grupo": "Sin vía aérea invasiva",
-              "abre": ["sin_dispositivo"]
+              "abre": [
+                "sin_dispositivo"
+              ]
             },
             {
               "codigo": "mascara_facial",
               "etiqueta": "Máscara facial",
               "grupo": "Sin vía aérea invasiva",
-              "abre": ["mascara"]
+              "abre": [
+                "mascara"
+              ]
             },
             {
               "codigo": "mascara_laringea",
               "etiqueta": "Máscara laríngea",
               "grupo": "Supraglótica",
-              "abre": ["mascara","mascara_laringea"]
+              "abre": [
+                "mascara",
+                "mascara_laringea"
+              ]
             },
-            {"codigo":"tot","etiqueta":"Tubo orotraqueal","grupo":"Tubo","abre":["mascara","intubacion"]},
-            {"codigo":"tnt","etiqueta":"Tubo nasotraqueal","grupo":"Tubo","abre":["mascara","intubacion"]},
+            {
+              "codigo": "tot",
+              "etiqueta": "Tubo orotraqueal",
+              "grupo": "Tubo",
+              "abre": [
+                "mascara",
+                "intubacion"
+              ]
+            },
+            {
+              "codigo": "tnt",
+              "etiqueta": "Tubo nasotraqueal",
+              "grupo": "Tubo",
+              "abre": [
+                "mascara",
+                "intubacion"
+              ]
+            },
             {
               "codigo": "doble_lumen_bloqueador",
               "etiqueta": "Doble lumen o bloqueador",
               "grupo": "Tubo",
-              "abre": ["mascara","intubacion","aislamiento"]
+              "abre": [
+                "mascara",
+                "intubacion",
+                "aislamiento"
+              ]
             },
             {
               "codigo": "llega_con_va",
               "etiqueta": "Llega intubado o con traqueostomía",
               "grupo": "Previa",
-              "abre": ["llega_con"]
+              "abre": [
+                "llega_con"
+              ]
             }
           ]
         }
       ]
     },
     {
-      "id": "sin_dispositivo",
+      "id": "mascara_laringea",
       "numero": "2",
+      "titulo": "Máscara laríngea",
+      "mostrar_si": {
+        "campo": "va.uso",
+        "op": "contiene",
+        "valor": "mascara_laringea"
+      },
+      "campos": [
+        {
+          "id": "ml.tipo",
+          "numero": "2.1",
+          "etiqueta": "Tipo",
+          "tipo": "unica",
+          "obligatorio": false,
+          "opciones": [
+            {
+              "codigo": "igel",
+              "etiqueta": "i-gel"
+            },
+            {
+              "codigo": "supreme_proseal",
+              "etiqueta": "LMA Supreme o ProSeal"
+            },
+            {
+              "codigo": "clasica",
+              "etiqueta": "LMA clásica"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
+          ]
+        },
+        {
+          "id": "ml.numero",
+          "numero": "2.2",
+          "etiqueta": "Número",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {
+              "codigo": "1",
+              "etiqueta": "1",
+              "version": "ped"
+            },
+            {
+              "codigo": "1_5",
+              "etiqueta": "1,5",
+              "version": "ped"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2",
+              "version": "ped"
+            },
+            {
+              "codigo": "2_5",
+              "etiqueta": "2,5",
+              "version": "ped"
+            },
+            {
+              "codigo": "3",
+              "etiqueta": "3"
+            },
+            {
+              "codigo": "4",
+              "etiqueta": "4"
+            },
+            {
+              "codigo": "5",
+              "etiqueta": "5"
+            }
+          ]
+        },
+        {
+          "id": "ml.intentos",
+          "numero": "2.3",
+          "etiqueta": "Intentos",
+          "tipo": "unica",
+          "obligatorio": false,
+          "opciones": [
+            {
+              "codigo": "1",
+              "etiqueta": "1"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2"
+            },
+            {
+              "codigo": "3_mas",
+              "etiqueta": "3 o más"
+            }
+          ],
+          "por_defecto": "1"
+        }
+      ]
+    },
+    {
+      "id": "sin_dispositivo",
+      "numero": "3",
       "titulo": "Sin dispositivo",
-      "mostrar_si": {"campo":"va.uso","op":"contiene","valor":"sin_dispositivo"},
+      "mostrar_si": {
+        "campo": "va.uso",
+        "op": "contiene",
+        "valor": "sin_dispositivo"
+      },
       "campos": [
         {
           "id": "va.o2_con",
-          "numero": "2.1",
+          "numero": "3.1",
           "etiqueta": "O2 con",
           "tipo": "unica",
           "obligatorio": false,
           "opciones": [
-            {"codigo":"naricera","etiqueta":"Naricera"},
-            {"codigo":"mascarilla","etiqueta":"Mascarilla"},
-            {"codigo":"cnaf","etiqueta":"Cánula nasal de alto flujo"},
-            {"codigo":"aire","etiqueta":"Aire ambiente"}
+            {
+              "codigo": "naricera",
+              "etiqueta": "Naricera"
+            },
+            {
+              "codigo": "mascarilla",
+              "etiqueta": "Mascarilla"
+            },
+            {
+              "codigo": "cnaf",
+              "etiqueta": "Cánula nasal de alto flujo"
+            },
+            {
+              "codigo": "aire",
+              "etiqueta": "Aire ambiente"
+            }
           ]
         }
       ]
     },
     {
       "id": "mascara",
-      "numero": "3",
+      "numero": "4",
       "titulo": "Ventilación con máscara",
       "mostrar_si": {
         "campo": "va.uso",
         "op": "contiene_alguna",
-        "valor": ["mascara_facial","mascara_laringea","tot","tnt","doble_lumen_bloqueador"]
+        "valor": [
+          "mascara_facial",
+          "mascara_laringea",
+          "tot",
+          "tnt",
+          "doble_lumen_bloqueador"
+        ]
       },
       "campos": [
         {
           "id": "va.ventilacion_mascara",
-          "numero": "3.1",
+          "numero": "4.1",
           "etiqueta": "Ventilación con máscara",
           "tipo": "unica",
           "obligatorio": true,
           "nota": "Equivale a la escala de Han; \"valor\" guarda el número.",
           "opciones": [
-            {"codigo":"facil","etiqueta":"Fácil","valor":1},
-            {"codigo":"con_ayuda","etiqueta":"Con cánula u otra ayuda","valor":2},
-            {"codigo":"dificil","etiqueta":"Difícil (a dos personas)","valor":3},
-            {"codigo":"imposible","etiqueta":"Imposible","valor":4},
-            {"codigo":"no_intentada","etiqueta":"No se intentó","valor":0}
-          ]
-        }
-      ]
-    },
-    {
-      "id": "mascara_laringea",
-      "numero": "4",
-      "titulo": "Máscara laríngea",
-      "mostrar_si": {"campo":"va.uso","op":"contiene","valor":"mascara_laringea"},
-      "campos": [
-        {
-          "id": "ml.tipo",
-          "numero": "4.1",
-          "etiqueta": "Tipo",
-          "tipo": "unica",
-          "obligatorio": false,
-          "opciones": [
-            {"codigo":"igel","etiqueta":"i-gel"},
-            {"codigo":"supreme_proseal","etiqueta":"LMA Supreme o ProSeal"},
-            {"codigo":"clasica","etiqueta":"LMA clásica"},
-            {"codigo":"otra","etiqueta":"Otra"}
-          ]
-        },
-        {
-          "id": "ml.numero",
-          "numero": "4.2",
-          "etiqueta": "Número",
-          "tipo": "unica",
-          "obligatorio": true,
-          "opciones": [
-            {"codigo":"1","etiqueta":"1","version":"ped"},
-            {"codigo":"1_5","etiqueta":"1,5","version":"ped"},
-            {"codigo":"2","etiqueta":"2","version":"ped"},
-            {"codigo":"2_5","etiqueta":"2,5","version":"ped"},
-            {"codigo":"3","etiqueta":"3"},
-            {"codigo":"4","etiqueta":"4"},
-            {"codigo":"5","etiqueta":"5"}
-          ]
-        },
-        {
-          "id": "ml.intentos",
-          "numero": "4.3",
-          "etiqueta": "Intentos",
-          "tipo": "unica",
-          "obligatorio": false,
-          "opciones": [
-            {"codigo":"1","etiqueta":"1"},
-            {"codigo":"2","etiqueta":"2"},
-            {"codigo":"3_mas","etiqueta":"3 o más"}
-          ]
+            {
+              "codigo": "facil",
+              "etiqueta": "Fácil",
+              "valor": 1
+            },
+            {
+              "codigo": "con_ayuda",
+              "etiqueta": "Con cánula u otra ayuda",
+              "valor": 2
+            },
+            {
+              "codigo": "dificil",
+              "etiqueta": "Difícil (a dos personas)",
+              "valor": 3
+            },
+            {
+              "codigo": "imposible",
+              "etiqueta": "Imposible",
+              "valor": 4
+            },
+            {
+              "codigo": "no_intentada",
+              "etiqueta": "No se intentó",
+              "valor": 0
+            }
+          ],
+          "por_defecto": "facil"
         }
       ]
     },
@@ -166,7 +294,15 @@
       "id": "intubacion",
       "numero": "5",
       "titulo": "Intubación",
-      "mostrar_si": {"campo":"va.uso","op":"contiene_alguna","valor":["tot","tnt","doble_lumen_bloqueador"]},
+      "mostrar_si": {
+        "campo": "va.uso",
+        "op": "contiene_alguna",
+        "valor": [
+          "tot",
+          "tnt",
+          "doble_lumen_bloqueador"
+        ]
+      },
       "campos": [
         {
           "id": "int.tecnica",
@@ -176,9 +312,18 @@
           "obligatorio": false,
           "por_defecto": "estandar",
           "opciones": [
-            {"codigo":"estandar","etiqueta":"Estándar"},
-            {"codigo":"secuencia_rapida","etiqueta":"Secuencia rápida"},
-            {"codigo":"vigil","etiqueta":"Vigil"}
+            {
+              "codigo": "estandar",
+              "etiqueta": "Estándar"
+            },
+            {
+              "codigo": "secuencia_rapida",
+              "etiqueta": "Secuencia rápida"
+            },
+            {
+              "codigo": "vigil",
+              "etiqueta": "Vigil"
+            }
           ]
         },
         {
@@ -187,7 +332,10 @@
           "etiqueta": "Laringoscopio",
           "tipo": "unica",
           "obligatorio": true,
-          "grupos": ["Videolaringoscopio","Otros"],
+          "grupos": [
+            "Videolaringoscopio",
+            "Otros"
+          ],
           "opciones": [
             {
               "codigo": "video_estandar",
@@ -201,8 +349,16 @@
               "grupo": "Videolaringoscopio",
               "abrev": "Video hiperangulada"
             },
-            {"codigo":"directo","etiqueta":"Directo","grupo":"Otros"},
-            {"codigo":"fibroscopio","etiqueta":"Fibroscopio","grupo":"Otros"}
+            {
+              "codigo": "directo",
+              "etiqueta": "Directo",
+              "grupo": "Otros"
+            },
+            {
+              "codigo": "fibroscopio",
+              "etiqueta": "Fibroscopio",
+              "grupo": "Otros"
+            }
           ]
         },
         {
@@ -213,12 +369,30 @@
           "obligatorio": true,
           "nota": "Corregir la app actual: en el 2a se ve la parte posterior de la glotis, no la anterior.",
           "opciones": [
-            {"codigo":"1","etiqueta":"1 — glotis completa"},
-            {"codigo":"2a","etiqueta":"2a — glotis parcial"},
-            {"codigo":"2b","etiqueta":"2b — solo aritenoides"},
-            {"codigo":"3a","etiqueta":"3a — epiglotis que se levanta"},
-            {"codigo":"3b","etiqueta":"3b — epiglotis pegada"},
-            {"codigo":"4","etiqueta":"4 — no se ve nada"}
+            {
+              "codigo": "1",
+              "etiqueta": "1 — glotis completa"
+            },
+            {
+              "codigo": "2a",
+              "etiqueta": "2a — glotis parcial"
+            },
+            {
+              "codigo": "2b",
+              "etiqueta": "2b — solo aritenoides"
+            },
+            {
+              "codigo": "3a",
+              "etiqueta": "3a — epiglotis que se levanta"
+            },
+            {
+              "codigo": "3b",
+              "etiqueta": "3b — epiglotis pegada"
+            },
+            {
+              "codigo": "4",
+              "etiqueta": "4 — no se ve nada"
+            }
           ]
         },
         {
@@ -229,10 +403,22 @@
           "obligatorio": false,
           "nota": "Vacío = ninguna.",
           "opciones": [
-            {"codigo":"bougie","etiqueta":"Bougie (GEB)"},
-            {"codigo":"estilete","etiqueta":"Estilete"},
-            {"codigo":"burp","etiqueta":"Presión laríngea (BURP)"},
-            {"codigo":"magill","etiqueta":"Pinza de Magill"}
+            {
+              "codigo": "bougie",
+              "etiqueta": "Bougie (GEB)"
+            },
+            {
+              "codigo": "estilete",
+              "etiqueta": "Estilete"
+            },
+            {
+              "codigo": "burp",
+              "etiqueta": "Presión laríngea (BURP)"
+            },
+            {
+              "codigo": "magill",
+              "etiqueta": "Pinza de Magill"
+            }
           ]
         },
         {
@@ -242,13 +428,36 @@
           "tipo": "unica",
           "obligatorio": false,
           "por_defecto": "con_cuff",
-          "mostrar_si": {"campo":"va.uso","op":"contiene_alguna","valor":["tot","tnt"]},
+          "mostrar_si": {
+            "campo": "va.uso",
+            "op": "contiene_alguna",
+            "valor": [
+              "tot",
+              "tnt"
+            ]
+          },
           "opciones": [
-            {"codigo":"con_cuff","etiqueta":"Con cuff"},
-            {"codigo":"sin_cuff","etiqueta":"Sin cuff","version":"ped"},
-            {"codigo":"anillado","etiqueta":"Anillado"},
-            {"codigo":"rae","etiqueta":"Preformado (RAE)"},
-            {"codigo":"otro","etiqueta":"Otro"}
+            {
+              "codigo": "con_cuff",
+              "etiqueta": "Con cuff"
+            },
+            {
+              "codigo": "sin_cuff",
+              "etiqueta": "Sin cuff",
+              "version": "ped"
+            },
+            {
+              "codigo": "anillado",
+              "etiqueta": "Anillado"
+            },
+            {
+              "codigo": "rae",
+              "etiqueta": "Preformado (RAE)"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
           ]
         },
         {
@@ -258,21 +467,72 @@
           "tipo": "unica",
           "obligatorio": true,
           "unidad": "mm",
-          "mostrar_si": {"campo":"va.uso","op":"contiene_alguna","valor":["tot","tnt"]},
+          "mostrar_si": {
+            "campo": "va.uso",
+            "op": "contiene_alguna",
+            "valor": [
+              "tot",
+              "tnt"
+            ]
+          },
           "opciones": [
-            {"codigo":"2_5","etiqueta":"2,5","version":"ped"},
-            {"codigo":"3_0","etiqueta":"3,0","version":"ped"},
-            {"codigo":"3_5","etiqueta":"3,5","version":"ped"},
-            {"codigo":"4_0","etiqueta":"4,0","version":"ped"},
-            {"codigo":"4_5","etiqueta":"4,5","version":"ped"},
-            {"codigo":"5_0","etiqueta":"5,0"},
-            {"codigo":"5_5","etiqueta":"5,5"},
-            {"codigo":"6_0","etiqueta":"6,0"},
-            {"codigo":"6_5","etiqueta":"6,5"},
-            {"codigo":"7_0","etiqueta":"7,0"},
-            {"codigo":"7_5","etiqueta":"7,5"},
-            {"codigo":"8_0","etiqueta":"8,0"},
-            {"codigo":"8_5","etiqueta":"8,5"}
+            {
+              "codigo": "2_5",
+              "etiqueta": "2,5",
+              "version": "ped"
+            },
+            {
+              "codigo": "3_0",
+              "etiqueta": "3,0",
+              "version": "ped"
+            },
+            {
+              "codigo": "3_5",
+              "etiqueta": "3,5",
+              "version": "ped"
+            },
+            {
+              "codigo": "4_0",
+              "etiqueta": "4,0",
+              "version": "ped"
+            },
+            {
+              "codigo": "4_5",
+              "etiqueta": "4,5",
+              "version": "ped"
+            },
+            {
+              "codigo": "5_0",
+              "etiqueta": "5,0"
+            },
+            {
+              "codigo": "5_5",
+              "etiqueta": "5,5"
+            },
+            {
+              "codigo": "6_0",
+              "etiqueta": "6,0"
+            },
+            {
+              "codigo": "6_5",
+              "etiqueta": "6,5"
+            },
+            {
+              "codigo": "7_0",
+              "etiqueta": "7,0"
+            },
+            {
+              "codigo": "7_5",
+              "etiqueta": "7,5"
+            },
+            {
+              "codigo": "8_0",
+              "etiqueta": "8,0"
+            },
+            {
+              "codigo": "8_5",
+              "etiqueta": "8,5"
+            }
           ]
         },
         {
@@ -293,21 +553,20 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"1","etiqueta":"1"},
-            {"codigo":"2","etiqueta":"2"},
-            {"codigo":"3_mas","etiqueta":"3 o más"}
-          ]
-        },
-        {
-          "id": "int.capnografia",
-          "numero": "5.9",
-          "etiqueta": "Confirmado con capnografía",
-          "tipo": "si_no",
-          "obligatorio": true,
-          "aviso": {
-            "si": {"campo":"int.capnografia","op":"es_falso"},
-            "mensaje": "Sin curva de capnografía, el tubo está mal puesto hasta demostrar lo contrario."
-          }
+            {
+              "codigo": "1",
+              "etiqueta": "1"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2"
+            },
+            {
+              "codigo": "3_mas",
+              "etiqueta": "3 o más"
+            }
+          ],
+          "por_defecto": "1"
         }
       ]
     },
@@ -315,7 +574,11 @@
       "id": "aislamiento",
       "numero": "6",
       "titulo": "Doble lumen o bloqueador",
-      "mostrar_si": {"campo":"va.uso","op":"contiene","valor":"doble_lumen_bloqueador"},
+      "mostrar_si": {
+        "campo": "va.uso",
+        "op": "contiene",
+        "valor": "doble_lumen_bloqueador"
+      },
       "campos": [
         {
           "id": "ais.dispositivo",
@@ -324,10 +587,23 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"tdl_izq","etiqueta":"Doble lumen izquierdo"},
-            {"codigo":"tdl_der","etiqueta":"Doble lumen derecho"},
-            {"codigo":"bloqueador","etiqueta":"Bloqueador bronquial"},
-            {"codigo":"selectiva","etiqueta":"Intubación selectiva","version":"ped"}
+            {
+              "codigo": "tdl_izq",
+              "etiqueta": "Doble lumen izquierdo"
+            },
+            {
+              "codigo": "tdl_der",
+              "etiqueta": "Doble lumen derecho"
+            },
+            {
+              "codigo": "bloqueador",
+              "etiqueta": "Bloqueador bronquial"
+            },
+            {
+              "codigo": "selectiva",
+              "etiqueta": "Intubación selectiva",
+              "version": "ped"
+            }
           ]
         },
         {
@@ -337,15 +613,45 @@
           "tipo": "unica",
           "obligatorio": true,
           "unidad": "Fr",
-          "mostrar_si": {"campo":"ais.dispositivo","op":"in","valor":["tdl_izq","tdl_der"]},
+          "mostrar_si": {
+            "campo": "ais.dispositivo",
+            "op": "in",
+            "valor": [
+              "tdl_izq",
+              "tdl_der"
+            ]
+          },
           "opciones": [
-            {"codigo":"26","etiqueta":"26","version":"ped"},
-            {"codigo":"28","etiqueta":"28","version":"ped"},
-            {"codigo":"32","etiqueta":"32"},
-            {"codigo":"35","etiqueta":"35"},
-            {"codigo":"37","etiqueta":"37"},
-            {"codigo":"39","etiqueta":"39"},
-            {"codigo":"41","etiqueta":"41"}
+            {
+              "codigo": "26",
+              "etiqueta": "26",
+              "version": "ped"
+            },
+            {
+              "codigo": "28",
+              "etiqueta": "28",
+              "version": "ped"
+            },
+            {
+              "codigo": "32",
+              "etiqueta": "32"
+            },
+            {
+              "codigo": "35",
+              "etiqueta": "35"
+            },
+            {
+              "codigo": "37",
+              "etiqueta": "37"
+            },
+            {
+              "codigo": "39",
+              "etiqueta": "39"
+            },
+            {
+              "codigo": "41",
+              "etiqueta": "41"
+            }
           ]
         },
         {
@@ -355,11 +661,25 @@
           "tipo": "unica",
           "obligatorio": true,
           "unidad": "Fr",
-          "mostrar_si": {"campo":"ais.dispositivo","op":"eq","valor":"bloqueador"},
+          "mostrar_si": {
+            "campo": "ais.dispositivo",
+            "op": "eq",
+            "valor": "bloqueador"
+          },
           "opciones": [
-            {"codigo":"5","etiqueta":"5","version":"ped"},
-            {"codigo":"7","etiqueta":"7"},
-            {"codigo":"9","etiqueta":"9"}
+            {
+              "codigo": "5",
+              "etiqueta": "5",
+              "version": "ped"
+            },
+            {
+              "codigo": "7",
+              "etiqueta": "7"
+            },
+            {
+              "codigo": "9",
+              "etiqueta": "9"
+            }
           ]
         },
         {
@@ -375,7 +695,11 @@
       "id": "llega_con",
       "numero": "7",
       "titulo": "Llega con vía aérea",
-      "mostrar_si": {"campo":"va.uso","op":"contiene","valor":"llega_con_va"},
+      "mostrar_si": {
+        "campo": "va.uso",
+        "op": "contiene",
+        "valor": "llega_con_va"
+      },
       "campos": [
         {
           "id": "pre.llega_con",
@@ -384,12 +708,25 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"tubo","etiqueta":"Tubo"},
-            {"codigo":"traqueostomia","etiqueta":"Traqueostomía"},
-            {"codigo":"laringectomia","etiqueta":"Laringectomía (respira por el estoma)"}
+            {
+              "codigo": "tubo",
+              "etiqueta": "Tubo"
+            },
+            {
+              "codigo": "traqueostomia",
+              "etiqueta": "Traqueostomía"
+            },
+            {
+              "codigo": "laringectomia",
+              "etiqueta": "Laringectomía (respira por el estoma)"
+            }
           ],
           "aviso": {
-            "si": {"campo":"pre.llega_con","op":"eq","valor":"laringectomia"},
+            "si": {
+              "campo": "pre.llega_con",
+              "op": "eq",
+              "valor": "laringectomia"
+            },
             "fijo": true,
             "mensaje": "LARINGECTOMÍA: no se oxigena por boca ni nariz; todo por el estoma."
           }
@@ -407,60 +744,30 @@
       ]
     },
     {
-      "id": "dificil",
-      "numero": "8",
-      "titulo": "Si fue difícil",
-      "campos": [
-        {
-          "id": "vad.no_prevista",
-          "numero": "8.1",
-          "etiqueta": "Vía aérea difícil no prevista",
-          "tipo": "si_no",
-          "obligatorio": false
-        },
-        {
-          "id": "vad.resolvio",
-          "numero": "8.2",
-          "etiqueta": "¿Qué la resolvió?",
-          "tipo": "multiple",
-          "obligatorio": false,
-          "mostrar_si": {"campo":"vad.no_prevista","op":"es_verdadero"},
-          "opciones": [
-            {"codigo":"video","etiqueta":"Videolaringoscopio"},
-            {"codigo":"bougie","etiqueta":"Bougie"},
-            {"codigo":"otro_operador","etiqueta":"Otro operador"},
-            {"codigo":"mascara_laringea","etiqueta":"Máscara laríngea"},
-            {"codigo":"fibroscopio","etiqueta":"Fibroscopio"},
-            {"codigo":"despertar","etiqueta":"Despertar al paciente"},
-            {"codigo":"quirurgico","etiqueta":"Acceso quirúrgico (cricotirotomía)"}
-          ]
-        },
-        {
-          "id": "vad.carta",
-          "numero": "8.3",
-          "etiqueta": "Paciente informado y carta de vía aérea difícil entregada",
-          "tipo": "si_no",
-          "obligatorio": false,
-          "mostrar_si": {"campo":"vad.no_prevista","op":"es_verdadero"}
-        }
-      ]
-    },
-    {
       "id": "otros",
-      "numero": "9",
+      "numero": "8",
       "titulo": "Otros dispositivos",
       "campos": [
         {
           "id": "va.otros",
-          "numero": "9.1",
+          "numero": "8.1",
           "etiqueta": "Otros",
           "tipo": "multiple",
           "obligatorio": false,
           "nota": "Reemplaza \"Necesidad de dispositivos adicionales\": videolaringoscopio, GEB, fibroscopio, doble lumen y bloqueador ya quedan anotados en sus bloques.",
           "opciones": [
-            {"codigo":"pack","etiqueta":"Taponamiento faríngeo (pack)"},
-            {"codigo":"sonda_orogastrica","etiqueta":"Sonda orogástrica"},
-            {"codigo":"mordedor","etiqueta":"Mordedor"}
+            {
+              "codigo": "pack",
+              "etiqueta": "Taponamiento faríngeo (pack)"
+            },
+            {
+              "codigo": "sonda_orogastrica",
+              "etiqueta": "Sonda orogástrica"
+            },
+            {
+              "codigo": "mordedor",
+              "etiqueta": "Mordedor"
+            }
           ]
         }
       ]

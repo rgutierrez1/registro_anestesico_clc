@@ -1,10 +1,10 @@
 import json from '../data/menus/via_aerea.json'
 import type { CasoAnestesico, ViaAereaMenu } from '../types'
 import { cargarMenu } from './cargar'
-import { calcularVisibilidad, faltantes, valoresPorDefecto, type Visibilidad } from './motor'
+import { buscarOpcion, calcularVisibilidad, faltantes, valoresPorDefecto, type Visibilidad } from './motor'
 import { pacienteMenu, versionMenu, type PacienteMenu } from './paciente'
 import { sugerir, type Sugerencia } from './sugerencias'
-import type { MenuDef, SeccionDef, Valores, VersionMenu } from './tipos'
+import type { MenuDef, RegistroMenu, SeccionDef, Valores, VersionMenu } from './tipos'
 
 export const DEF_VIA: MenuDef = cargarMenu(json)
 export const SECCIONES_VIA: SeccionDef[] = DEF_VIA.secciones
@@ -16,13 +16,13 @@ export interface EstadoVia {
   visibilidad: Visibilidad
 }
 
-// `editando` son los valores que se están cargando; si no hay, se usan los guardados.
-export function estadoVia(c: CasoAnestesico, editando?: Valores): EstadoVia {
+// `valores` son los de la maniobra que se está cargando o mostrando.
+export function estadoVia(c: Pick<CasoAnestesico, 'paciente' | 'versionMenus'>, valores: Valores): EstadoVia {
   const version = versionMenu(c)
-  const valores = editando ?? c.viaAereaMenu.valores
   return { version, paciente: pacienteMenu(c.paciente), valores, visibilidad: calcularVisibilidad(DEF_VIA, valores, version) }
 }
 
+// Valores premarcados (1 intento, ventilación con máscara fácil, técnica estándar, tubo con cuff).
 export const defaultsVia = (): Valores => valoresPorDefecto(SECCIONES_VIA)
 
 export function sugerenciaVia(campoId: string, e: EstadoVia): Sugerencia | null {
@@ -33,13 +33,34 @@ export function faltantesVia(e: EstadoVia) {
   return faltantes(SECCIONES_VIA, e.valores, e.visibilidad, e.version)
 }
 
-export const haySeleccionVia = (v: Valores) => Array.isArray(v['va.uso']) && v['va.uso'].length > 0
+export const registrosVivos = (c: Pick<CasoAnestesico, 'viaAereaMenu'>) =>
+  c.viaAereaMenu.registros.filter((r) => !r.anulado).sort((a, b) => a.hora.localeCompare(b.hora))
 
-// Lo que falta para cerrar la hoja: en anestesia general, que la vía aérea esté registrada y completa.
+// Lo que falta para cerrar la hoja: en anestesia general, al menos un dispositivo registrado.
 export function pendientesVia(c: CasoAnestesico): string[] {
-  const guardado = c.viaAereaMenu.valores
-  if (!haySeleccionVia(guardado)) return c.tiposAnestesia.includes('General') ? ['Vía aérea: falta registrar qué se usó'] : []
-  return faltantesVia(estadoVia(c)).map((f) => `Vía aérea ${f.numero}. ${f.etiqueta}`)
+  return c.tiposAnestesia.includes('General') && registrosVivos(c).length === 0 ? ['Vía aérea: falta registrar qué se usó'] : []
+}
+
+const texto = (v: unknown) => (typeof v === 'string' ? v : '')
+const etiqueta = (campo: string, codigo: unknown) => buscarOpcion(DEF_VIA, campo, texto(codigo))?.etiqueta ?? ''
+
+// "{hora} · Tubo orotraqueal · 7,5 mm · fijado a 22 cm · 1 intento(s)"
+export function tarjetaVia(r: RegistroMenu, formatHora: (iso: string) => string): string {
+  const v = r.valores
+  const usos = (Array.isArray(v['va.uso']) ? (v['va.uso'] as string[]) : []).map((u) => etiqueta('va.uso', u)).filter(Boolean)
+  const mm = texto(v['int.numero_mm']).replace('_', ',')
+  const intentos = texto(v['int.intentos'] || v['ml.intentos'])
+  return [
+    formatHora(r.hora),
+    usos.join(' + '),
+    etiqueta('ml.tipo', v['ml.tipo']),
+    v['ml.numero'] ? `N° ${texto(v['ml.numero']).replace('_', ',')}` : '',
+    mm ? `${mm} mm` : '',
+    typeof v['int.fijado_cm'] === 'number' ? `fijado a ${v['int.fijado_cm']} cm` : '',
+    intentos ? `${intentos === '3_mas' ? '3 o más' : intentos} intento(s)` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
 }
 
 // --- Registros de la versión 1.0 (ámbito caso + eventos con hora) → versión 3.0 ---
@@ -62,9 +83,20 @@ interface ViaAereaV1 {
   vadDeclarada?: string | null
 }
 
-export function migrarViaAereaV1(v: ViaAereaV1 | ViaAereaMenu): ViaAereaMenu {
-  if (!('eventos' in v) && 'historial' in v) return v as ViaAereaMenu
-  const viejo = v as ViaAereaV1
+// Versiones anteriores guardaban un único formulario (`valores`); ahora cada dispositivo es un registro.
+export function migrarViaAerea(v: ViaAereaMenu | (ViaAereaV1 & { historial?: { usuario: string; hora: string }[] })): ViaAereaMenu {
+  if ('registros' in v) return v
+  const hora = v.historial?.[0]?.hora ?? v.eventos?.[0]?.hora ?? new Date().toISOString()
+  const valores = 'eventos' in v ? unirV1(v) : v.valores
+  const hayUso = Array.isArray(valores['va.uso']) && valores['va.uso'].length > 0
+  return {
+    registros: hayUso ? [{ id: 'via-migrada', hora, valores, historial: v.historial?.slice(1) }] : [],
+    legado: 'eventos' in v ? v : undefined,
+  }
+}
+
+function unirV1(v: ViaAereaV1): Valores {
+  const viejo = v
   const efectivos: Valores = { ...viejo.valores }
   for (const e of [...(viejo.eventos ?? [])].filter((x) => !x.anulado).sort((a, b) => a.hora.localeCompare(b.hora))) Object.assign(efectivos, e.valores)
   const n: Valores = {}
@@ -93,14 +125,10 @@ export function migrarViaAereaV1(v: ViaAereaV1 | ViaAereaMenu): ViaAereaMenu {
   if (efectivos['int.di_mm'] !== undefined) n['int.numero_mm'] = efectivos['int.di_mm']
   if (efectivos['int.profundidad_cm'] !== undefined) n['int.fijado_cm'] = efectivos['int.profundidad_cm']
   if (efectivos['int.intentos'] !== undefined) n['int.intentos'] = efectivos['int.intentos'] === '4_mas' || efectivos['int.intentos'] === '3' ? '3_mas' : efectivos['int.intentos']
-  if (Array.isArray(efectivos['int.confirmacion'])) n['int.capnografia'] = (efectivos['int.confirmacion'] as string[]).includes('capnografia')
   for (const k of ['ais.dispositivo', 'ais.tdl_fr', 'ais.bloqueador_fr'] as const) if (efectivos[k] !== undefined) n[k] = efectivos[k]
   if (efectivos['ais.confirmado_fibroscopio'] !== undefined) n['ais.fibroscopio'] = efectivos['ais.confirmado_fibroscopio']
   if (typeof efectivos['pre.llega_con'] === 'string') n['pre.llega_con'] = efectivos['pre.llega_con'] === 'tet' ? 'tubo' : efectivos['pre.llega_con']
   if (efectivos['pre.diametro_mm'] !== undefined) n['pre.numero_mm'] = efectivos['pre.diametro_mm']
-  if (efectivos['vad.imprevista_confirmada'] !== undefined) n['vad.no_prevista'] = efectivos['vad.imprevista_confirmada']
-  const com = efectivos['vad.comunicacion']
-  if (com && typeof com === 'object' && !Array.isArray(com) && typeof com['carta_entregada'] === 'boolean') n['vad.carta'] = com['carta_entregada']
   if (efectivos['va.pack'] === true) n['va.otros'] = ['pack']
-  return { valores: n, historial: [], legado: viejo }
+  return n
 }

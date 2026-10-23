@@ -1,6 +1,6 @@
 import json from '../data/menus/accesos.json'
 import { cargarMenu } from './cargar'
-import { buscarOpcion } from './motor'
+import { buscarOpcion, valoresPorDefecto } from './motor'
 import type { PacienteMenu } from './paciente'
 import type { MenuDef, RegistroMenu, SeccionDef, Valores } from './tipos'
 
@@ -56,9 +56,7 @@ export function tarjetaAcceso(a: RegistroMenu, formatHora: (iso: string) => stri
     .join(' · ')
 }
 
-export function defaultsAcceso(): Valores {
-  return {}
-}
+export const defaultsAcceso = (): Valores => valoresPorDefecto(SECCIONES_ACCESO)
 
 // Sugerencia de profundidad del CVC (Peres en adulto, Andropoulos en niños): orientativa.
 export function sugerirAcceso(campoId: string, version: 'adulto' | 'ped', p: PacienteMenu, valores: Valores) {

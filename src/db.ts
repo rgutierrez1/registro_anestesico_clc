@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import { MONITORIZACION_ESTANDAR } from './constants'
 import { migrarAccesoLegado, migrarAccesoV1 } from './menus/accesos'
-import { migrarViaAereaV1 } from './menus/viaAerea'
+import { migrarViaAerea } from './menus/viaAerea'
 import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, ViaAereaMenu } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
@@ -178,7 +178,7 @@ class RegistroAnestesicoDB extends Dexie {
           .toCollection()
           .modify((caso) => {
             caso.accesosVasculares = (caso.accesosVasculares ?? []).map(migrarAcceso)
-            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAereaV1(caso.viaAereaMenu) : vacioViaAerea()
+            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAerea(caso.viaAereaMenu) : vacioViaAerea()
             caso.versionMenus ??= 'auto'
           }),
       )
@@ -204,7 +204,7 @@ class RegistroAnestesicoDB extends Dexie {
           .toCollection()
           .modify((caso) => {
             caso.accesosVasculares = (caso.accesosVasculares ?? []).map(migrarAcceso)
-            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAereaV1(caso.viaAereaMenu) : vacioViaAerea()
+            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAerea(caso.viaAereaMenu) : vacioViaAerea()
           }),
       )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
@@ -247,7 +247,7 @@ function migrarFluido(f: RegistroFluido | (Record<string, unknown> & { volumenMl
   return { ...resto, cantidad: volumenMl ?? 0, unidad: 'mL' } as RegistroFluido
 }
 
-const vacioViaAerea = (): ViaAereaMenu => ({ valores: {}, historial: [] })
+const vacioViaAerea = (): ViaAereaMenu => ({ registros: [] })
 
 // Los accesos guardados antes de los menús de clic se convierten a códigos (sin perder el original).
 function migrarAcceso(a: AccesoVascular | Record<string, unknown>): AccesoVascular {
@@ -273,7 +273,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     checklist: c.checklist ?? [],
     carritoFarmacos: c.carritoFarmacos ?? [],
     accesosVasculares: (c.accesosVasculares ?? []).map(migrarAcceso),
-    viaAereaMenu: c.viaAereaMenu ? migrarViaAereaV1(c.viaAereaMenu) : vacioViaAerea(),
+    viaAereaMenu: c.viaAereaMenu ? migrarViaAerea(c.viaAereaMenu) : vacioViaAerea(),
     versionMenus: c.versionMenus ?? 'auto',
     timeFlags: c.timeFlags ?? [],
     ventilacion: c.ventilacion ?? [],

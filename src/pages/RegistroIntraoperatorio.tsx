@@ -102,7 +102,7 @@ export default function RegistroIntraoperatorio() {
   // También se muestra si ya hay datos cargados (por ejemplo, tras una conversión a otro tipo).
   const requiereViaAerea =
     caso.tiposAnestesia.includes('General') ||
-    Object.keys(caso.viaAereaMenu.valores).length > 0
+    caso.viaAereaMenu.registros.length > 0
 
   // La hoja no se cierra con campos obligatorios vacíos ni con bloqueos de las pestañas de clic.
   const pendientesCierre = requiereViaAerea ? pendientesVia(caso) : []

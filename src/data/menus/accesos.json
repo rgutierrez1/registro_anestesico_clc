@@ -17,7 +17,10 @@
   "tarjeta": {
     "flujo": "Cada acceso es una tarjeta con hora.",
     "editable": "Se toca la tarjeta y se puede cambiar cualquier campo, incluida la hora; guardar registro del cambio (quién y cuándo).",
-    "botones": ["Retirar (marca la hora)","Borrar (anula con motivo; no elimina el dato)"],
+    "botones": [
+      "Retirar (marca la hora)",
+      "Borrar (anula con motivo; no elimina el dato)"
+    ],
     "resumen": "{tipo} {calibre} · {sitio} {lado} · {hora} · {procedencia} · {quien | estado al llegar} · {\"Eco\" si acc.eco} · {intentos} intento(s)",
     "ejemplos": [
       "VVP 18G · Antebrazo izq. · 19:40 · Pabellón · Enfermería · Eco · 1 intento",
@@ -36,12 +39,41 @@
           "etiqueta": "Tipo de acceso",
           "tipo": "unica",
           "obligatorio": true,
-          "grupos": ["Periféricos","Centrales","Arterial","Otros"],
+          "grupos": [
+            "Periféricos",
+            "Centrales",
+            "Arterial",
+            "Otros"
+          ],
           "opciones": [
-            {"codigo":"vvp","etiqueta":"VVP","grupo":"Periféricos","abrev":"VVP","abre":"vvp"},
-            {"codigo":"midline","etiqueta":"Midline","grupo":"Periféricos","abrev":"Midline","abre":"midline"},
-            {"codigo":"cvc","etiqueta":"Vía venosa central","grupo":"Centrales","abrev":"CVC","abre":"cvc"},
-            {"codigo":"picc","etiqueta":"PICC","grupo":"Centrales","abrev":"PICC","abre":"picc"},
+            {
+              "codigo": "vvp",
+              "etiqueta": "VVP",
+              "grupo": "Periféricos",
+              "abrev": "VVP",
+              "abre": "vvp"
+            },
+            {
+              "codigo": "midline",
+              "etiqueta": "Midline",
+              "grupo": "Periféricos",
+              "abrev": "Midline",
+              "abre": "midline"
+            },
+            {
+              "codigo": "cvc",
+              "etiqueta": "Vía venosa central",
+              "grupo": "Centrales",
+              "abrev": "CVC",
+              "abre": "cvc"
+            },
+            {
+              "codigo": "picc",
+              "etiqueta": "PICC",
+              "grupo": "Centrales",
+              "abrev": "PICC",
+              "abre": "picc"
+            },
             {
               "codigo": "port",
               "etiqueta": "Port o catéter tunelizado",
@@ -56,7 +88,13 @@
               "abrev": "Línea art.",
               "abre": "arterial"
             },
-            {"codigo":"intraosea","etiqueta":"Intraósea","grupo":"Otros","abrev":"IO","abre":"intraosea"},
+            {
+              "codigo": "intraosea",
+              "etiqueta": "Intraósea",
+              "grupo": "Otros",
+              "abrev": "IO",
+              "abre": "intraosea"
+            },
             {
               "codigo": "umbilical",
               "etiqueta": "Umbilical",
@@ -65,7 +103,11 @@
               "abrev": "Umbilical",
               "abre": "umbilical"
             },
-            {"codigo":"otro","etiqueta":"Otro","grupo":"Otros"}
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro",
+              "grupo": "Otros"
+            }
           ]
         }
       ]
@@ -81,9 +123,16 @@
           "etiqueta": "Hora de instalación",
           "tipo": "hora",
           "obligatorio": false,
-          "obligatorio_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "obligatorio_si": {
+            "campo": "acc.procedencia",
+            "op": "eq",
+            "valor": "pabellon"
+          },
           "editable": true,
-          "botones": ["Ahora","Hora personalizada"],
+          "botones": [
+            "Ahora",
+            "Hora personalizada"
+          ],
           "nota": "Si viene de afuera: la hora (y fecha) en que se puso, si se sabe; en ese caso no es obligatoria."
         },
         {
@@ -93,11 +142,31 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"pabellon","etiqueta":"Instalado en pabellón","abrev":"Pabellón"},
-            {"codigo":"pieza","etiqueta":"Viene de pieza","abrev":"Pieza"},
-            {"codigo":"uci","etiqueta":"Viene de UCI","abrev":"UCI"},
-            {"codigo":"urgencia","etiqueta":"Viene de Urgencia","abrev":"Urgencia"},
-            {"codigo":"otro","etiqueta":"Otro (domicilio, otro centro)","abrev":"Externo"}
+            {
+              "codigo": "pabellon",
+              "etiqueta": "Instalado en pabellón",
+              "abrev": "Pabellón"
+            },
+            {
+              "codigo": "pieza",
+              "etiqueta": "Viene de pieza",
+              "abrev": "Pieza"
+            },
+            {
+              "codigo": "uci",
+              "etiqueta": "Viene de UCI",
+              "abrev": "UCI"
+            },
+            {
+              "codigo": "urgencia",
+              "etiqueta": "Viene de Urgencia",
+              "abrev": "Urgencia"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro (domicilio, otro centro)",
+              "abrev": "Externo"
+            }
           ]
         },
         {
@@ -106,11 +175,24 @@
           "etiqueta": "Estado al llegar",
           "tipo": "unica",
           "obligatorio": true,
-          "mostrar_si": {"campo":"acc.procedencia","op":"neq","valor":"pabellon"},
+          "mostrar_si": {
+            "campo": "acc.procedencia",
+            "op": "neq",
+            "valor": "pabellon"
+          },
           "opciones": [
-            {"codigo":"funciona","etiqueta":"Funciona bien"},
-            {"codigo":"flebitis","etiqueta":"Flebitis"},
-            {"codigo":"no_funciona","etiqueta":"No funciona o infiltrado"}
+            {
+              "codigo": "funciona",
+              "etiqueta": "Funciona bien"
+            },
+            {
+              "codigo": "flebitis",
+              "etiqueta": "Flebitis"
+            },
+            {
+              "codigo": "no_funciona",
+              "etiqueta": "No funciona o infiltrado"
+            }
           ]
         },
         {
@@ -119,12 +201,31 @@
           "etiqueta": "¿Quién lo instaló?",
           "tipo": "unica",
           "obligatorio": true,
-          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "mostrar_si": {
+            "campo": "acc.procedencia",
+            "op": "eq",
+            "valor": "pabellon"
+          },
           "opciones": [
-            {"codigo":"anestesiologo","etiqueta":"Anestesiólogo/a","abrev":"Anest."},
-            {"codigo":"becado","etiqueta":"Becado/a","abrev":"Becado"},
-            {"codigo":"enfermero","etiqueta":"Enfermero/a","abrev":"Enfermería"},
-            {"codigo":"otro","etiqueta":"Otro"}
+            {
+              "codigo": "anestesiologo",
+              "etiqueta": "Anestesiólogo/a",
+              "abrev": "Anest."
+            },
+            {
+              "codigo": "becado",
+              "etiqueta": "Becado/a",
+              "abrev": "Becado"
+            },
+            {
+              "codigo": "enfermero",
+              "etiqueta": "Enfermero/a",
+              "abrev": "Enfermería"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
           ]
         },
         {
@@ -133,7 +234,11 @@
           "etiqueta": "Con ecografía",
           "tipo": "si_no",
           "obligatorio": false,
-          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"}
+          "mostrar_si": {
+            "campo": "acc.procedencia",
+            "op": "eq",
+            "valor": "pabellon"
+          }
         },
         {
           "id": "acc.intentos",
@@ -141,12 +246,26 @@
           "etiqueta": "Intentos",
           "tipo": "unica",
           "obligatorio": false,
-          "mostrar_si": {"campo":"acc.procedencia","op":"eq","valor":"pabellon"},
+          "mostrar_si": {
+            "campo": "acc.procedencia",
+            "op": "eq",
+            "valor": "pabellon"
+          },
           "opciones": [
-            {"codigo":"1","etiqueta":"1"},
-            {"codigo":"2","etiqueta":"2"},
-            {"codigo":"3_mas","etiqueta":"3 o más"}
-          ]
+            {
+              "codigo": "1",
+              "etiqueta": "1"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2"
+            },
+            {
+              "codigo": "3_mas",
+              "etiqueta": "3 o más"
+            }
+          ],
+          "por_defecto": "1"
         },
         {
           "id": "acc.lado",
@@ -155,8 +274,16 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"derecho","etiqueta":"Derecho","abrev":"der."},
-            {"codigo":"izquierdo","etiqueta":"Izquierdo","abrev":"izq."}
+            {
+              "codigo": "derecho",
+              "etiqueta": "Derecho",
+              "abrev": "der."
+            },
+            {
+              "codigo": "izquierdo",
+              "etiqueta": "Izquierdo",
+              "abrev": "izq."
+            }
           ]
         }
       ]
@@ -165,7 +292,11 @@
       "id": "vvp",
       "numero": "3",
       "titulo": "VVP",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"vvp"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "vvp"
+      },
       "campos": [
         {
           "id": "vvp.calibre",
@@ -175,13 +306,49 @@
           "obligatorio": true,
           "presentacion": "cada botón pintado con su color ISO (hex aproximado)",
           "opciones": [
-            {"codigo":"14g","etiqueta":"14G (naranjo)","abrev":"14G","color_hex":"#F7941D"},
-            {"codigo":"16g","etiqueta":"16G (gris)","abrev":"16G","color_hex":"#8C8C8C"},
-            {"codigo":"18g","etiqueta":"18G (verde)","abrev":"18G","color_hex":"#00843D"},
-            {"codigo":"20g","etiqueta":"20G (rosado)","abrev":"20G","color_hex":"#F49AC1"},
-            {"codigo":"22g","etiqueta":"22G (azul)","abrev":"22G","color_hex":"#005EB8"},
-            {"codigo":"24g","etiqueta":"24G (amarillo)","abrev":"24G","color_hex":"#FFD100"},
-            {"codigo":"26g","etiqueta":"26G (violeta)","version":"ped","abrev":"26G","color_hex":"#7B4FA0"}
+            {
+              "codigo": "14g",
+              "etiqueta": "14G (naranjo)",
+              "abrev": "14G",
+              "color_hex": "#F7941D"
+            },
+            {
+              "codigo": "16g",
+              "etiqueta": "16G (gris)",
+              "abrev": "16G",
+              "color_hex": "#8C8C8C"
+            },
+            {
+              "codigo": "18g",
+              "etiqueta": "18G (verde)",
+              "abrev": "18G",
+              "color_hex": "#00843D"
+            },
+            {
+              "codigo": "20g",
+              "etiqueta": "20G (rosado)",
+              "abrev": "20G",
+              "color_hex": "#F49AC1"
+            },
+            {
+              "codigo": "22g",
+              "etiqueta": "22G (azul)",
+              "abrev": "22G",
+              "color_hex": "#005EB8"
+            },
+            {
+              "codigo": "24g",
+              "etiqueta": "24G (amarillo)",
+              "abrev": "24G",
+              "color_hex": "#FFD100"
+            },
+            {
+              "codigo": "26g",
+              "etiqueta": "26G (violeta)",
+              "version": "ped",
+              "abrev": "26G",
+              "color_hex": "#7B4FA0"
+            }
           ]
         },
         {
@@ -190,18 +357,58 @@
           "etiqueta": "Sitio",
           "tipo": "unica",
           "obligatorio": true,
-          "grupos": ["Mano y brazo","Otros"],
+          "grupos": [
+            "Mano y brazo",
+            "Otros"
+          ],
           "nota": "En pantalla, sitio + lado en un solo chip (\"Mano derecha\"), como hoy.",
           "opciones": [
-            {"codigo":"mano","etiqueta":"Mano","grupo":"Mano y brazo"},
-            {"codigo":"muneca","etiqueta":"Muñeca","grupo":"Mano y brazo"},
-            {"codigo":"antebrazo","etiqueta":"Antebrazo","grupo":"Mano y brazo"},
-            {"codigo":"pliegue_codo","etiqueta":"Pliegue del codo","grupo":"Mano y brazo"},
-            {"codigo":"brazo","etiqueta":"Brazo","grupo":"Mano y brazo"},
-            {"codigo":"yugular_externa","etiqueta":"Yugular externa","grupo":"Otros"},
-            {"codigo":"pie","etiqueta":"Pie","grupo":"Otros"},
-            {"codigo":"cuero_cabelludo","etiqueta":"Cuero cabelludo","version":"ped","grupo":"Otros"},
-            {"codigo":"otro","etiqueta":"Otro","grupo":"Otros"}
+            {
+              "codigo": "mano",
+              "etiqueta": "Mano",
+              "grupo": "Mano y brazo"
+            },
+            {
+              "codigo": "muneca",
+              "etiqueta": "Muñeca",
+              "grupo": "Mano y brazo"
+            },
+            {
+              "codigo": "antebrazo",
+              "etiqueta": "Antebrazo",
+              "grupo": "Mano y brazo"
+            },
+            {
+              "codigo": "pliegue_codo",
+              "etiqueta": "Pliegue del codo",
+              "grupo": "Mano y brazo"
+            },
+            {
+              "codigo": "brazo",
+              "etiqueta": "Brazo",
+              "grupo": "Mano y brazo"
+            },
+            {
+              "codigo": "yugular_externa",
+              "etiqueta": "Yugular externa",
+              "grupo": "Otros"
+            },
+            {
+              "codigo": "pie",
+              "etiqueta": "Pie",
+              "grupo": "Otros"
+            },
+            {
+              "codigo": "cuero_cabelludo",
+              "etiqueta": "Cuero cabelludo",
+              "version": "ped",
+              "grupo": "Otros"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro",
+              "grupo": "Otros"
+            }
           ]
         }
       ]
@@ -210,7 +417,11 @@
       "id": "midline",
       "numero": "4",
       "titulo": "Midline",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"midline"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "midline"
+      },
       "campos": [
         {
           "id": "mid.vena",
@@ -219,10 +430,22 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"basilica","etiqueta":"Basílica"},
-            {"codigo":"braquial","etiqueta":"Braquial"},
-            {"codigo":"cefalica","etiqueta":"Cefálica"},
-            {"codigo":"otra","etiqueta":"Otra"}
+            {
+              "codigo": "basilica",
+              "etiqueta": "Basílica"
+            },
+            {
+              "codigo": "braquial",
+              "etiqueta": "Braquial"
+            },
+            {
+              "codigo": "cefalica",
+              "etiqueta": "Cefálica"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
           ]
         },
         {
@@ -232,9 +455,18 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"3fr","etiqueta":"3 Fr"},
-            {"codigo":"4fr","etiqueta":"4 Fr"},
-            {"codigo":"5fr","etiqueta":"5 Fr"}
+            {
+              "codigo": "3fr",
+              "etiqueta": "3 Fr"
+            },
+            {
+              "codigo": "4fr",
+              "etiqueta": "4 Fr"
+            },
+            {
+              "codigo": "5fr",
+              "etiqueta": "5 Fr"
+            }
           ]
         },
         {
@@ -253,7 +485,11 @@
       "id": "cvc",
       "numero": "5",
       "titulo": "Vía venosa central",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"cvc"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "cvc"
+      },
       "campos": [
         {
           "id": "cvc.vena",
@@ -262,10 +498,22 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"yugular_interna","etiqueta":"Yugular interna"},
-            {"codigo":"subclavia","etiqueta":"Subclavia"},
-            {"codigo":"femoral","etiqueta":"Femoral"},
-            {"codigo":"otra","etiqueta":"Otra"}
+            {
+              "codigo": "yugular_interna",
+              "etiqueta": "Yugular interna"
+            },
+            {
+              "codigo": "subclavia",
+              "etiqueta": "Subclavia"
+            },
+            {
+              "codigo": "femoral",
+              "etiqueta": "Femoral"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
           ]
         },
         {
@@ -275,10 +523,22 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"multilumen","etiqueta":"Multilumen"},
-            {"codigo":"introductor","etiqueta":"Introductor"},
-            {"codigo":"hemodialisis","etiqueta":"Hemodiálisis"},
-            {"codigo":"swan_ganz","etiqueta":"Swan-Ganz"}
+            {
+              "codigo": "multilumen",
+              "etiqueta": "Multilumen"
+            },
+            {
+              "codigo": "introductor",
+              "etiqueta": "Introductor"
+            },
+            {
+              "codigo": "hemodialisis",
+              "etiqueta": "Hemodiálisis"
+            },
+            {
+              "codigo": "swan_ganz",
+              "etiqueta": "Swan-Ganz"
+            }
           ]
         },
         {
@@ -288,13 +548,37 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"3fr","etiqueta":"3 Fr","version":"ped"},
-            {"codigo":"4fr","etiqueta":"4 Fr","version":"ped"},
-            {"codigo":"5fr","etiqueta":"5 Fr","version":"ped"},
-            {"codigo":"7fr","etiqueta":"7 Fr"},
-            {"codigo":"8_5fr","etiqueta":"8,5 Fr"},
-            {"codigo":"9fr","etiqueta":"9 Fr"},
-            {"codigo":"12fr_mas","etiqueta":"12 Fr o más"}
+            {
+              "codigo": "3fr",
+              "etiqueta": "3 Fr",
+              "version": "ped"
+            },
+            {
+              "codigo": "4fr",
+              "etiqueta": "4 Fr",
+              "version": "ped"
+            },
+            {
+              "codigo": "5fr",
+              "etiqueta": "5 Fr",
+              "version": "ped"
+            },
+            {
+              "codigo": "7fr",
+              "etiqueta": "7 Fr"
+            },
+            {
+              "codigo": "8_5fr",
+              "etiqueta": "8,5 Fr"
+            },
+            {
+              "codigo": "9fr",
+              "etiqueta": "9 Fr"
+            },
+            {
+              "codigo": "12fr_mas",
+              "etiqueta": "12 Fr o más"
+            }
           ]
         },
         {
@@ -304,10 +588,22 @@
           "tipo": "unica",
           "obligatorio": false,
           "opciones": [
-            {"codigo":"1","etiqueta":"1"},
-            {"codigo":"2","etiqueta":"2"},
-            {"codigo":"3","etiqueta":"3"},
-            {"codigo":"4_mas","etiqueta":"4 o más"}
+            {
+              "codigo": "1",
+              "etiqueta": "1"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2"
+            },
+            {
+              "codigo": "3",
+              "etiqueta": "3"
+            },
+            {
+              "codigo": "4_mas",
+              "etiqueta": "4 o más"
+            }
           ]
         },
         {
@@ -326,7 +622,11 @@
           "etiqueta": "Rx de control solicitada",
           "tipo": "si_no",
           "obligatorio": false,
-          "mostrar_si": {"campo":"cvc.vena","op":"neq","valor":"femoral"}
+          "mostrar_si": {
+            "campo": "cvc.vena",
+            "op": "neq",
+            "valor": "femoral"
+          }
         }
       ]
     },
@@ -334,7 +634,11 @@
       "id": "picc",
       "numero": "6",
       "titulo": "PICC",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"picc"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "picc"
+      },
       "campos": [
         {
           "id": "picc.vena",
@@ -343,10 +647,22 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"basilica","etiqueta":"Basílica"},
-            {"codigo":"braquial","etiqueta":"Braquial"},
-            {"codigo":"cefalica","etiqueta":"Cefálica"},
-            {"codigo":"otra","etiqueta":"Otra"}
+            {
+              "codigo": "basilica",
+              "etiqueta": "Basílica"
+            },
+            {
+              "codigo": "braquial",
+              "etiqueta": "Braquial"
+            },
+            {
+              "codigo": "cefalica",
+              "etiqueta": "Cefálica"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
           ]
         },
         {
@@ -356,11 +672,28 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"1_9fr","etiqueta":"1,9 Fr","version":"ped"},
-            {"codigo":"3fr","etiqueta":"3 Fr","version":"ped"},
-            {"codigo":"4fr","etiqueta":"4 Fr"},
-            {"codigo":"5fr","etiqueta":"5 Fr"},
-            {"codigo":"6fr","etiqueta":"6 Fr"}
+            {
+              "codigo": "1_9fr",
+              "etiqueta": "1,9 Fr",
+              "version": "ped"
+            },
+            {
+              "codigo": "3fr",
+              "etiqueta": "3 Fr",
+              "version": "ped"
+            },
+            {
+              "codigo": "4fr",
+              "etiqueta": "4 Fr"
+            },
+            {
+              "codigo": "5fr",
+              "etiqueta": "5 Fr"
+            },
+            {
+              "codigo": "6fr",
+              "etiqueta": "6 Fr"
+            }
           ]
         },
         {
@@ -369,7 +702,20 @@
           "etiqueta": "Lúmenes",
           "tipo": "unica",
           "obligatorio": false,
-          "opciones": [{"codigo":"1","etiqueta":"1"},{"codigo":"2","etiqueta":"2"},{"codigo":"3","etiqueta":"3"}]
+          "opciones": [
+            {
+              "codigo": "1",
+              "etiqueta": "1"
+            },
+            {
+              "codigo": "2",
+              "etiqueta": "2"
+            },
+            {
+              "codigo": "3",
+              "etiqueta": "3"
+            }
+          ]
         },
         {
           "id": "picc.largo_cm",
@@ -387,7 +733,11 @@
       "id": "port",
       "numero": "7",
       "titulo": "Port o catéter tunelizado",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"port"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "port"
+      },
       "campos": [
         {
           "id": "port.tipo",
@@ -395,7 +745,16 @@
           "etiqueta": "Tipo",
           "tipo": "unica",
           "obligatorio": true,
-          "opciones": [{"codigo":"port","etiqueta":"Port"},{"codigo":"tunelizado","etiqueta":"Catéter tunelizado"}]
+          "opciones": [
+            {
+              "codigo": "port",
+              "etiqueta": "Port"
+            },
+            {
+              "codigo": "tunelizado",
+              "etiqueta": "Catéter tunelizado"
+            }
+          ]
         },
         {
           "id": "port.puncionado",
@@ -410,7 +769,11 @@
       "id": "arterial",
       "numero": "8",
       "titulo": "Línea arterial",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"arterial"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "arterial"
+      },
       "campos": [
         {
           "id": "art.arteria",
@@ -419,12 +782,31 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"radial","etiqueta":"Radial"},
-            {"codigo":"femoral","etiqueta":"Femoral"},
-            {"codigo":"braquial","etiqueta":"Braquial"},
-            {"codigo":"pedia","etiqueta":"Pedia"},
-            {"codigo":"tibial_posterior","etiqueta":"Tibial posterior","version":"ped"},
-            {"codigo":"otra","etiqueta":"Otra"}
+            {
+              "codigo": "radial",
+              "etiqueta": "Radial"
+            },
+            {
+              "codigo": "femoral",
+              "etiqueta": "Femoral"
+            },
+            {
+              "codigo": "braquial",
+              "etiqueta": "Braquial"
+            },
+            {
+              "codigo": "pedia",
+              "etiqueta": "Pedia"
+            },
+            {
+              "codigo": "tibial_posterior",
+              "etiqueta": "Tibial posterior",
+              "version": "ped"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
           ]
         },
         {
@@ -434,10 +816,23 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"18g","etiqueta":"18G"},
-            {"codigo":"20g","etiqueta":"20G"},
-            {"codigo":"22g","etiqueta":"22G"},
-            {"codigo":"24g","etiqueta":"24G","version":"ped"}
+            {
+              "codigo": "18g",
+              "etiqueta": "18G"
+            },
+            {
+              "codigo": "20g",
+              "etiqueta": "20G"
+            },
+            {
+              "codigo": "22g",
+              "etiqueta": "22G"
+            },
+            {
+              "codigo": "24g",
+              "etiqueta": "24G",
+              "version": "ped"
+            }
           ]
         }
       ]
@@ -446,7 +841,11 @@
       "id": "intraosea",
       "numero": "9",
       "titulo": "Intraósea",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"intraosea"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "intraosea"
+      },
       "campos": [
         {
           "id": "io.sitio",
@@ -455,10 +854,23 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"humero","etiqueta":"Húmero"},
-            {"codigo":"tibia_proximal","etiqueta":"Tibia proximal"},
-            {"codigo":"tibia_distal","etiqueta":"Tibia distal"},
-            {"codigo":"femur_distal","etiqueta":"Fémur distal","version":"ped"}
+            {
+              "codigo": "humero",
+              "etiqueta": "Húmero"
+            },
+            {
+              "codigo": "tibia_proximal",
+              "etiqueta": "Tibia proximal"
+            },
+            {
+              "codigo": "tibia_distal",
+              "etiqueta": "Tibia distal"
+            },
+            {
+              "codigo": "femur_distal",
+              "etiqueta": "Fémur distal",
+              "version": "ped"
+            }
           ]
         },
         {
@@ -468,10 +880,23 @@
           "tipo": "unica",
           "obligatorio": true,
           "opciones": [
-            {"codigo":"15mm","etiqueta":"15 mm rosada","version":"ped"},
-            {"codigo":"25mm","etiqueta":"25 mm azul"},
-            {"codigo":"45mm","etiqueta":"45 mm amarilla"},
-            {"codigo":"manual","etiqueta":"Manual"}
+            {
+              "codigo": "15mm",
+              "etiqueta": "15 mm rosada",
+              "version": "ped"
+            },
+            {
+              "codigo": "25mm",
+              "etiqueta": "25 mm azul"
+            },
+            {
+              "codigo": "45mm",
+              "etiqueta": "45 mm amarilla"
+            },
+            {
+              "codigo": "manual",
+              "etiqueta": "Manual"
+            }
           ]
         }
       ]
@@ -481,7 +906,11 @@
       "numero": "10",
       "titulo": "Umbilical",
       "version": "ped",
-      "mostrar_si": {"campo":"acc.tipo","op":"eq","valor":"umbilical"},
+      "mostrar_si": {
+        "campo": "acc.tipo",
+        "op": "eq",
+        "valor": "umbilical"
+      },
       "campos": [
         {
           "id": "umb.tipo",
@@ -489,7 +918,16 @@
           "etiqueta": "Tipo",
           "tipo": "unica",
           "obligatorio": true,
-          "opciones": [{"codigo":"venoso","etiqueta":"Venoso"},{"codigo":"arterial","etiqueta":"Arterial"}]
+          "opciones": [
+            {
+              "codigo": "venoso",
+              "etiqueta": "Venoso"
+            },
+            {
+              "codigo": "arterial",
+              "etiqueta": "Arterial"
+            }
+          ]
         },
         {
           "id": "umb.calibre",
@@ -497,7 +935,16 @@
           "etiqueta": "Calibre",
           "tipo": "unica",
           "obligatorio": true,
-          "opciones": [{"codigo":"3_5fr","etiqueta":"3,5 Fr"},{"codigo":"5fr","etiqueta":"5 Fr"}]
+          "opciones": [
+            {
+              "codigo": "3_5fr",
+              "etiqueta": "3,5 Fr"
+            },
+            {
+              "codigo": "5fr",
+              "etiqueta": "5 Fr"
+            }
+          ]
         },
         {
           "id": "umb.fijado_cm",

@@ -2,7 +2,7 @@ import { DEF_ACCESOS, SECCIONES_ACCESO, tarjetaAcceso } from '../menus/accesos'
 import { calcularVisibilidad, textoValor } from '../menus/motor'
 import { versionMenu } from '../menus/paciente'
 import type { MenuDef, SeccionDef, Valores } from '../menus/tipos'
-import { DEF_VIA, SECCIONES_VIA } from '../menus/viaAerea'
+import { DEF_VIA, registrosVivos, SECCIONES_VIA, tarjetaVia } from '../menus/viaAerea'
 import type { CasoAnestesico } from '../types'
 import { formatHora } from '../utils/tiempo'
 
@@ -54,27 +54,31 @@ export function ResumenAccesos({ caso }: { caso: CasoAnestesico }) {
 }
 
 export function ResumenViaAerea({ caso }: { caso: CasoAnestesico }) {
-  const valores = caso.viaAereaMenu.valores
-  const vis = calcularVisibilidad(DEF_VIA, valores, versionMenu(caso))
-  const ultimo = caso.viaAereaMenu.historial[caso.viaAereaMenu.historial.length - 1]
+  const version = versionMenu(caso)
+  const vivos = registrosVivos(caso)
+  const anulados = caso.viaAereaMenu.registros.filter((r) => r.anulado)
   return (
     <div className="flex flex-col gap-3">
-      {SECCIONES_VIA.filter((s) => vis.secciones.has(s.id)).map((s) => {
-        const l = lineas(DEF_VIA, s, valores, vis.campos)
-        return l.length ? (
-          <div key={s.id}>
-            <p className="text-sm font-semibold text-slate-800">
-              {s.numero}. {s.titulo}
-            </p>
-            <Lista items={l} />
+      {vivos.map((r) => {
+        const vis = calcularVisibilidad(DEF_VIA, r.valores, version)
+        const ultimo = r.historial?.[r.historial.length - 1]
+        return (
+          <div key={r.id}>
+            <p className="text-sm font-semibold text-slate-800">{tarjetaVia(r, formatHora)}</p>
+            <Lista items={SECCIONES_VIA.filter((s) => vis.secciones.has(s.id)).flatMap((s) => lineas(DEF_VIA, s, r.valores, vis.campos)).filter((l) => l.etiqueta !== 'Vía aérea')} />
+            {ultimo && (
+              <p className="text-xs text-slate-500">
+                Modificado por {ultimo.usuario} a las {formatHora(ultimo.hora)}
+              </p>
+            )}
           </div>
-        ) : null
+        )
       })}
-      {ultimo && (
-        <p className="text-xs text-slate-500">
-          Guardado por {ultimo.usuario} a las {formatHora(ultimo.hora)}
+      {anulados.map((r) => (
+        <p key={r.id} className="text-xs text-slate-500">
+          <span className="line-through">{tarjetaVia(r, formatHora)}</span> — anulado por {r.anulado?.usuario} a las {r.anulado ? formatHora(r.anulado.hora) : ''}: {r.anulado?.motivo}
         </p>
-      )}
+      ))}
     </div>
   )
 }

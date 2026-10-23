@@ -1,4 +1,4 @@
-import type { RegistroMenu, Valores } from './menus/tipos'
+import type { RegistroMenu } from './menus/tipos'
 export type ASA = 'I' | 'II' | 'III' | 'IV' | 'V' | 'VI'
 
 export type EstadoCaso = 'planificado' | 'en_curso' | 'finalizado'
@@ -181,10 +181,9 @@ export interface ManejoViaAerea {
   tuboDobleLumen: { numero: string; lado: '' | 'Derecho' | 'Izquierdo' }
 }
 
+// Cada dispositivo usado (máscara, tubo…) es un registro con hora; se pueden agregar varios.
 export interface ViaAereaMenu {
-  valores: Valores
-  // Quién y cuándo guardó o cambió el registro.
-  historial: { usuario: string; hora: string }[]
+  registros: RegistroMenu[]
   legado?: unknown
 }
 
