@@ -1,4 +1,4 @@
-import viaAerea from '../data/menus/via_aerea.json'
+import tablas from '../data/menus/tablas_pediatricas.json'
 import type { PacienteMenu } from './paciente'
 import type { Valores, VersionMenu } from './tipos'
 
@@ -17,10 +17,6 @@ interface FilaDsg {
   igel_kg: { min: number | null; max: number | null }
   con_manguito_kg: { min: number | null; max: number | null }
 }
-interface FilaHoja {
-  criterio: { peso_min_kg?: number; peso_max_kg?: number; edad_min_anios?: number; edad_max_anios?: number }
-  hoja: string
-}
 interface FilaAislamiento {
   edad_anios: [number, number]
   tubo_di: string
@@ -28,11 +24,9 @@ interface FilaAislamiento {
   doble_lumen_fr: string | null
 }
 
-const T = viaAerea.tablas_pediatricas as unknown as {
+const T = tablas as unknown as {
   A1_tubo: TablaTubo
   A2_dsg_por_peso: FilaDsg[]
-  A3_hoja: FilaHoja[]
-  A3_nota: string
   A4_aislamiento: FilaAislamiento[]
   A4_nota: string
 }
@@ -43,7 +37,7 @@ const codigoDi = (di: number) => `${Math.trunc(di)}_${Math.round((di % 1) * 10)}
 const enRango = (v: number, min: number | null | undefined, max: number | null | undefined) =>
   (min === null || min === undefined || v >= min) && (max === null || max === undefined || v <= max)
 
-// 6.7 Diámetro interno del tubo (A1).
+// 5.6 Número del tubo (A1). interno del tubo (A1).
 export function sugerirDi(p: PacienteMenu, valores: Valores): Sugerencia | null {
   const sinCuff = valores['int.tubo'] === 'sin_cuff'
   if (p.edadMeses === undefined && p.pesoKg === undefined) return null
@@ -61,10 +55,10 @@ export function sugerirDi(p: PacienteMenu, valores: Valores): Sugerencia | null 
   return { texto: `${coma(fila.di_mm)} mm con cuff (tabla por edad); tener a mano medio número más y menos`, codigos: [codigoDi(fila.di_mm)] }
 }
 
-// 6.8 Profundidad de fijación (fórmulas de A1).
+// 5.7 Profundidad de fijación (fórmulas de A1).
 export function sugerirProfundidad(p: PacienteMenu, valores: Valores): Sugerencia | null {
-  const nasal = valores['int.via'] === 'nasal'
-  const di = typeof valores['int.di_mm'] === 'string' ? Number(String(valores['int.di_mm']).replace('_', '.')) : undefined
+  const nasal = Array.isArray(valores['va.uso']) && valores['va.uso'].includes('tnt')
+  const di = typeof valores['int.numero_mm'] === 'string' ? Number(String(valores['int.numero_mm']).replace('_', '.')) : undefined
   if (p.edadMeses !== undefined && p.edadMeses < 1 && p.pesoKg !== undefined) {
     const v = p.pesoKg + 6
     return { texto: `${coma(Math.round(v * 2) / 2)} cm (RN: peso + 6)`, valor: Math.round(v * 2) / 2 }
@@ -77,32 +71,16 @@ export function sugerirProfundidad(p: PacienteMenu, valores: Valores): Sugerenci
   return null
 }
 
-// 5.2 Tamaño del DSG por peso (A2): puede haber más de uno por solapamiento entre tamaños.
+// 4.2 Número de la máscara laríngea por peso (A2): puede haber más de uno por solapamiento entre tamaños.
 export function sugerirDsg(p: PacienteMenu, valores: Valores): Sugerencia | null {
   if (p.pesoKg === undefined) return null
-  const igel = valores['dsg.tipo'] === 'igel'
+  const igel = valores['ml.tipo'] === 'igel'
   const coinciden = T.A2_dsg_por_peso.filter((f) => {
     const r = igel ? f.igel_kg : f.con_manguito_kg
     return enRango(p.pesoKg!, r.min, r.max)
   })
   if (!coinciden.length) return null
   return { texto: `${coinciden.map((f) => coma(Number(f.tamano.replace('_', '.')))).join(' o ')} (${igel ? 'i-gel' : 'con manguito'}, ${coma(p.pesoKg)} kg)`, codigos: coinciden.map((f) => f.tamano) }
-}
-
-// 6.3 Hoja de laringoscopio (A3).
-export function sugerirHoja(p: PacienteMenu): Sugerencia | null {
-  if (p.pesoKg === undefined && p.edadAnios === undefined) return null
-  const f = T.A3_hoja.find(({ criterio: c }) => {
-    if (c.peso_min_kg !== undefined && (p.pesoKg === undefined || p.pesoKg < c.peso_min_kg)) return false
-    if (c.peso_max_kg !== undefined && (p.pesoKg === undefined || p.pesoKg >= c.peso_max_kg)) return false
-    if (c.edad_min_anios !== undefined && (p.edadAnios === undefined || p.edadAnios < c.edad_min_anios)) return false
-    if (c.edad_max_anios !== undefined && (p.edadAnios === undefined || p.edadAnios >= c.edad_max_anios)) return false
-    return true
-  })
-  if (!f) return null
-  const nums = [...f.hoja.matchAll(/\d+(?:[–-]\d+)?/g)].flatMap((m) => m[0].split(/[–-]/))
-  const codigos = [...new Set(nums.map((n) => n.replace(',', '_')))]
-  return { texto: `${f.hoja}. ${T.A3_nota}`, codigos }
 }
 
 function filaAislamiento(p: PacienteMenu): FilaAislamiento | undefined {
@@ -112,7 +90,7 @@ function filaAislamiento(p: PacienteMenu): FilaAislamiento | undefined {
 
 const numerosDe = (t: string | null) => (t ? t.match(/\d+/g) ?? [] : [])
 
-// 7.2 y 7.3 Aislamiento pulmonar por edad (A4).
+// 6.2 y 6.3 Aislamiento pulmonar por edad (A4).
 export function sugerirAislamiento(p: PacienteMenu, campo: 'ais.tdl_fr' | 'ais.bloqueador_fr'): Sugerencia | null {
   const f = filaAislamiento(p)
   if (!f) return null
@@ -128,14 +106,12 @@ export function sugerirAislamiento(p: PacienteMenu, campo: 'ais.tdl_fr' | 'ais.b
 export function sugerir(campoId: string, version: VersionMenu, p: PacienteMenu, valores: Valores): Sugerencia | null {
   if (version !== 'ped') return null
   switch (campoId) {
-    case 'int.di_mm':
+    case 'int.numero_mm':
       return sugerirDi(p, valores)
-    case 'int.profundidad_cm':
+    case 'int.fijado_cm':
       return sugerirProfundidad(p, valores)
-    case 'dsg.tamano':
+    case 'ml.numero':
       return sugerirDsg(p, valores)
-    case 'int.hoja':
-      return sugerirHoja(p)
     case 'ais.tdl_fr':
     case 'ais.bloqueador_fr':
       return sugerirAislamiento(p, campoId)

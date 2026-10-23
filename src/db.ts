@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie'
 import { MONITORIZACION_ESTANDAR } from './constants'
-import { migrarAccesoLegado } from './menus/accesos'
+import { migrarAccesoLegado, migrarAccesoV1 } from './menus/accesos'
+import { migrarViaAereaV1 } from './menus/viaAerea'
 import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, ViaAereaMenu } from './types'
 
 class RegistroAnestesicoDB extends Dexie {
@@ -177,8 +178,7 @@ class RegistroAnestesicoDB extends Dexie {
           .toCollection()
           .modify((caso) => {
             caso.accesosVasculares = (caso.accesosVasculares ?? []).map(migrarAcceso)
-            caso.accesosCaso ??= {}
-            caso.viaAereaMenu ??= vacioViaAerea()
+            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAereaV1(caso.viaAereaMenu) : vacioViaAerea()
             caso.versionMenus ??= 'auto'
           }),
       )
@@ -192,6 +192,19 @@ class RegistroAnestesicoDB extends Dexie {
           .toCollection()
           .modify((caso) => {
             caso.fluidos = (caso.fluidos ?? []).map(migrarFluido)
+          }),
+      )
+    this.version(16)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            caso.accesosVasculares = (caso.accesosVasculares ?? []).map(migrarAcceso)
+            caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAereaV1(caso.viaAereaMenu) : vacioViaAerea()
           }),
       )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
@@ -234,11 +247,11 @@ function migrarFluido(f: RegistroFluido | (Record<string, unknown> & { volumenMl
   return { ...resto, cantidad: volumenMl ?? 0, unidad: 'mL' } as RegistroFluido
 }
 
-const vacioViaAerea = (): ViaAereaMenu => ({ valores: {}, eventos: [], vadDeclarada: null })
+const vacioViaAerea = (): ViaAereaMenu => ({ valores: {}, historial: [] })
 
 // Los accesos guardados antes de los menús de clic se convierten a códigos (sin perder el original).
 function migrarAcceso(a: AccesoVascular | Record<string, unknown>): AccesoVascular {
-  return 'valores' in a ? (a as AccesoVascular) : migrarAccesoLegado(a as never)
+  return 'valores' in a ? migrarAccesoV1(a as AccesoVascular) : migrarAccesoLegado(a as never)
 }
 
 // Completa los campos que un caso guardado en una versión anterior pueda no tener,
@@ -260,8 +273,7 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     checklist: c.checklist ?? [],
     carritoFarmacos: c.carritoFarmacos ?? [],
     accesosVasculares: (c.accesosVasculares ?? []).map(migrarAcceso),
-    accesosCaso: c.accesosCaso ?? {},
-    viaAereaMenu: { ...vacioViaAerea(), ...c.viaAereaMenu },
+    viaAereaMenu: c.viaAereaMenu ? migrarViaAereaV1(c.viaAereaMenu) : vacioViaAerea(),
     versionMenus: c.versionMenus ?? 'auto',
     timeFlags: c.timeFlags ?? [],
     ventilacion: c.ventilacion ?? [],
@@ -318,7 +330,6 @@ export function crearCasoVacio(): CasoAnestesico {
     checklist: [],
     manejoViaAerea: crearManejoViaAereaVacio(),
     accesosVasculares: [],
-    accesosCaso: {},
     viaAereaMenu: vacioViaAerea(),
     versionMenus: 'auto',
     timeFlags: [],

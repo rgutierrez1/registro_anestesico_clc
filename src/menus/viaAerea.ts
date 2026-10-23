@@ -1,59 +1,13 @@
 import json from '../data/menus/via_aerea.json'
-import { obtenerFarmaco } from '../data/catalogoFarmacos'
 import type { CasoAnestesico, ViaAereaMenu } from '../types'
-import { calcularVisibilidad, faltantes, valoresPorDefecto, claveHoras, type Visibilidad } from './motor'
-import { pacienteMenu, pesoMagro, versionMenu, type PacienteMenu } from './paciente'
+import { cargarMenu } from './cargar'
+import { calcularVisibilidad, faltantes, valoresPorDefecto, type Visibilidad } from './motor'
+import { pacienteMenu, versionMenu, type PacienteMenu } from './paciente'
 import { sugerir, type Sugerencia } from './sugerencias'
-import type { Alerta, MenuDef, RegistroMenu, SeccionDef, Valores, VersionMenu } from './tipos'
+import type { MenuDef, SeccionDef, Valores, VersionMenu } from './tipos'
 
-export const DEF_VIA = json as unknown as MenuDef
-export const SECCIONES_VIA = DEF_VIA.secciones
-export const SECCIONES_CASO = SECCIONES_VIA.filter((s) => s.ambito === 'caso')
-export const SECCIONES_EVENTO = SECCIONES_VIA.filter((s) => s.ambito === 'evento')
-
-const CLAVES_DE = (s: SeccionDef) => new Set(s.campos.map((c) => c.id))
-
-export function seccionDeEvento(e: RegistroMenu): SeccionDef | undefined {
-  return SECCIONES_VIA.find((s) => s.id === e.seccion)
-}
-
-export const activos = (eventos: RegistroMenu[]) => eventos.filter((e) => !e.anulado).sort((a, b) => a.hora.localeCompare(b.hora))
-
-// Valores del caso + lo último registrado en cada maniobra (+ lo que se está editando).
-export function valoresEfectivos(via: ViaAereaMenu, editando?: Valores, excluirId?: string): Valores {
-  const r: Valores = { ...via.valores }
-  for (const e of activos(via.eventos)) if (e.id !== excluirId) Object.assign(r, e.valores)
-  return { ...r, ...editando }
-}
-
-const en = (v: unknown, lista: string[]) => typeof v === 'string' && lista.includes(v)
-
-export function calculadosVia(via: ViaAereaMenu, valores: Valores, p: PacienteMenu): Valores {
-  const han = en(valores['va.han'], ['han_3', 'han_4'])
-  const intentosInt = en(valores['int.intentos'], ['3', '4_mas'])
-  const spo2 = typeof valores['int.spo2_min'] === 'number' ? (valores['int.spo2_min'] as number) : undefined
-  const manejo = Array.isArray(valores['va.manejo']) ? (valores['va.manejo'] as string[]) : []
-  const intubacionFallida = manejo.includes('intubacion') && (en(valores['vad.desenlace'], ['despertar', 'sigue_dsg', 'fona', 'postergada']) || valores['vigil.resultado'] === 'fallida')
-  const dsgFallido = valores['dsg.intentos'] === '3_mas' || en(valores['vad.plan_alcanzado'], ['plan_c', 'plan_d'])
-  const disparador = han || intentosInt || valores['dsg.intentos'] === '3_mas' || valores['vigil.resultado'] === 'fallida' || (spo2 !== undefined && spo2 < 80)
-  const r: Valores = {
-    'va.intubacion_fallida': intubacionFallida,
-    'va.dsg_fallido': dsgFallido,
-    'va.vad_disparador': disparador,
-    'va.vad_imprevista_sugerida': valores['va.vad_anticipada'] === false && (han || intentosInt || intubacionFallida || dsgFallido),
-    'boton_crisis.declarar_vad': via.vadDeclarada !== null,
-    'va.desaturacion': spo2 !== undefined && spo2 < 90,
-    'va.exito_primer_intento': manejo.includes('intubacion') && valores['int.intentos'] === '1' && Array.isArray(valores['int.confirmacion']) && (valores['int.confirmacion'] as string[]).includes('capnografia'),
-  }
-  const lido = valores['vigil.lidocaina_mg']
-  const magro = pesoMagro(p)
-  if (typeof lido === 'number' && magro) r['vigil.lidocaina_mg_kg'] = lido / magro.kg
-  return r
-}
-
-export function tieneRelajante(c: CasoAnestesico): boolean {
-  return c.farmacos.some((f) => obtenerFarmaco(f.farmacoId)?.categoria === 'BNM')
-}
+export const DEF_VIA: MenuDef = cargarMenu(json)
+export const SECCIONES_VIA: SeccionDef[] = DEF_VIA.secciones
 
 export interface EstadoVia {
   version: VersionMenu
@@ -62,86 +16,91 @@ export interface EstadoVia {
   visibilidad: Visibilidad
 }
 
-// `editando` son los valores de la maniobra que se está cargando (si hay una).
-export function estadoVia(c: CasoAnestesico, editando?: Valores, excluirId?: string): EstadoVia {
+// `editando` son los valores que se están cargando; si no hay, se usan los guardados.
+export function estadoVia(c: CasoAnestesico, editando?: Valores): EstadoVia {
   const version = versionMenu(c)
-  const paciente = pacienteMenu(c.paciente)
-  const base = valoresEfectivos(c.viaAereaMenu, editando, excluirId)
-  const valores = { ...base, ...calculadosVia(c.viaAereaMenu, base, paciente) }
-  const visibilidad = calcularVisibilidad(DEF_VIA, valores, version)
-  if (!tieneRelajante(c)) visibilidad.campos.delete('ext.tof')
-  return { version, paciente, valores, visibilidad }
+  const valores = editando ?? c.viaAereaMenu.valores
+  return { version, paciente: pacienteMenu(c.paciente), valores, visibilidad: calcularVisibilidad(DEF_VIA, valores, version) }
 }
 
-export function defaultsVia(): Valores {
-  return valoresPorDefecto(SECCIONES_VIA)
-}
+export const defaultsVia = (): Valores => valoresPorDefecto(SECCIONES_VIA)
 
-// Alertas que el JSON solo describe con texto.
-export function alertasViaEspeciales(campoId: string, e: EstadoVia, magroAprox: boolean): Alerta[] {
-  const v = e.valores
-  const r: Alerta[] = []
-  if (campoId === 'int.presion_cuff' && typeof v['int.presion_cuff'] === 'number') {
-    const p = v['int.presion_cuff'] as number
-    if (e.version === 'ped' && p > 20) r.push({ nivel: 'amarilla', mensaje: 'Presión de cuff sobre 20 cmH2O en un niño.' })
-    if (e.version === 'adulto' && (p < 20 || p > 30)) r.push({ nivel: 'amarilla', mensaje: 'Presión de cuff fuera de rango (meta 20–30 cmH2O).' })
-  }
-  if (campoId === 'int.confirmacion' && Array.isArray(v['int.confirmacion']) && v['int.confirmacion'].length > 0 && !v['int.confirmacion'].includes('capnografia')) {
-    r.push({ nivel: 'roja', mensaje: 'Sin curva de capnografía, el tubo está mal puesto hasta demostrar lo contrario.' })
-  }
-  if (campoId === 'vigil.lidocaina_mg' && typeof v['vigil.lidocaina_mg_kg'] === 'number') {
-    const kg = v['vigil.lidocaina_mg_kg'] as number
-    if (kg > 9) r.push({ nivel: 'roja', mensaje: `Lidocaína tópica sobre 9 mg/kg de peso magro (máximo DAS): ${kg.toFixed(1).replace('.', ',')} mg/kg.` })
-    if (magroAprox) r.push({ nivel: 'info', mensaje: 'Cálculo aproximado: falta talla o sexo, se usó el peso real.' })
-  }
-  if (campoId === 'va.pack_hora_retiro' && v['va.pack'] === true && typeof v['va.pack_hora_retiro'] !== 'string') {
-    r.push({ nivel: 'bloqueo', mensaje: 'Pack sin retiro registrado: no se puede registrar la extubación ni cerrar la hoja.' })
-  }
-  if (campoId === 'vad.comunicacion') {
-    const c = v['vad.comunicacion']
-    const completa = c && typeof c === 'object' && !Array.isArray(c) && ['alerta_ficha', 'paciente_informado', 'carta_entregada'].every((k) => typeof c[k] === 'boolean') && typeof c['recomendacion'] === 'string' && (c['recomendacion'] as string).trim() !== ''
-    if (!completa) r.push({ nivel: 'bloqueo', mensaje: 'Hubo VAD: completar la comunicación antes de cerrar la hoja.' })
-  }
-  return r
-}
-
-export function sugerenciaVia(campoId: string, e: EstadoVia, spo2Min: number | null): Sugerencia | null {
-  if (campoId === 'int.spo2_min' && spo2Min !== null) return { texto: `${spo2Min} % (mínima de SpO2 en los signos vitales)`, valor: spo2Min }
+export function sugerenciaVia(campoId: string, e: EstadoVia): Sugerencia | null {
   return sugerir(campoId, e.version, e.paciente, e.valores)
 }
 
-// Añade solas las complicaciones que el JSON marca como automáticas (desaturación <90%).
-export function conComplicacionesAuto(valoresCaso: Valores, efectivos: Valores, ahoraIso: string): Valores {
-  const spo2 = efectivos['int.spo2_min']
-  if (typeof spo2 !== 'number' || spo2 >= 90) return valoresCaso
-  const lista = Array.isArray(valoresCaso['va.complicaciones']) ? (valoresCaso['va.complicaciones'] as string[]) : []
-  if (lista.includes('desaturacion')) return valoresCaso
-  const horas = { ...(valoresCaso[claveHoras('va.complicaciones')] as Record<string, string> | undefined), desaturacion: ahoraIso }
-  return { ...valoresCaso, 'va.complicaciones': [...lista.filter((x) => x !== 'ninguna'), 'desaturacion'], [claveHoras('va.complicaciones')]: horas }
+export function faltantesVia(e: EstadoVia) {
+  return faltantes(SECCIONES_VIA, e.valores, e.visibilidad, e.version)
 }
 
-// Lo que falta para poder cerrar la hoja (campos obligatorios y bloqueos).
+export const haySeleccionVia = (v: Valores) => Array.isArray(v['va.uso']) && v['va.uso'].length > 0
+
+// Lo que falta para cerrar la hoja: en anestesia general, que la vía aérea esté registrada y completa.
 export function pendientesVia(c: CasoAnestesico): string[] {
-  const e = estadoVia(c)
-  const r: string[] = []
-  const etiqueta = (s: SeccionDef, campo: string) => `Vía aérea ${s.numero}. ${campo}`
-  for (const s of SECCIONES_CASO) {
-    if (!e.visibilidad.secciones.has(s.id)) continue
-    for (const f of faltantes([s], e.valores, e.visibilidad, e.version)) r.push(etiqueta(s, f.etiqueta))
-  }
-  const vivos = activos(c.viaAereaMenu.eventos)
-  for (const s of SECCIONES_EVENTO) {
-    if (!e.visibilidad.secciones.has(s.id)) continue
-    if (!vivos.some((x) => x.seccion === s.id)) r.push(`Vía aérea: falta registrar «${s.titulo}»`)
-  }
-  for (const ev of vivos) {
-    const s = seccionDeEvento(ev)
-    if (!s) continue
-    const est = estadoVia(c, ev.valores, ev.id)
-    for (const f of faltantes([s], est.valores, est.visibilidad, est.version)) r.push(etiqueta(s, f.etiqueta))
-  }
-  if (e.valores['va.pack'] === true && typeof e.valores['va.pack_hora_retiro'] !== 'string') r.push('Vía aérea: pack sin hora de retiro')
-  return [...new Set(r)]
+  const guardado = c.viaAereaMenu.valores
+  if (!haySeleccionVia(guardado)) return c.tiposAnestesia.includes('General') ? ['Vía aérea: falta registrar qué se usó'] : []
+  return faltantesVia(estadoVia(c)).map((f) => `Vía aérea ${f.numero}. ${f.etiqueta}`)
 }
 
-export { CLAVES_DE }
+// --- Registros de la versión 1.0 (ámbito caso + eventos con hora) → versión 3.0 ---
+const HAN: Record<string, string> = { han_0: 'no_intentada', han_1: 'facil', han_2: 'con_ayuda', han_3: 'dificil', han_4: 'imposible' }
+const ML_TIPO: Record<string, string> = { igel: 'igel', lma_2gen: 'supreme_proseal', lma_clasica: 'clasica' }
+const LARINGO: Record<string, string> = {
+  vl_estandar: 'video_estandar',
+  vl_canalizado: 'video_estandar',
+  vl_hiperangulada: 'video_hiperangulada',
+  ld_macintosh: 'directo',
+  ld_miller: 'directo',
+  fibroscopio: 'fibroscopio',
+  otro: 'directo',
+}
+const TUBO: Record<string, string> = { estandar_cuff: 'con_cuff', sin_cuff: 'sin_cuff', anillado: 'anillado', rae_oral: 'rae', rae_nasal: 'rae' }
+
+interface ViaAereaV1 {
+  valores: Valores
+  eventos?: { valores: Valores; hora: string; anulado?: unknown }[]
+  vadDeclarada?: string | null
+}
+
+export function migrarViaAereaV1(v: ViaAereaV1 | ViaAereaMenu): ViaAereaMenu {
+  if (!('eventos' in v) && 'historial' in v) return v as ViaAereaMenu
+  const viejo = v as ViaAereaV1
+  const efectivos: Valores = { ...viejo.valores }
+  for (const e of [...(viejo.eventos ?? [])].filter((x) => !x.anulado).sort((a, b) => a.hora.localeCompare(b.hora))) Object.assign(efectivos, e.valores)
+  const n: Valores = {}
+  const manejo = Array.isArray(efectivos['va.manejo']) ? (efectivos['va.manejo'] as string[]) : []
+  const uso: string[] = []
+  const nasal = efectivos['int.via'] === 'nasal'
+  if (manejo.includes('sin_dispositivo')) uso.push('sin_dispositivo')
+  if (manejo.includes('solo_mascara')) uso.push('mascara_facial')
+  if (manejo.includes('dsg')) uso.push('mascara_laringea')
+  if (manejo.includes('aislamiento')) uso.push('doble_lumen_bloqueador')
+  else if (manejo.includes('intubacion')) uso.push(nasal ? 'tnt' : 'tot')
+  if (manejo.includes('preexistente')) uso.push('llega_con_va')
+  if (uso.length) n['va.uso'] = uso
+  const o2 = String(efectivos['va.o2_sin_dispositivo'] ?? '')
+  if (o2) n['va.o2_con'] = o2.startsWith('naricera') ? 'naricera' : o2
+  if (typeof efectivos['va.han'] === 'string') n['va.ventilacion_mascara'] = HAN[efectivos['va.han']] ?? efectivos['va.han']
+  if (typeof efectivos['dsg.tipo'] === 'string') n['ml.tipo'] = ML_TIPO[efectivos['dsg.tipo']] ?? 'otra'
+  if (efectivos['dsg.tamano'] !== undefined) n['ml.numero'] = efectivos['dsg.tamano']
+  if (efectivos['dsg.intentos'] !== undefined) n['ml.intentos'] = efectivos['dsg.intentos']
+  const induccion = String(efectivos['va.induccion'] ?? '')
+  if (uso.some((u) => ['tot', 'tnt', 'doble_lumen_bloqueador'].includes(u))) n['int.tecnica'] = induccion === 'secuencia_rapida' || induccion === 'vigil' ? induccion : 'estandar'
+  if (typeof efectivos['int.dispositivo'] === 'string') n['int.laringoscopio'] = LARINGO[efectivos['int.dispositivo']] ?? 'directo'
+  if (efectivos['int.cormack'] !== undefined) n['int.cormack'] = efectivos['int.cormack']
+  if (Array.isArray(efectivos['int.adjuntos'])) n['int.ayudas'] = (efectivos['int.adjuntos'] as string[]).filter((x) => x !== 'ninguno')
+  if (typeof efectivos['int.tubo'] === 'string') n['int.tubo'] = TUBO[efectivos['int.tubo']] ?? 'otro'
+  if (efectivos['int.di_mm'] !== undefined) n['int.numero_mm'] = efectivos['int.di_mm']
+  if (efectivos['int.profundidad_cm'] !== undefined) n['int.fijado_cm'] = efectivos['int.profundidad_cm']
+  if (efectivos['int.intentos'] !== undefined) n['int.intentos'] = efectivos['int.intentos'] === '4_mas' || efectivos['int.intentos'] === '3' ? '3_mas' : efectivos['int.intentos']
+  if (Array.isArray(efectivos['int.confirmacion'])) n['int.capnografia'] = (efectivos['int.confirmacion'] as string[]).includes('capnografia')
+  for (const k of ['ais.dispositivo', 'ais.tdl_fr', 'ais.bloqueador_fr'] as const) if (efectivos[k] !== undefined) n[k] = efectivos[k]
+  if (efectivos['ais.confirmado_fibroscopio'] !== undefined) n['ais.fibroscopio'] = efectivos['ais.confirmado_fibroscopio']
+  if (typeof efectivos['pre.llega_con'] === 'string') n['pre.llega_con'] = efectivos['pre.llega_con'] === 'tet' ? 'tubo' : efectivos['pre.llega_con']
+  if (efectivos['pre.diametro_mm'] !== undefined) n['pre.numero_mm'] = efectivos['pre.diametro_mm']
+  if (efectivos['vad.imprevista_confirmada'] !== undefined) n['vad.no_prevista'] = efectivos['vad.imprevista_confirmada']
+  const com = efectivos['vad.comunicacion']
+  if (com && typeof com === 'object' && !Array.isArray(com) && typeof com['carta_entregada'] === 'boolean') n['vad.carta'] = com['carta_entregada']
+  if (efectivos['va.pack'] === true) n['va.otros'] = ['pack']
+  return { valores: n, historial: [], legado: viejo }
+}

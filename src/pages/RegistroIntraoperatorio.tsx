@@ -15,7 +15,6 @@ import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
 import { ModalSignosIniciales } from '../components/vitales/FormularioVitales'
 import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
 import { ViaAereaSection } from '../components/ViaAereaSection'
-import { pendientesAccesos } from '../menus/accesos'
 import { pendientesVia } from '../menus/viaAerea'
 import { Badge, Button, Field, Input, Select, TextArea } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, DESTINOS_PACIENTE } from '../constants'
@@ -103,12 +102,10 @@ export default function RegistroIntraoperatorio() {
   // También se muestra si ya hay datos cargados (por ejemplo, tras una conversión a otro tipo).
   const requiereViaAerea =
     caso.tiposAnestesia.includes('General') ||
-    caso.viaAereaMenu.eventos.length > 0 ||
-    Object.keys(caso.viaAereaMenu.valores).some((k) => !k.startsWith('ext.')) ||
-    caso.viaAereaMenu.vadDeclarada !== null
+    Object.keys(caso.viaAereaMenu.valores).length > 0
 
   // La hoja no se cierra con campos obligatorios vacíos ni con bloqueos de las pestañas de clic.
-  const pendientesCierre = [...pendientesAccesos(caso), ...(requiereViaAerea ? pendientesVia(caso) : [])]
+  const pendientesCierre = requiereViaAerea ? pendientesVia(caso) : []
 
 
   return (

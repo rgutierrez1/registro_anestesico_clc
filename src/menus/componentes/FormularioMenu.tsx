@@ -232,16 +232,25 @@ function CampoMenu({
 
       {(campo.tipo === 'unica' || campo.tipo === 'multiple') && (
         <>
-          <div className="flex flex-wrap gap-2">
-            {opciones.map((o) => (
-              <Chip key={o.codigo} activo={elegidos.includes(o.codigo)} onClick={() => alternar(o.codigo)} color={o.color_hex} sugerido={sugeridos.has(o.codigo)}>
-                {o.etiqueta}
-                {campo.tipo === 'multiple' && horas[o.codigo] && elegidos.includes(o.codigo) && (
-                  <span className="ml-2 font-mono text-xs opacity-80">{hhmmLocal(horas[o.codigo])}</span>
-                )}
-              </Chip>
-            ))}
-          </div>
+          {(campo.grupos?.length ? campo.grupos : [undefined]).map((g) => {
+            const delGrupo = g === undefined ? opciones : opciones.filter((o) => o.grupo === g)
+            if (delGrupo.length === 0) return null
+            return (
+              <div key={g ?? 'todos'} className={g ? 'mb-2' : ''}>
+                {g && <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">{g}</p>}
+                <div className="flex flex-wrap gap-2">
+                  {delGrupo.map((o) => (
+                    <Chip key={o.codigo} activo={elegidos.includes(o.codigo)} onClick={() => alternar(o.codigo)} color={o.color_hex} sugerido={sugeridos.has(o.codigo)}>
+                      {o.etiqueta}
+                      {campo.tipo === 'multiple' && horas[o.codigo] && elegidos.includes(o.codigo) && (
+                        <span className="ml-2 font-mono text-xs opacity-80">{hhmmLocal(horas[o.codigo])}</span>
+                      )}
+                    </Chip>
+                  ))}
+                </div>
+              </div>
+            )
+          })}
           {opciones.map((o) => (
             <div key={`t-${o.codigo}`}>{textoDe(o)}</div>
           ))}

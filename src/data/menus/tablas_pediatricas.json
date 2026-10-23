@@ -1,0 +1,291 @@
+{
+  "version": "ped",
+  "nota": "Para que la versión pediátrica sugiera tamaños. Son orientativas: el clínico confirma.",
+  "A1_tubo": {
+    "con_cuff_por_edad": [
+      {
+        "desde_meses": 0,
+        "hasta_meses": 8,
+        "di_mm": 3,
+        "nota": "RN de término con ≥3 kg"
+      },
+      {
+        "desde_meses": 8,
+        "hasta_meses": 24,
+        "di_mm": 3.5
+      },
+      {
+        "desde_meses": 24,
+        "hasta_meses": 48,
+        "di_mm": 4
+      },
+      {
+        "desde_meses": 48,
+        "hasta_meses": 72,
+        "di_mm": 4.5
+      },
+      {
+        "desde_meses": 72,
+        "hasta_meses": 96,
+        "di_mm": 5
+      },
+      {
+        "desde_meses": 96,
+        "hasta_meses": 120,
+        "di_mm": 5.5
+      },
+      {
+        "desde_meses": 120,
+        "hasta_meses": 144,
+        "di_mm": 6
+      },
+      {
+        "desde_meses": 144,
+        "hasta_meses": 168,
+        "di_mm": 6.5
+      },
+      {
+        "desde_meses": 168,
+        "hasta_meses": 192,
+        "di_mm": 7
+      }
+    ],
+    "rangos": "\"hasta_meses\" es exclusivo (p. ej., 8 a <24 meses).",
+    "recien_nacido_sin_cuff_por_peso": [
+      {
+        "peso_max_kg": 1,
+        "di_mm": 2.5
+      },
+      {
+        "peso_min_kg": 1,
+        "peso_max_kg": 2,
+        "di_mm": 3
+      },
+      {
+        "peso_min_kg": 2,
+        "di_mm": 3.5
+      }
+    ],
+    "formulas": {
+      "di_con_cuff": "edad_anios / 4 + 3.5 (≥2 años)",
+      "di_sin_cuff": "edad_anios / 4 + 4 (≥2 años)",
+      "profundidad_oral_cm": "edad_anios / 2 + 12 (≥2 años), o 3 × di_mm",
+      "profundidad_nasal_cm": "edad_anios / 2 + 15",
+      "profundidad_rn_cm": "peso_kg + 6",
+      "nota": "Las fórmulas de diámetro aciertan en 50–75% de los casos: tener a mano medio número más y menos."
+    },
+    "cuff": {
+      "presion_max_cmh2o": 20,
+      "fuga_sin_cuff_cmh2o": "15–20"
+    }
+  },
+  "A2_dsg_por_peso": [
+    {
+      "tamano": "1",
+      "igel_kg": {
+        "min": 2,
+        "max": 5
+      },
+      "con_manguito_kg": {
+        "min": null,
+        "max": 5
+      }
+    },
+    {
+      "tamano": "1_5",
+      "igel_kg": {
+        "min": 5,
+        "max": 12
+      },
+      "con_manguito_kg": {
+        "min": 5,
+        "max": 10
+      }
+    },
+    {
+      "tamano": "2",
+      "igel_kg": {
+        "min": 10,
+        "max": 25
+      },
+      "con_manguito_kg": {
+        "min": 10,
+        "max": 20
+      }
+    },
+    {
+      "tamano": "2_5",
+      "igel_kg": {
+        "min": 25,
+        "max": 35
+      },
+      "con_manguito_kg": {
+        "min": 20,
+        "max": 30
+      }
+    },
+    {
+      "tamano": "3",
+      "igel_kg": {
+        "min": 30,
+        "max": 60
+      },
+      "con_manguito_kg": {
+        "min": 30,
+        "max": 50
+      }
+    },
+    {
+      "tamano": "4",
+      "igel_kg": {
+        "min": 50,
+        "max": 90
+      },
+      "con_manguito_kg": {
+        "min": 50,
+        "max": 70
+      }
+    },
+    {
+      "tamano": "5",
+      "igel_kg": {
+        "min": 90,
+        "max": null
+      },
+      "con_manguito_kg": {
+        "min": 70,
+        "max": 100
+      }
+    }
+  ],
+  "A2_nota": "Rangos de fabricante (los i-gel se solapan entre tamaños). \"Con manguito\" = tipo LMA o Ambu; confirmar con el inserto.",
+  "A3_hoja": [
+    {
+      "criterio": {
+        "peso_max_kg": 1
+      },
+      "hoja": "Miller 00"
+    },
+    {
+      "criterio": {
+        "peso_min_kg": 1,
+        "peso_max_kg": 3
+      },
+      "hoja": "Miller 0"
+    },
+    {
+      "criterio": {
+        "peso_min_kg": 3,
+        "edad_max_anios": 2
+      },
+      "hoja": "Miller 1"
+    },
+    {
+      "criterio": {
+        "edad_min_anios": 2,
+        "edad_max_anios": 8
+      },
+      "hoja": "Miller 2 o Macintosh 2"
+    },
+    {
+      "criterio": {
+        "edad_min_anios": 8
+      },
+      "hoja": "Macintosh 2–3"
+    }
+  ],
+  "A3_nota": "Orientativa. Con videolaringoscopio, usar la hoja estándar del tamaño equivalente: es la primera opción en neonatos y lactantes (ESAIC/BJA 2024).",
+  "A4_aislamiento": [
+    {
+      "edad_anios": [
+        0.5,
+        1
+      ],
+      "tubo_di": "3,5–4,0",
+      "bloqueador_fr": "2",
+      "doble_lumen_fr": null
+    },
+    {
+      "edad_anios": [
+        1,
+        2
+      ],
+      "tubo_di": "4,0–4,5",
+      "bloqueador_fr": "3",
+      "doble_lumen_fr": null
+    },
+    {
+      "edad_anios": [
+        2,
+        4
+      ],
+      "tubo_di": "4,5–5,0",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": null
+    },
+    {
+      "edad_anios": [
+        4,
+        6
+      ],
+      "tubo_di": "5,0–5,5",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": null
+    },
+    {
+      "edad_anios": [
+        6,
+        8
+      ],
+      "tubo_di": "5,5–6,0",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": null
+    },
+    {
+      "edad_anios": [
+        8,
+        10
+      ],
+      "tubo_di": "6,0 con cuff",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": "26"
+    },
+    {
+      "edad_anios": [
+        10,
+        12
+      ],
+      "tubo_di": "6,5 con cuff",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": "26–28"
+    },
+    {
+      "edad_anios": [
+        12,
+        14
+      ],
+      "tubo_di": "6,5–7,0 con cuff",
+      "bloqueador_fr": "5",
+      "doble_lumen_fr": "32"
+    },
+    {
+      "edad_anios": [
+        14,
+        16
+      ],
+      "tubo_di": "7,0 con cuff",
+      "bloqueador_fr": "5–7",
+      "doble_lumen_fr": "35"
+    },
+    {
+      "edad_anios": [
+        16,
+        18
+      ],
+      "tubo_di": "7,0–7,5 con cuff",
+      "bloqueador_fr": "7–9",
+      "doble_lumen_fr": "35–37"
+    }
+  ],
+  "A4_nota": "Hammer 1999. Bajo 8 años la tabla usa tubo sin cuff; si se usa con cuff, bajar 0,5 mm. Bloqueador de 2–3 Fr = catéter tipo Fogarty."
+}

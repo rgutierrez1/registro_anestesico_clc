@@ -141,7 +141,7 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {(caso.viaAereaMenu.eventos.length > 0 || Object.keys(caso.viaAereaMenu.valores).length > 0) && (
+        {Object.keys(caso.viaAereaMenu.valores).length > 0 && (
           <SeccionResumen titulo="Vía aérea">
             <ResumenViaAerea caso={caso} />
           </SeccionResumen>
@@ -161,7 +161,7 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {(caso.accesosVasculares.length > 0 || Object.keys(caso.accesosCaso).length > 0) && (
+        {caso.accesosVasculares.length > 0 && (
           <SeccionResumen titulo="Accesos vasculares">
             <ResumenAccesos caso={caso} />
           </SeccionResumen>

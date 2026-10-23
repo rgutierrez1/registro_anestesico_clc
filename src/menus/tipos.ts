@@ -39,12 +39,12 @@ export interface OpcionDef {
   implica?: string[]
   exclusivas?: string[]
   color_hex?: string
+  grupo?: string
   extremidad?: 'superior' | 'inferior' | 'cabeza_cuello'
   valor?: number
   pide_texto?: string
   peso_min_kg?: number
   peso_max_kg?: number
-  grupo?: string
   auto?: string
 }
 
@@ -85,13 +85,16 @@ export interface CampoDef {
   registra_hora_si?: string
   registra_hora?: boolean
   presentacion?: string
+  grupos?: string[]
+  // v3: un solo aviso, siempre rojo; `fijo` = se muestra siempre mientras se cumpla.
+  aviso?: { si: Condicion; mensaje: string; fijo?: boolean }
 }
 
 export interface SeccionDef {
   id: string
   numero: string
   titulo: string
-  ambito: 'caso' | 'evento'
+  ambito?: 'caso' | 'evento'
   registra_hora?: boolean
   mostrar_si?: Condicion
   version?: 'ped'
@@ -115,5 +118,8 @@ export interface RegistroMenu {
   seccion?: string
   valores: Valores
   anulado?: { motivo: string; usuario: string; hora: string }
+  retiro?: { hora: string; usuario: string }
+  // Quién y cuándo cambió el registro después de guardarlo.
+  historial?: { usuario: string; hora: string }[]
   legado?: unknown
 }

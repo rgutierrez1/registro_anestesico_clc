@@ -183,8 +183,9 @@ export interface ManejoViaAerea {
 
 export interface ViaAereaMenu {
   valores: Valores
-  eventos: RegistroMenu[]
-  vadDeclarada: string | null
+  // Quién y cuándo guardó o cambió el registro.
+  historial: { usuario: string; hora: string }[]
+  legado?: unknown
 }
 
 export interface CasoAnestesico {
@@ -197,7 +198,6 @@ export interface CasoAnestesico {
   checklist: string[]
   manejoViaAerea: ManejoViaAerea
   accesosVasculares: AccesoVascular[]
-  accesosCaso: Valores
   viaAereaMenu: ViaAereaMenu
   // Versión de los menús de clic: automática por edad (< 15 años = pediátrica) o fijada a mano.
   versionMenus: 'auto' | 'adulto' | 'ped'
