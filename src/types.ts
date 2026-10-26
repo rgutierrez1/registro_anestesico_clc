@@ -198,7 +198,7 @@ export interface CasoAnestesico {
   manejoViaAerea: ManejoViaAerea
   accesosVasculares: AccesoVascular[]
   viaAereaMenu: ViaAereaMenu
-  // Versión de los menús de clic: automática por edad (< 15 años = pediátrica) o fijada a mano.
+  // Versión de los menús de clic: automática por edad (≤ 10 años = pediátrica; mayor de 10, adulto) o fijada a mano.
   versionMenus: 'auto' | 'adulto' | 'ped'
   timeFlags: TimeFlag[]
   ventilacion: RegistroVentilacion[]

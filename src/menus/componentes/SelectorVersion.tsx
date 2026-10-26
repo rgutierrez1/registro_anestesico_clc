@@ -7,7 +7,7 @@ const OPCIONES: { id: CasoAnestesico['versionMenus']; etiqueta: string }[] = [
   { id: 'ped', etiqueta: 'Pediátrica' },
 ]
 
-// El corte pediátrico (edad < 15 años) se puede cambiar a mano por paciente.
+// El corte pediátrico (hasta 10 años, pediátrica; mayor de 10, adulto) se puede cambiar a mano por paciente.
 export function SelectorVersion({ caso, onCambiar }: { caso: CasoAnestesico; onCambiar: (v: CasoAnestesico['versionMenus']) => void }) {
   const activa = versionMenu(caso)
   return (

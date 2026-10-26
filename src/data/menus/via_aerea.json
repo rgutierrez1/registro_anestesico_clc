@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Vía aérea",
-  "version": "3.3",
+  "version": "3.4",
   "fecha": "2026-10-23",
   "autor": "Dr. Alejandro Jankelevich",
   "como_leer": {
@@ -503,11 +503,13 @@
             },
             {
               "codigo": "5_0",
-              "etiqueta": "5,0"
+              "etiqueta": "5,0",
+              "version": "ped"
             },
             {
               "codigo": "5_5",
-              "etiqueta": "5,5"
+              "etiqueta": "5,5",
+              "version": "ped"
             },
             {
               "codigo": "6_0",

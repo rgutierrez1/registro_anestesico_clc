@@ -1,7 +1,8 @@
 import type { CasoAnestesico, DatosPaciente } from '../types'
 import type { VersionMenu } from './tipos'
 
-export const EDAD_CORTE_PEDIATRICA = 15
+// Hasta los 10 años inclusive se ofrece la versión pediátrica; desde que el paciente supera los 10, solo opciones de adulto.
+export const EDAD_MAXIMA_PEDIATRICA = 10
 
 export interface PacienteMenu {
   edadAnios?: number
@@ -23,11 +24,11 @@ export function pacienteMenu(p: DatosPaciente): PacienteMenu {
   }
 }
 
-// El corte (edad < 15 años) se puede cambiar a mano por paciente.
+// El corte (edad ≤ 10 años = pediátrica) se puede cambiar a mano por paciente.
 export function versionMenu(c: Pick<CasoAnestesico, 'paciente' | 'versionMenus'>): VersionMenu {
   if (c.versionMenus === 'ped' || c.versionMenus === 'adulto') return c.versionMenus
   const edad = pacienteMenu(c.paciente).edadAnios
-  return edad !== undefined && edad < EDAD_CORTE_PEDIATRICA ? 'ped' : 'adulto'
+  return edad !== undefined && edad <= EDAD_MAXIMA_PEDIATRICA ? 'ped' : 'adulto'
 }
 
 // Peso magro (Janmahasatian); sin talla o sexo usa el peso real y avisa que es aproximado.
