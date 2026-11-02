@@ -3,7 +3,7 @@ import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo, textoBloqueo } from '.
 import { DEF_NEUROAXIAL, SECCIONES_NEUROAXIAL, tarjetaNeuroaxial } from '../menus/neuroaxial'
 import { Anular } from '../menus/componentes/Anular'
 import { FormularioMenu } from '../menus/componentes/FormularioMenu'
-import { aplicarCambio, calcularVisibilidad, faltantes, soloVisibles, valoresPorDefecto } from '../menus/motor'
+import { aplicarCambio, calcularVisibilidad, faltantes, sinOpcionesInvalidas, soloVisibles, valoresPorDefecto } from '../menus/motor'
 import type { CampoDef, MenuDef, RegistroMenu, SeccionDef, Valor, Valores } from '../menus/tipos'
 import type { CasoAnestesico } from '../types'
 import { anestesiologoActual } from '../utils/caso'
@@ -43,7 +43,8 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
   const vis = useMemo(() => (borrador ? calcularVisibilidad(def, borrador, 'adulto') : null), [borrador])
   const pendientes = borrador && vis ? faltantes(secciones, borrador, vis, 'adulto') : []
 
-  const cambiar = (campo: CampoDef, nuevo: Valor | undefined) => setBorrador((b) => (b ? aplicarCambio(campo, b, nuevo, new Date().toISOString()) : b))
+  const cambiar = (campo: CampoDef, nuevo: Valor | undefined) =>
+    setBorrador((b) => (b ? sinOpcionesInvalidas(secciones, aplicarCambio(campo, b, nuevo, new Date().toISOString()), 'adulto') : b))
   const aux = (clave: string, valor: Valor | undefined) =>
     setBorrador((b) => {
       if (!b) return b

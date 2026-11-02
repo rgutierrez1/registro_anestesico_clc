@@ -9,14 +9,36 @@ export const SECCIONES_NEUROAXIAL: SeccionDef[] = DEF_NEUROAXIAL.secciones
 
 const texto = (v: unknown) => (typeof v === 'string' ? v.trim() : '')
 
-// "{hora} · Raquídea (subaracnoidea) · L3-L4 · Bupivacaína pesada 12 mg"
+const DROGAS: { id: string; unidad: string }[] = [
+  { id: 'lidocaina', unidad: 'mg' },
+  { id: 'bupivacaina_isobarica', unidad: 'mg' },
+  { id: 'bupivacaina_hiperbarica', unidad: 'mg' },
+  { id: 'fentanilo', unidad: 'mcg' },
+  { id: 'epinefrina', unidad: 'mcg' },
+  { id: 'morfina', unidad: 'mcg' },
+]
+
+const etiqueta = (campo: string, codigo: unknown) => buscarOpcion(DEF_NEUROAXIAL, campo, texto(codigo))?.etiqueta ?? ''
+
+// Fármacos con su dosis: "Bupivacaína 12,5 mg + Fentanilo 15 mcg" (o el texto libre de registros anteriores).
+export function farmacosNeuroaxial(v: RegistroMenu['valores']): string {
+  const elegidos = Array.isArray(v['neu.drogas']) ? (v['neu.drogas'] as string[]) : []
+  const lista = DROGAS.filter((d) => elegidos.includes(d.id)).map((d) => {
+    const dosis = v[`neu.dosis_${d.id}`]
+    return `${etiqueta('neu.drogas', d.id)}${typeof dosis === 'number' ? ` ${String(dosis).replace('.', ',')} ${d.unidad}` : ''}`
+  })
+  const antiguo = [texto(v['neu.farmaco']), texto(v['neu.dosis'])].filter(Boolean).join(' ')
+  return lista.length ? lista.join(' + ') : antiguo
+}
+
+// "{hora} · Raquídea (subaracnoidea) · L3-L4 · Bupivacaína 12,5 mg + Fentanilo 15 mcg"
 export function tarjetaNeuroaxial(r: RegistroMenu, formatHora: (iso: string) => string): string {
   const v = r.valores
   return [
     formatHora(r.hora),
-    buscarOpcion(DEF_NEUROAXIAL, 'neu.tipo', texto(v['neu.tipo']))?.etiqueta ?? '',
-    texto(v['neu.nivel']),
-    [texto(v['neu.farmaco']), texto(v['neu.dosis'])].filter(Boolean).join(' '),
+    etiqueta('neu.tipo', v['neu.tipo']),
+    etiqueta('neu.nivel', v['neu.nivel']) || texto(v['neu.nivel']),
+    farmacosNeuroaxial(v),
     v['neu.resultado'] === 'fallida' ? 'Fallida' : '',
   ]
     .filter(Boolean)
@@ -29,10 +51,8 @@ export const esTecnicaNeuroaxial = (t: TecnicaRegional) => /raqu|epidural|peridu
 export function migrarTecnicaNeuroaxial(t: TecnicaRegional): RegistroMenu {
   const tipo = /combinada/i.test(t.tipo) ? 'combinada' : /epidural|peridural/i.test(t.tipo) ? 'peridural' : 'raquidea'
   const valores: RegistroMenu['valores'] = { 'neu.tipo': tipo, 'neu.resultado': t.exitosa ? 'exitosa' : 'fallida' }
-  if (t.nivel) valores['neu.nivel'] = t.nivel
-  if (t.agujaOKit) valores['neu.aguja'] = t.agujaOKit
-  if (t.farmaco) valores['neu.farmaco'] = t.farmaco
-  if (t.dosis) valores['neu.dosis'] = t.dosis
-  if (t.notas) valores['neu.notas'] = t.notas
+  // El nivel, la aguja y los fármacos eran texto libre: se conservan en las notas.
+  const notas = [t.nivel && `Nivel ${t.nivel}`, t.agujaOKit && `Aguja/kit ${t.agujaOKit}`, [t.farmaco, t.dosis].filter(Boolean).join(' '), t.notas].filter(Boolean).join(' · ')
+  if (notas) valores['neu.notas'] = notas
   return { id: t.id, hora: t.hora, valores, legado: t }
 }

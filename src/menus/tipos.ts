@@ -43,6 +43,8 @@ export interface OpcionDef {
   extremidad?: 'superior' | 'inferior' | 'cabeza_cuello'
   valor?: number
   pide_texto?: string
+  // "Otro" sin el campo de texto propio (el detalle se pide en otro campo).
+  sin_texto?: boolean
   peso_min_kg?: number
   peso_max_kg?: number
   auto?: string
@@ -67,7 +69,7 @@ export interface CampoDef {
   mostrar_si?: Condicion
   mostrar_si_texto?: string
   version?: 'ped'
-  por_defecto?: string | string[]
+  por_defecto?: string | string[] | boolean
   opciones?: OpcionDef[]
   exclusivas?: string[]
   items?: ItemChecklist[]
@@ -86,6 +88,11 @@ export interface CampoDef {
   registra_hora?: boolean
   presentacion?: string
   grupos?: string[]
+  // Selección con rueda giratoria: lista de valores y valor en el que se abre.
+  valores_numericos?: number[]
+  inicio?: number
+  // Límite máximo de la rueda cuando se cumple la condición (p. ej., dosis máximas en raquídea).
+  tope_si?: { si: Condicion; max: number }[]
   // v3: un solo aviso, siempre rojo; `fijo` = se muestra siempre mientras se cumpla.
   aviso?: { si: Condicion; mensaje: string; fijo?: boolean }
 }

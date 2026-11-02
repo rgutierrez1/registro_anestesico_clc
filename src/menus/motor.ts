@@ -109,6 +109,31 @@ export function calcularVisibilidad(def: MenuDef, base: Valores, version: Versio
   return visibles
 }
 
+// Valores que ofrece una rueda numérica, con el tope que corresponda según el resto del formulario.
+export function valoresRueda(campo: CampoDef, ctx: Contexto): number[] {
+  const todos = campo.valores_numericos ?? []
+  const tope = campo.tope_si?.find((t) => evaluar(t.si, ctx))
+  return tope ? todos.filter((v) => v <= tope.max) : todos
+}
+
+// Si una opción elegida dejó de ofrecerse (p. ej., el nivel al cambiar de técnica), se quita.
+export function sinOpcionesInvalidas(secciones: SeccionDef[], valores: Valores, version: VersionMenu): Valores {
+  const r: Valores = { ...valores }
+  const ctx: Contexto = { version, valores: r }
+  for (const s of secciones) {
+    for (const c of s.campos) {
+      if (c.tipo === 'numero' && c.valores_numericos && typeof r[c.id] === 'number' && !valoresRueda(c, ctx).includes(r[c.id] as number)) delete r[c.id]
+      if (c.tipo === 'multiple' && Array.isArray(r[c.id])) {
+        const visibles = opcionesVisibles(c, ctx).map((o) => o.codigo)
+        r[c.id] = (r[c.id] as string[]).filter((x) => visibles.includes(x))
+      }
+      if (c.tipo !== 'unica' || typeof r[c.id] !== 'string') continue
+      if (!opcionesVisibles(c, ctx).some((o) => o.codigo === r[c.id])) delete r[c.id]
+    }
+  }
+  return r
+}
+
 export function valoresPorDefecto(secciones: SeccionDef[]): Valores {
   const r: Valores = {}
   for (const s of secciones) for (const c of s.campos) if (c.por_defecto !== undefined) r[c.id] = c.por_defecto

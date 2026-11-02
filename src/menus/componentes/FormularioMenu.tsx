@@ -1,7 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Input, TextArea } from '../../components/ui'
+import { RuedaNumerica } from '../../components/RuedaNumerica'
+import { Input, Select, TextArea } from '../../components/ui'
 import { hhmmLocal, horaPersonalizadaIso } from '../../utils/tiempo'
-import { alertasDeCampo, claveTexto, CODIGOS_CON_TEXTO, esObligatorio, opcionesVisibles, type Visibilidad } from '../motor'
+import { alertasDeCampo, claveTexto, CODIGOS_CON_TEXTO, esObligatorio, opcionesVisibles, valoresRueda, type Visibilidad } from '../motor'
 import type { Sugerencia } from '../sugerencias'
 import type { Alerta, CampoDef, ItemChecklist, OpcionDef, SeccionDef, Valor, Valores, VersionMenu } from '../tipos'
 
@@ -207,12 +208,13 @@ function CampoMenu({
 }) {
   const v = valores[campo.id]
   const opciones = opcionesVisibles(campo, { version, valores })
+  const opcionesRueda = valoresRueda(campo, { version, valores })
   const sugeridos = new Set(sugerencia?.codigos ?? [])
   const elegidos = campo.tipo === 'unica' ? (typeof v === 'string' ? [v] : []) : Array.isArray(v) ? v : []
   const horas = (valores[`${campo.id}#horas`] ?? {}) as Record<string, string>
 
   const textoDe = (o: OpcionDef) =>
-    (CODIGOS_CON_TEXTO.includes(o.codigo) || o.pide_texto) && elegidos.includes(o.codigo) ? (
+    !o.sin_texto && (CODIGOS_CON_TEXTO.includes(o.codigo) || o.pide_texto) && elegidos.includes(o.codigo) ? (
       <Input
         className="mt-2 w-full"
         placeholder={o.pide_texto ?? 'Especificar'}
@@ -235,7 +237,22 @@ function CampoMenu({
         {obligatorio && <span className="ml-1 text-rose-500" title="Obligatorio">*</span>}
       </p>
 
-      {(campo.tipo === 'unica' || campo.tipo === 'multiple') && (
+      {campo.tipo === 'unica' && campo.presentacion === 'desplegable' && (
+        <>
+          <Select className="max-w-xs" value={typeof v === 'string' ? v : ''} onChange={(e) => onCambiar(e.target.value === '' ? undefined : e.target.value)}>
+            <option value="">Seleccionar…</option>
+            {opciones.map((o) => (
+              <option key={o.codigo} value={o.codigo}>
+                {o.etiqueta}
+              </option>
+            ))}
+          </Select>
+          {opciones.map((o) => (
+            <div key={`t-${o.codigo}`}>{textoDe(o)}</div>
+          ))}
+        </>
+      )}
+      {(campo.tipo === 'multiple' || (campo.tipo === 'unica' && campo.presentacion !== 'desplegable')) && (
         <>
           {(campo.grupos?.length ? campo.grupos : [undefined]).map((g) => {
             const delGrupo = g === undefined ? opciones : opciones.filter((o) => o.grupo === g)
@@ -261,7 +278,20 @@ function CampoMenu({
           ))}
         </>
       )}
-      {campo.tipo === 'numero' && <CampoNumero campo={campo} valor={v} onChange={onCambiar} />}
+      {campo.tipo === 'numero' && campo.presentacion === 'rueda' && campo.valores_numericos ? (
+        <div className="max-w-[170px]">
+          <RuedaNumerica
+            etiqueta=""
+            unidad={campo.unidad}
+            valor={typeof v === 'number' ? v : ''}
+            opciones={opcionesRueda}
+            inicio={campo.inicio ?? opcionesRueda[Math.floor(opcionesRueda.length / 3)]}
+            onChange={(n) => onCambiar(n === '' ? undefined : n)}
+          />
+        </div>
+      ) : (
+        campo.tipo === 'numero' && <CampoNumero campo={campo} valor={v} onChange={onCambiar} />
+      )}
       {campo.tipo === 'si_no' && <SiNo valor={v} onChange={onCambiar} />}
       {campo.tipo === 'hora' && <CampoHora valor={v} onChange={onCambiar} />}
       {campo.tipo === 'texto' &&

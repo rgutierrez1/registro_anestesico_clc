@@ -33,11 +33,9 @@ export function tarjetaBloqueo(r: RegistroMenu, formatHora: (iso: string) => str
     .join(' · ')
 }
 
-const SI_NO = (v: unknown) => (v === true ? 'sí' : v === false ? 'no' : '')
-
 // Borrador del texto final a partir de lo registrado; se puede editar.
 export function textoBloqueo(v: Valores): string {
-  const tipo = conOtro(v, 'blq.tipo')
+  const tipo = v['blq.tipo'] === 'otro' ? texto(v['blq.detalle']) || 'otro' : conOtro(v, 'blq.tipo')
   if (!tipo) return ''
   const lado = etiqueta('blq.lateralidad', v['blq.lateralidad'])
   const partes: string[] = [`Bloqueo ${tipo.toLowerCase()}${lado && lado !== 'No aplica' ? ` ${lado.toLowerCase()}` : ''}`]
@@ -47,7 +45,8 @@ export function textoBloqueo(v: Valores): string {
   if (tecnica.length) partes[0] += `, ${tecnica.join(' y ')}`
   const modalidad = etiqueta('blq.modalidad', v['blq.modalidad'])
   if (modalidad) partes[0] += `, ${modalidad.toLowerCase()}`
-  const aguja = texto(v['blq.aguja'])
+  // Registros anteriores guardaban la aguja como texto libre.
+  const aguja = conOtro(v, 'blq.aguja') || texto(v['blq.aguja'])
   if (aguja) partes.push(`Aguja ${aguja}${typeof v['blq.profundidad_mm'] === 'number' ? `, profundidad ${v['blq.profundidad_mm']} mm` : ''}.`)
   const anestesico = conOtro(v, 'blq.anestesico')
   if (anestesico) {
@@ -60,7 +59,6 @@ export function textoBloqueo(v: Valores): string {
   }
   const sed = etiqueta('blq.sedacion', v['blq.sedacion'])
   if (sed) partes.push(`Sedación: ${sed.toLowerCase()}.`)
-  if (SI_NO(v['blq.ag_asociada'])) partes.push(`Anestesia general asociada: ${SI_NO(v['blq.ag_asociada'])}.`)
   const comp = v['blq.comp_inmediatas']
   if (comp === 'no') partes.push('Sin complicaciones inmediatas.')
   else if (comp === 'si') partes.push(`Complicaciones inmediatas${texto(v['blq.comp_otras']) ? `: ${texto(v['blq.comp_otras'])}` : ''}.`)

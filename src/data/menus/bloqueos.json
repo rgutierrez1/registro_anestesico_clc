@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Bloqueos regionales",
-  "version": "1.0",
+  "version": "1.4",
   "fecha": "2026-11-02",
   "origen": "Registro_unificado_bloqueos.docx",
   "secciones": [
@@ -104,7 +104,8 @@
             {
               "codigo": "otro",
               "etiqueta": "Otro",
-              "grupo": "Otro"
+              "grupo": "Otro",
+              "sin_texto": true
             }
           ],
           "obligatorio": true,
@@ -119,7 +120,12 @@
           "id": "blq.detalle",
           "numero": "1.2",
           "etiqueta": "Detalle del bloqueo o de otra alternativa",
-          "tipo": "texto"
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.tipo",
+            "op": "eq",
+            "valor": "otro"
+          }
         },
         {
           "id": "blq.lateralidad",
@@ -167,7 +173,8 @@
           "id": "blq.eco",
           "numero": "1.5",
           "etiqueta": "Ecografía",
-          "tipo": "si_no"
+          "tipo": "si_no",
+          "por_defecto": true
         },
         {
           "id": "blq.sonda",
@@ -207,7 +214,8 @@
           "id": "blq.neuroestimulador",
           "numero": "1.8",
           "etiqueta": "Neuroestimulador",
-          "tipo": "si_no"
+          "tipo": "si_no",
+          "por_defecto": false
         },
         {
           "id": "blq.neuro_parametros",
@@ -223,7 +231,25 @@
           "id": "blq.aguja",
           "numero": "1.10",
           "etiqueta": "Tipo de aguja",
-          "tipo": "texto"
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "stimuplex",
+              "etiqueta": "Stimuplex"
+            },
+            {
+              "codigo": "contiplex",
+              "etiqueta": "Contiplex"
+            },
+            {
+              "codigo": "pajunk",
+              "etiqueta": "Pajunk"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ]
         },
         {
           "id": "blq.profundidad_mm",
@@ -232,7 +258,12 @@
           "tipo": "numero",
           "unidad": "mm",
           "min": 1,
-          "max": 200
+          "max": 200,
+          "mostrar_si": {
+            "campo": "blq.modalidad",
+            "op": "eq",
+            "valor": "cateter"
+          }
         },
         {
           "id": "blq.sedacion",
@@ -257,18 +288,6 @@
               "etiqueta": "Profunda"
             }
           ]
-        },
-        {
-          "id": "blq.ag_asociada",
-          "numero": "1.13",
-          "etiqueta": "Anestesia general asociada",
-          "tipo": "si_no"
-        },
-        {
-          "id": "blq.otra_regional",
-          "numero": "1.14",
-          "etiqueta": "Otra anestesia regional asociada",
-          "tipo": "texto"
         }
       ]
     },
