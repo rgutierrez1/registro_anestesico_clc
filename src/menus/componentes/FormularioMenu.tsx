@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Input } from '../../components/ui'
+import { Input, TextArea } from '../../components/ui'
 import { hhmmLocal, horaPersonalizadaIso } from '../../utils/tiempo'
 import { alertasDeCampo, claveTexto, CODIGOS_CON_TEXTO, esObligatorio, opcionesVisibles, type Visibilidad } from '../motor'
 import type { Sugerencia } from '../sugerencias'
@@ -138,12 +138,14 @@ interface Props {
   onAux: (clave: string, valor: Valor | undefined) => void
   sugerencia?: (campoId: string) => Sugerencia | null
   alertasExtra?: (campoId: string) => Alerta[]
+  // Contenido extra bajo un campo (p. ej., un botón que genera el texto).
+  acciones?: (campoId: string) => ReactNode
   mostrarTitulosSeccion?: boolean
   // Campos que ya no se piden (p. ej., ocultos por una regla propia de la hoja)
   ocultos?: Set<string>
 }
 
-export function FormularioMenu({ secciones, valores, version, visibilidad, onCambiar, onAux, sugerencia, alertasExtra, mostrarTitulosSeccion = false }: Props) {
+export function FormularioMenu({ secciones, valores, version, visibilidad, onCambiar, onAux, sugerencia, alertasExtra, acciones, mostrarTitulosSeccion = false }: Props) {
   const ctx = { version, valores }
   return (
     <div className="flex flex-col gap-5">
@@ -171,6 +173,7 @@ export function FormularioMenu({ secciones, valores, version, visibilidad, onCam
                     alertas={[...alertasDeCampo(c, ctx), ...(alertasExtra?.(c.id) ?? [])]}
                     onCambiar={(v) => onCambiar(c, v)}
                     onAux={onAux}
+                    acciones={acciones?.(c.id)}
                   />
                 ))}
               </div>
@@ -190,6 +193,7 @@ function CampoMenu({
   alertas,
   onCambiar,
   onAux,
+  acciones,
 }: {
   campo: CampoDef
   valores: Valores
@@ -199,6 +203,7 @@ function CampoMenu({
   alertas: Alerta[]
   onCambiar: (v: Valor | undefined) => void
   onAux: (clave: string, valor: Valor | undefined) => void
+  acciones?: ReactNode
 }) {
   const v = valores[campo.id]
   const opciones = opcionesVisibles(campo, { version, valores })
@@ -259,9 +264,13 @@ function CampoMenu({
       {campo.tipo === 'numero' && <CampoNumero campo={campo} valor={v} onChange={onCambiar} />}
       {campo.tipo === 'si_no' && <SiNo valor={v} onChange={onCambiar} />}
       {campo.tipo === 'hora' && <CampoHora valor={v} onChange={onCambiar} />}
-      {campo.tipo === 'texto' && (
-        <Input className="w-full" value={typeof v === 'string' ? v : ''} onChange={(e) => onCambiar(e.target.value)} />
-      )}
+      {campo.tipo === 'texto' &&
+        (campo.presentacion === 'area' ? (
+          <TextArea className="w-full" rows={5} value={typeof v === 'string' ? v : ''} onChange={(e) => onCambiar(e.target.value)} />
+        ) : (
+          <Input className="w-full" value={typeof v === 'string' ? v : ''} onChange={(e) => onCambiar(e.target.value)} />
+        ))}
+      {acciones}
       {campo.tipo === 'checklist' && (
         <ChecklistCampo campo={campo} valor={v} onChange={onCambiar} />
       )}

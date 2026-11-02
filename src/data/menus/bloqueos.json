@@ -1,0 +1,818 @@
+{
+  "formato": "hoja-anestesia-clc/menus-de-clic",
+  "pestana": "Bloqueos regionales",
+  "version": "1.0",
+  "fecha": "2026-11-02",
+  "origen": "Registro_unificado_bloqueos.docx",
+  "secciones": [
+    {
+      "id": "bloqueo",
+      "numero": "1",
+      "titulo": "Bloqueo y técnica",
+      "campos": [
+        {
+          "id": "blq.tipo",
+          "numero": "1.1",
+          "etiqueta": "Tipo de bloqueo",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "interescalenico",
+              "etiqueta": "Interescalénico",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "supraclavicular",
+              "etiqueta": "Supraclavicular",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "infraclavicular",
+              "etiqueta": "Infraclavicular",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "axilar",
+              "etiqueta": "Axilar",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "cervical_superficial",
+              "etiqueta": "Cervical superficial",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "costoclavicular",
+              "etiqueta": "Costoclavicular",
+              "grupo": "Miembro superior y cuello"
+            },
+            {
+              "codigo": "pared_toracica",
+              "etiqueta": "Pared torácica",
+              "grupo": "Tronco"
+            },
+            {
+              "codigo": "pared_abdominal",
+              "etiqueta": "Pared abdominal",
+              "grupo": "Tronco"
+            },
+            {
+              "codigo": "femoral",
+              "etiqueta": "Femoral",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "peng",
+              "etiqueta": "PENG",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "fascia_iliaca",
+              "etiqueta": "Fascia ilíaca suprainguinal",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "triangulo_femoral",
+              "etiqueta": "Triángulo femoral",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "canal_aductor",
+              "etiqueta": "Canal aductor",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "ipack",
+              "etiqueta": "IPACK",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "popliteo",
+              "etiqueta": "Poplíteo",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "ciatico",
+              "etiqueta": "Ciático",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "tobillo",
+              "etiqueta": "Tobillo",
+              "grupo": "Miembro inferior"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro",
+              "grupo": "Otro"
+            }
+          ],
+          "obligatorio": true,
+          "grupos": [
+            "Miembro superior y cuello",
+            "Tronco",
+            "Miembro inferior",
+            "Otro"
+          ]
+        },
+        {
+          "id": "blq.detalle",
+          "numero": "1.2",
+          "etiqueta": "Detalle del bloqueo o de otra alternativa",
+          "tipo": "texto"
+        },
+        {
+          "id": "blq.lateralidad",
+          "numero": "1.3",
+          "etiqueta": "Lateralidad",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "derecha",
+              "etiqueta": "Derecha"
+            },
+            {
+              "codigo": "izquierda",
+              "etiqueta": "Izquierda"
+            },
+            {
+              "codigo": "bilateral",
+              "etiqueta": "Bilateral"
+            },
+            {
+              "codigo": "no_aplica",
+              "etiqueta": "No aplica"
+            }
+          ],
+          "obligatorio": true
+        },
+        {
+          "id": "blq.modalidad",
+          "numero": "1.4",
+          "etiqueta": "Modalidad",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "dosis_unica",
+              "etiqueta": "Dosis única"
+            },
+            {
+              "codigo": "cateter",
+              "etiqueta": "Con catéter"
+            }
+          ],
+          "obligatorio": true
+        },
+        {
+          "id": "blq.eco",
+          "numero": "1.5",
+          "etiqueta": "Ecografía",
+          "tipo": "si_no"
+        },
+        {
+          "id": "blq.sonda",
+          "numero": "1.6",
+          "etiqueta": "Sonda",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "lineal",
+              "etiqueta": "Lineal"
+            },
+            {
+              "codigo": "curva",
+              "etiqueta": "Curva"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
+          ],
+          "mostrar_si": {
+            "campo": "blq.eco",
+            "op": "es_verdadero"
+          }
+        },
+        {
+          "id": "blq.proteccion_sonda",
+          "numero": "1.7",
+          "etiqueta": "Protección de sonda y gel estéril",
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.eco",
+            "op": "es_verdadero"
+          }
+        },
+        {
+          "id": "blq.neuroestimulador",
+          "numero": "1.8",
+          "etiqueta": "Neuroestimulador",
+          "tipo": "si_no"
+        },
+        {
+          "id": "blq.neuro_parametros",
+          "numero": "1.9",
+          "etiqueta": "Parámetros de neuroestimulación",
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.neuroestimulador",
+            "op": "es_verdadero"
+          }
+        },
+        {
+          "id": "blq.aguja",
+          "numero": "1.10",
+          "etiqueta": "Tipo de aguja",
+          "tipo": "texto"
+        },
+        {
+          "id": "blq.profundidad_mm",
+          "numero": "1.11",
+          "etiqueta": "Profundidad del bloqueo",
+          "tipo": "numero",
+          "unidad": "mm",
+          "min": 1,
+          "max": 200
+        },
+        {
+          "id": "blq.sedacion",
+          "numero": "1.12",
+          "etiqueta": "Sedación",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "sin_sedacion",
+              "etiqueta": "Sin sedación"
+            },
+            {
+              "codigo": "superficial",
+              "etiqueta": "Superficial"
+            },
+            {
+              "codigo": "moderada",
+              "etiqueta": "Moderada"
+            },
+            {
+              "codigo": "profunda",
+              "etiqueta": "Profunda"
+            }
+          ]
+        },
+        {
+          "id": "blq.ag_asociada",
+          "numero": "1.13",
+          "etiqueta": "Anestesia general asociada",
+          "tipo": "si_no"
+        },
+        {
+          "id": "blq.otra_regional",
+          "numero": "1.14",
+          "etiqueta": "Otra anestesia regional asociada",
+          "tipo": "texto"
+        }
+      ]
+    },
+    {
+      "id": "medicamentos",
+      "numero": "2",
+      "titulo": "Medicamentos administrados",
+      "campos": [
+        {
+          "id": "blq.anestesico",
+          "numero": "2.1",
+          "etiqueta": "Anestésico local",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "lidocaina",
+              "etiqueta": "Lidocaína"
+            },
+            {
+              "codigo": "bupivacaina",
+              "etiqueta": "Bupivacaína"
+            },
+            {
+              "codigo": "levobupivacaina",
+              "etiqueta": "Levobupivacaína"
+            },
+            {
+              "codigo": "ropivacaina",
+              "etiqueta": "Ropivacaína"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ],
+          "obligatorio": true
+        },
+        {
+          "id": "blq.dosis_mg",
+          "numero": "2.2",
+          "etiqueta": "Dosis administrada",
+          "tipo": "numero",
+          "unidad": "mg",
+          "min": 1,
+          "max": 2000
+        },
+        {
+          "id": "blq.volumen_ml",
+          "numero": "2.3",
+          "etiqueta": "Volumen administrado",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "10",
+              "etiqueta": "10 mL"
+            },
+            {
+              "codigo": "20",
+              "etiqueta": "20 mL"
+            },
+            {
+              "codigo": "30",
+              "etiqueta": "30 mL"
+            },
+            {
+              "codigo": "40",
+              "etiqueta": "40 mL"
+            },
+            {
+              "codigo": "50",
+              "etiqueta": "50 mL"
+            },
+            {
+              "codigo": "60",
+              "etiqueta": "60 mL"
+            }
+          ]
+        },
+        {
+          "id": "blq.coad1",
+          "numero": "2.4",
+          "etiqueta": "Coadyuvante 1",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "dexametasona",
+              "etiqueta": "Dexametasona"
+            },
+            {
+              "codigo": "dexmedetomidina",
+              "etiqueta": "Dexmedetomidina"
+            },
+            {
+              "codigo": "bicarbonato",
+              "etiqueta": "Bicarbonato"
+            },
+            {
+              "codigo": "epinefrina",
+              "etiqueta": "Epinefrina"
+            }
+          ]
+        },
+        {
+          "id": "blq.coad1_dosis",
+          "numero": "2.5",
+          "etiqueta": "Dosis del coadyuvante 1",
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.coad1",
+            "op": "lleno"
+          }
+        },
+        {
+          "id": "blq.coad2",
+          "numero": "2.6",
+          "etiqueta": "Coadyuvante 2",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "dexametasona",
+              "etiqueta": "Dexametasona"
+            },
+            {
+              "codigo": "dexmedetomidina",
+              "etiqueta": "Dexmedetomidina"
+            },
+            {
+              "codigo": "bicarbonato",
+              "etiqueta": "Bicarbonato"
+            },
+            {
+              "codigo": "epinefrina",
+              "etiqueta": "Epinefrina"
+            }
+          ]
+        },
+        {
+          "id": "blq.coad2_dosis",
+          "numero": "2.7",
+          "etiqueta": "Dosis del coadyuvante 2",
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.coad2",
+            "op": "lleno"
+          }
+        },
+        {
+          "id": "blq.obs_medicamentos",
+          "numero": "2.8",
+          "etiqueta": "Observaciones de medicamentos",
+          "tipo": "texto"
+        }
+      ]
+    },
+    {
+      "id": "observaciones",
+      "numero": "3",
+      "titulo": "Observaciones durante la inyección",
+      "campos": [
+        {
+          "id": "blq.aspiracion",
+          "numero": "3.1",
+          "etiqueta": "Aspiración de sangre",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluado",
+              "etiqueta": "No evaluado"
+            },
+            {
+              "codigo": "no_aplica",
+              "etiqueta": "No aplica"
+            }
+          ]
+        },
+        {
+          "id": "blq.parestesia",
+          "numero": "3.2",
+          "etiqueta": "Parestesia durante la inyección",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluado",
+              "etiqueta": "No evaluado"
+            },
+            {
+              "codigo": "no_aplica",
+              "etiqueta": "No aplica"
+            }
+          ]
+        },
+        {
+          "id": "blq.intravascular",
+          "numero": "3.3",
+          "etiqueta": "Signos ecográficos de inyección intravascular",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluado",
+              "etiqueta": "No evaluado"
+            },
+            {
+              "codigo": "no_aplica",
+              "etiqueta": "No aplica"
+            }
+          ]
+        },
+        {
+          "id": "blq.intraneural",
+          "numero": "3.4",
+          "etiqueta": "Signos ecográficos de inyección intraneural",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluado",
+              "etiqueta": "No evaluado"
+            },
+            {
+              "codigo": "no_aplica",
+              "etiqueta": "No aplica"
+            }
+          ]
+        },
+        {
+          "id": "blq.conducta",
+          "numero": "3.5",
+          "etiqueta": "Conducta ante hallazgos",
+          "tipo": "texto",
+          "mostrar_si": {
+            "alguna": [
+              {
+                "campo": "blq.aspiracion",
+                "op": "eq",
+                "valor": "si"
+              },
+              {
+                "campo": "blq.parestesia",
+                "op": "eq",
+                "valor": "si"
+              },
+              {
+                "campo": "blq.intravascular",
+                "op": "eq",
+                "valor": "si"
+              },
+              {
+                "campo": "blq.intraneural",
+                "op": "eq",
+                "valor": "si"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cateter",
+      "numero": "4",
+      "titulo": "Catéter y seguimiento",
+      "mostrar_si": {
+        "campo": "blq.modalidad",
+        "op": "eq",
+        "valor": "cateter"
+      },
+      "campos": [
+        {
+          "id": "blq.cat_ubicacion",
+          "numero": "4.1",
+          "etiqueta": "Ubicación del catéter y lado",
+          "tipo": "texto"
+        },
+        {
+          "id": "blq.cat_fijacion_cm",
+          "numero": "4.2",
+          "etiqueta": "Profundidad de fijación en piel",
+          "tipo": "numero",
+          "unidad": "cm",
+          "min": 1,
+          "max": 40
+        },
+        {
+          "id": "blq.cat_metodo",
+          "numero": "4.3",
+          "etiqueta": "Método de fijación",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "sutura",
+              "etiqueta": "Sutura"
+            },
+            {
+              "codigo": "adhesivo",
+              "etiqueta": "Adhesivo"
+            },
+            {
+              "codigo": "aposito_esteril",
+              "etiqueta": "Apósito estéril"
+            },
+            {
+              "codigo": "combinado",
+              "etiqueta": "Combinado"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ]
+        },
+        {
+          "id": "blq.cat_esquema",
+          "numero": "4.4",
+          "etiqueta": "Esquema de infusión",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "e_8_5_20",
+              "etiqueta": "8/5/20"
+            },
+            {
+              "codigo": "e_5_5_20",
+              "etiqueta": "5/5/20"
+            },
+            {
+              "codigo": "e_0_5_20",
+              "etiqueta": "0/5/20"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ]
+        },
+        {
+          "id": "blq.cat_solucion",
+          "numero": "4.5",
+          "etiqueta": "Solución de infusión",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "bupivacaina_006",
+              "etiqueta": "Solución estándar de bupivacaína 0,06 %"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
+          ]
+        },
+        {
+          "id": "blq.cat_destino",
+          "numero": "4.6",
+          "etiqueta": "Destino del catéter",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "hospitalizacion",
+              "etiqueta": "Hospitalización"
+            },
+            {
+              "codigo": "domicilio_elastomerica",
+              "etiqueta": "Domicilio con bomba elastomérica"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "complicaciones",
+      "numero": "5",
+      "titulo": "Complicaciones",
+      "campos": [
+        {
+          "id": "blq.comp_inmediatas",
+          "numero": "5.1",
+          "etiqueta": "Complicaciones inmediatas",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "pendiente",
+              "etiqueta": "Pendiente de evaluación"
+            }
+          ]
+        },
+        {
+          "id": "blq.comp_toxicidad",
+          "numero": "5.2",
+          "etiqueta": "Toxicidad sistémica por anestésicos locales",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluada",
+              "etiqueta": "No evaluada"
+            }
+          ],
+          "mostrar_si": {
+            "campo": "blq.comp_inmediatas",
+            "op": "in",
+            "valor": [
+              "si",
+              "pendiente"
+            ]
+          }
+        },
+        {
+          "id": "blq.comp_puncion_vascular",
+          "numero": "5.3",
+          "etiqueta": "Punción vascular",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "arterial",
+              "etiqueta": "Arterial"
+            },
+            {
+              "codigo": "venosa",
+              "etiqueta": "Venosa"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluada",
+              "etiqueta": "No evaluada"
+            }
+          ],
+          "mostrar_si": {
+            "campo": "blq.comp_inmediatas",
+            "op": "in",
+            "valor": [
+              "si",
+              "pendiente"
+            ]
+          }
+        },
+        {
+          "id": "blq.comp_hematoma",
+          "numero": "5.4",
+          "etiqueta": "Hematoma",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "si",
+              "etiqueta": "Sí"
+            },
+            {
+              "codigo": "no",
+              "etiqueta": "No"
+            },
+            {
+              "codigo": "no_evaluado",
+              "etiqueta": "No evaluado"
+            }
+          ],
+          "mostrar_si": {
+            "campo": "blq.comp_inmediatas",
+            "op": "in",
+            "valor": [
+              "si",
+              "pendiente"
+            ]
+          }
+        },
+        {
+          "id": "blq.comp_otras",
+          "numero": "5.5",
+          "etiqueta": "Otras complicaciones y tratamiento",
+          "tipo": "texto",
+          "mostrar_si": {
+            "campo": "blq.comp_inmediatas",
+            "op": "in",
+            "valor": [
+              "si",
+              "pendiente"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "texto_final",
+      "numero": "6",
+      "titulo": "Texto final para completar",
+      "campos": [
+        {
+          "id": "blq.texto_final",
+          "numero": "6.1",
+          "etiqueta": "Texto final",
+          "tipo": "texto",
+          "presentacion": "area"
+        }
+      ]
+    }
+  ]
+}

@@ -13,7 +13,7 @@ import { HitosSection } from '../components/HitosSection'
 import { RegistroFluidosSection } from '../components/RegistroFluidosSection'
 import { RegistroVitalesSection } from '../components/RegistroVitalesSection'
 import { ModalSignosIniciales } from '../components/vitales/FormularioVitales'
-import { TecnicasRegionalesSection } from '../components/TecnicasRegionalesSection'
+import { BloqueosRegionalesSection, NeuroaxialSection } from '../components/SeccionRegistrosMenu'
 import { ViaAereaSection } from '../components/ViaAereaSection'
 import { pendientesVia } from '../menus/viaAerea'
 import { Badge, Button, Field, Input, Select, TextArea } from '../components/ui'
@@ -26,7 +26,6 @@ import { cargarPrimerRegistro, prepararPrimerRegistro } from '../utils/vitales'
 import type {
   CasoAnestesico,
   Evento,
-  TecnicaRegional,
 } from '../types'
 import { nuevoId } from '../utils/id'
 
@@ -68,13 +67,6 @@ export default function RegistroIntraoperatorio() {
   }
   function eliminarEvento(eid: string) {
     patch((c) => ({ eventos: c.eventos.filter((e) => e.id !== eid) }))
-  }
-
-  function agregarTecnica(t: TecnicaRegional) {
-    patch((c) => ({ tecnicasRegionales: [...c.tecnicasRegionales, t] }))
-  }
-  function eliminarTecnica(tid: string) {
-    patch((c) => ({ tecnicasRegionales: c.tecnicasRegionales.filter((t) => t.id !== tid) }))
   }
 
   function abrirFinalizar() {
@@ -281,12 +273,8 @@ export default function RegistroIntraoperatorio() {
         <AccesosVascularesSection caso={caso} patch={patch} />
         <RegistroVitalesSection caso={caso} onActualizar={patch} />
         <FarmacosSection caso={caso} onActualizar={patch} />
-        <TecnicasRegionalesSection
-          tecnicas={caso.tecnicasRegionales}
-          onAgregar={agregarTecnica}
-          onEliminar={eliminarTecnica}
-          onEditar={(t) => patch((c) => ({ tecnicasRegionales: c.tecnicasRegionales.map((x) => (x.id === t.id ? t : x)) }))}
-        />
+        {(caso.tiposAnestesia.includes('Neuroaxial') || caso.neuroaxial.length > 0) && <NeuroaxialSection caso={caso} patch={patch} />}
+        <BloqueosRegionalesSection caso={caso} patch={patch} />
         <RegistroFluidosSection caso={caso} patch={patch} />
         <LaboratorioSection
           examenes={caso.laboratorio}

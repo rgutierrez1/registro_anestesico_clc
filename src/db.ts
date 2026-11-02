@@ -1,8 +1,11 @@
 import Dexie, { type Table } from 'dexie'
 import { MONITORIZACION_ESTANDAR } from './constants'
 import { migrarAccesoLegado, migrarAccesoV1 } from './menus/accesos'
+import { migrarTecnicaRegional } from './menus/bloqueos'
+import { esTecnicaNeuroaxial, migrarTecnicaNeuroaxial } from './menus/neuroaxial'
 import { migrarViaAerea } from './menus/viaAerea'
-import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, ViaAereaMenu } from './types'
+import type { RegistroMenu } from './menus/tipos'
+import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, TecnicaRegional, ViaAereaMenu } from './types'
 import { nuevoId } from './utils/id'
 
 class RegistroAnestesicoDB extends Dexie {
@@ -208,6 +211,21 @@ class RegistroAnestesicoDB extends Dexie {
             caso.viaAereaMenu = caso.viaAereaMenu ? migrarViaAerea(caso.viaAereaMenu) : vacioViaAerea()
           }),
       )
+    this.version(17)
+      .stores({
+        casos: 'id, estado, createdAt, paciente.nombre',
+      })
+      .upgrade((tx) =>
+        tx
+          .table('casos')
+          .toCollection()
+          .modify((caso) => {
+            const antiguas: TecnicaRegional[] = caso.tecnicasRegionales ?? []
+            caso.bloqueos = [...(caso.bloqueos ?? []), ...antiguas.filter((t) => !esTecnicaNeuroaxial(t)).map(migrarTecnicaRegional)]
+            caso.neuroaxial = [...(caso.neuroaxial ?? []), ...antiguas.filter(esTecnicaNeuroaxial).map(migrarTecnicaNeuroaxial)]
+            caso.tecnicasRegionales = []
+          }),
+      )
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }
@@ -248,6 +266,12 @@ function migrarFluido(f: RegistroFluido | (Record<string, unknown> & { volumenMl
   return { ...resto, cantidad: volumenMl ?? 0, unidad: 'mL' } as RegistroFluido
 }
 
+// Las técnicas antiguas se suman a los bloqueos sin duplicarlas (mismo id) ni resucitar las anuladas.
+function unirAntiguas(registros: RegistroMenu[], antiguas: TecnicaRegional[], migrar: (t: TecnicaRegional) => RegistroMenu): RegistroMenu[] {
+  const ids = new Set(registros.map((b) => b.id))
+  return [...registros, ...antiguas.filter((t) => !ids.has(t.id)).map(migrar)]
+}
+
 const vacioViaAerea = (): ViaAereaMenu => ({ registros: [] })
 
 // Los accesos guardados antes de los menús de clic se convierten a códigos (sin perder el original).
@@ -279,7 +303,9 @@ export function normalizarCaso(c: CasoAnestesico): CasoAnestesico {
     timeFlags: c.timeFlags ?? [],
     ventilacion: c.ventilacion ?? [],
     laboratorio: c.laboratorio ?? [],
-    tecnicasRegionales: c.tecnicasRegionales ?? [],
+    tecnicasRegionales: [],
+    bloqueos: unirAntiguas(c.bloqueos ?? [], (c.tecnicasRegionales ?? []).filter((t) => !esTecnicaNeuroaxial(t)), migrarTecnicaRegional),
+    neuroaxial: unirAntiguas(c.neuroaxial ?? [], (c.tecnicasRegionales ?? []).filter(esTecnicaNeuroaxial), migrarTecnicaNeuroaxial),
     signosVitales: c.signosVitales ?? [],
     farmacos: c.farmacos ?? [],
     fluidos: (c.fluidos ?? []).map(migrarFluido),
@@ -337,6 +363,8 @@ export function crearCasoVacio(): CasoAnestesico {
     ventilacion: [],
     laboratorio: [],
     tecnicasRegionales: [],
+    bloqueos: [],
+    neuroaxial: [],
     signosVitales: [],
     carritoFarmacos: [],
     farmacos: [],

@@ -4,7 +4,7 @@ import { LineaTiempoFarmacos } from '../components/farmacos/LineaTiempoFarmacos'
 import { VitalesChart } from '../components/VitalesChart'
 import { Button, Card } from '../components/ui'
 import { CHECKLIST_SEGURIDAD, TUBO_DOBLE_LUMEN } from '../constants'
-import { ResumenAccesos, ResumenViaAerea } from '../components/ResumenMenus'
+import { ResumenAccesos, ResumenBloqueos, ResumenNeuroaxial, ResumenViaAerea } from '../components/ResumenMenus'
 import { TablaBalanceFluidos } from '../components/TablaBalanceFluidos'
 import { formatCantidad, totales } from '../utils/fluidos'
 import { duracionesFlags, etiquetaFlag } from '../utils/flags'
@@ -147,17 +147,15 @@ export default function ResumenCaso() {
           </SeccionResumen>
         )}
 
-        {caso.tecnicasRegionales.length > 0 && (
-          <SeccionResumen titulo="Técnicas regionales">
-            <ul className="flex flex-col gap-1 text-sm text-slate-700">
-              {caso.tecnicasRegionales.map((t) => (
-                <li key={t.id}>
-                  <span className="font-mono text-xs text-slate-400">{formatHora(t.hora)}</span> — {t.tipo}
-                  {t.nivel && ` (${t.nivel})`} {t.farmaco && `· ${t.farmaco} ${t.dosis}`}{' '}
-                  {t.exitosa ? '✓ exitosa' : '✗ fallida'} {t.notas && `· ${t.notas}`}
-                </li>
-              ))}
-            </ul>
+        {caso.neuroaxial.length > 0 && (
+          <SeccionResumen titulo="Anestesia neuroaxial">
+            <ResumenNeuroaxial caso={caso} />
+          </SeccionResumen>
+        )}
+
+        {caso.bloqueos.length > 0 && (
+          <SeccionResumen titulo="Bloqueos regionales">
+            <ResumenBloqueos caso={caso} />
           </SeccionResumen>
         )}
 

@@ -1,0 +1,85 @@
+{
+  "formato": "hoja-anestesia-clc/menus-de-clic",
+  "pestana": "Anestesia neuroaxial",
+  "version": "1.0",
+  "fecha": "2026-11-02",
+  "nota": "Se muestra solo si en el plan anestésico (tipo de anestesia) está marcado Neuroaxial.",
+  "secciones": [
+    {
+      "id": "neuroaxial",
+      "numero": "1",
+      "titulo": "Técnica neuroaxial",
+      "campos": [
+        {
+          "id": "neu.tipo",
+          "numero": "1.1",
+          "etiqueta": "Técnica",
+          "tipo": "unica",
+          "obligatorio": true,
+          "opciones": [
+            {
+              "codigo": "raquidea",
+              "etiqueta": "Raquídea (subaracnoidea)"
+            },
+            {
+              "codigo": "peridural",
+              "etiqueta": "Peridural (epidural)"
+            },
+            {
+              "codigo": "combinada",
+              "etiqueta": "Combinada raquídea-epidural"
+            }
+          ]
+        },
+        {
+          "id": "neu.nivel",
+          "numero": "1.2",
+          "etiqueta": "Nivel o sitio (p. ej., L3-L4)",
+          "tipo": "texto"
+        },
+        {
+          "id": "neu.aguja",
+          "numero": "1.3",
+          "etiqueta": "Aguja o kit",
+          "tipo": "texto"
+        },
+        {
+          "id": "neu.farmaco",
+          "numero": "1.4",
+          "etiqueta": "Fármaco",
+          "tipo": "texto"
+        },
+        {
+          "id": "neu.dosis",
+          "numero": "1.5",
+          "etiqueta": "Dosis",
+          "tipo": "texto"
+        },
+        {
+          "id": "neu.resultado",
+          "numero": "1.6",
+          "etiqueta": "Resultado",
+          "tipo": "unica",
+          "obligatorio": true,
+          "por_defecto": "exitosa",
+          "opciones": [
+            {
+              "codigo": "exitosa",
+              "etiqueta": "Exitosa"
+            },
+            {
+              "codigo": "fallida",
+              "etiqueta": "Fallida"
+            }
+          ]
+        },
+        {
+          "id": "neu.notas",
+          "numero": "1.7",
+          "etiqueta": "Notas",
+          "tipo": "texto"
+        }
+      ]
+    }
+  ]
+}

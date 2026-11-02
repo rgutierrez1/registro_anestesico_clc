@@ -1,7 +1,9 @@
 import { DEF_ACCESOS, SECCIONES_ACCESO, tarjetaAcceso } from '../menus/accesos'
+import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo } from '../menus/bloqueos'
+import { DEF_NEUROAXIAL, SECCIONES_NEUROAXIAL, tarjetaNeuroaxial } from '../menus/neuroaxial'
 import { calcularVisibilidad, textoValor } from '../menus/motor'
 import { versionMenu } from '../menus/paciente'
-import type { MenuDef, SeccionDef, Valores } from '../menus/tipos'
+import type { MenuDef, RegistroMenu, SeccionDef, Valores } from '../menus/tipos'
 import { DEF_VIA, registrosVivos, SECCIONES_VIA, tarjetaVia } from '../menus/viaAerea'
 import type { CasoAnestesico } from '../types'
 import { formatHora } from '../utils/tiempo'
@@ -82,3 +84,66 @@ export function ResumenViaAerea({ caso }: { caso: CasoAnestesico }) {
     </div>
   )
 }
+
+function ResumenRegistros({
+  registros,
+  def,
+  secciones,
+  tarjeta,
+  mostrarTitulos = true,
+  textoFinal,
+}: {
+  registros: RegistroMenu[]
+  def: MenuDef
+  secciones: SeccionDef[]
+  tarjeta: (r: RegistroMenu, formatHora: (iso: string) => string) => string
+  mostrarTitulos?: boolean
+  textoFinal?: string
+}) {
+  const vivos = registros.filter((b) => !b.anulado).sort((a, b) => a.hora.localeCompare(b.hora))
+  const anulados = registros.filter((b) => b.anulado)
+  return (
+    <div className="flex flex-col gap-3">
+      {vivos.map((r) => {
+        const vis = calcularVisibilidad(def, r.valores, 'adulto')
+        const ultimo = r.historial?.[r.historial.length - 1]
+        const final = textoFinal ? r.valores[textoFinal] : undefined
+        return (
+          <div key={r.id}>
+            <p className="text-sm font-semibold text-slate-800">{tarjeta(r, formatHora)}</p>
+            {secciones
+              .filter((s) => vis.secciones.has(s.id))
+              .map((s) => {
+                const l = lineas(def, s, r.valores, vis.campos).filter((x) => x.etiqueta !== 'Texto final')
+                return l.length ? (
+                  <div key={s.id} className="mt-1">
+                    {mostrarTitulos && <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{s.titulo}</p>}
+                    <Lista items={l} />
+                  </div>
+                ) : null
+              })}
+            {typeof final === 'string' && final && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{final}</p>}
+            {ultimo && (
+              <p className="text-xs text-slate-500">
+                Modificado por {ultimo.usuario} a las {formatHora(ultimo.hora)}
+              </p>
+            )}
+          </div>
+        )
+      })}
+      {anulados.map((r) => (
+        <p key={r.id} className="text-xs text-slate-500">
+          <span className="line-through">{tarjeta(r, formatHora)}</span> — anulado por {r.anulado?.usuario} a las {r.anulado ? formatHora(r.anulado.hora) : ''}: {r.anulado?.motivo}
+        </p>
+      ))}
+    </div>
+  )
+}
+
+export const ResumenBloqueos = ({ caso }: { caso: CasoAnestesico }) => (
+  <ResumenRegistros registros={caso.bloqueos} def={DEF_BLOQUEOS} secciones={SECCIONES_BLOQUEO} tarjeta={tarjetaBloqueo} textoFinal="blq.texto_final" />
+)
+
+export const ResumenNeuroaxial = ({ caso }: { caso: CasoAnestesico }) => (
+  <ResumenRegistros registros={caso.neuroaxial} def={DEF_NEUROAXIAL} secciones={SECCIONES_NEUROAXIAL} tarjeta={tarjetaNeuroaxial} mostrarTitulos={false} />
+)

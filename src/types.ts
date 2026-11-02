@@ -203,7 +203,11 @@ export interface CasoAnestesico {
   timeFlags: TimeFlag[]
   ventilacion: RegistroVentilacion[]
   laboratorio: ExamenLab[]
+  // Técnicas regionales de versiones anteriores; se migran a `bloqueos` o `neuroaxial`.
   tecnicasRegionales: TecnicaRegional[]
+  // Bloqueos regionales y anestesia neuroaxial (raquídea, peridural): cada uno es un registro con hora.
+  bloqueos: RegistroMenu[]
+  neuroaxial: RegistroMenu[]
   signosVitales: RegistroVital[]
   carritoFarmacos: ItemCarrito[]
   farmacos: RegistroFarmaco[]
