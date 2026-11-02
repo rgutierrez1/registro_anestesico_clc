@@ -1,7 +1,8 @@
-import { obtenerFarmaco, type FarmacoDef } from '../data/catalogoFarmacos'
+import { ANTIBIOTICOS, obtenerFarmaco, type FarmacoDef } from '../data/catalogoFarmacos'
 import type { PackFarmacos } from '../data/packsFarmacos'
 import type { CasoAnestesico, DatosPaciente, ItemCarrito, RegistroFarmaco } from '../types'
-import { pesoParaDosificar, valorMasCercano } from './dosis'
+import { dosisSugeridaPorPeso, pesoParaDosificar, valorMasCercano } from './dosis'
+import { alergicoPenicilina } from './caso'
 import { nuevoId } from './id'
 
 export const ID_PERSONALIZADO = 'personalizado'
@@ -14,7 +15,8 @@ export function crearItemCarrito(def: FarmacoDef, paciente: DatosPaciente): Item
   let dosisSel = def.dosis.length === 0 ? 'otra' : ''
   if (def.dosisPorKg) {
     const peso = pesoParaDosificar(paciente)
-    if (peso) dosisSel = String(valorMasCercano(def.dosis, def.dosisPorKg * peso.kg))
+    const sugerida = peso ? dosisSugeridaPorPeso(def, peso.kg) : null
+    if (sugerida !== null) dosisSel = String(valorMasCercano(def.dosis, sugerida))
   }
   if (def.dosisPorDefecto !== undefined) dosisSel = String(def.dosisPorDefecto)
   return {
@@ -250,11 +252,20 @@ export function aplicarPack(c: CasoAnestesico, pack: PackFarmacos): Partial<Caso
   const presentes = new Set(c.carritoFarmacos.map((i) => i.farmacoId))
   const nuevos: ItemCarrito[] = []
   for (const it of pack.items) {
-    const def = obtenerFarmaco(it.farmacoId)
+    // Antibiótico: cefazolina por defecto; con alergia a penicilina se deja por elegir.
+    const antibiotico = it.grupo === 'antibiotico'
+    if (antibiotico && (ANTIBIOTICOS.some((a) => presentes.has(a.id)) || presentes.has('antibiotico'))) continue
+    const def = obtenerFarmaco(antibiotico && alergicoPenicilina(c.paciente) ? 'antibiotico' : it.farmacoId)
     if (!def || presentes.has(def.id)) continue
     const item = crearItemCarrito(def, c.paciente)
+    if (def.oculto) item.dosisSel = ''
     if (it.presentacionId) item.presentacionId = it.presentacionId
     if (it.dosis !== undefined) item.dosisSel = String(it.dosis)
+    if (it.dosisPorKg !== undefined) {
+      const peso = pesoParaDosificar(c.paciente)
+      const sugerida = peso ? dosisSugeridaPorPeso({ dosisPorKg: it.dosisPorKg, redondeoDosis: def.redondeoDosis }, peso.kg) : null
+      if (sugerida !== null && def.dosis.length) item.dosisSel = String(valorMasCercano(def.dosis, sugerida))
+    }
     nuevos.push(item)
   }
   return { carritoFarmacos: [...c.carritoFarmacos, ...nuevos] }

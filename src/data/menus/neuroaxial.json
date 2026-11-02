@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Anestesia neuroaxial",
-  "version": "1.4",
+  "version": "1.5",
   "fecha": "2026-11-02",
   "nota": "Se muestra solo si en el plan anestésico (tipo de anestesia) está marcado Neuroaxial.",
   "secciones": [
@@ -684,8 +684,97 @@
           ]
         },
         {
+          "id": "neu.lcr",
+          "etiqueta": "Salida de LCR",
+          "tipo": "unica",
+          "por_defecto": "claro",
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "raquidea",
+              "combinada"
+            ]
+          },
+          "opciones": [
+            {
+              "codigo": "claro",
+              "etiqueta": "Claro"
+            },
+            {
+              "codigo": "sangre",
+              "etiqueta": "Sangre"
+            },
+            {
+              "codigo": "turbio",
+              "etiqueta": "Turbio"
+            }
+          ],
+          "numero": "1.12"
+        },
+        {
+          "id": "neu.esp_parestesias",
+          "etiqueta": "Parestesias (espinal)",
+          "tipo": "si_no",
+          "por_defecto": false,
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "raquidea",
+              "combinada"
+            ]
+          },
+          "numero": "1.13"
+        },
+        {
+          "id": "neu.epi_puncion_dural",
+          "etiqueta": "Punción dural",
+          "tipo": "si_no",
+          "por_defecto": false,
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "peridural",
+              "combinada"
+            ]
+          },
+          "numero": "1.14"
+        },
+        {
+          "id": "neu.epi_parestesias",
+          "etiqueta": "Parestesias (epidural)",
+          "tipo": "si_no",
+          "por_defecto": false,
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "peridural",
+              "combinada"
+            ]
+          },
+          "numero": "1.15"
+        },
+        {
+          "id": "neu.epi_sangre",
+          "etiqueta": "Salida de sangre",
+          "tipo": "si_no",
+          "por_defecto": false,
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "peridural",
+              "combinada"
+            ]
+          },
+          "numero": "1.16"
+        },
+        {
           "id": "neu.resultado",
-          "numero": "1.12",
+          "numero": "1.17",
           "etiqueta": "Resultado",
           "tipo": "unica",
           "obligatorio": true,
@@ -703,7 +792,7 @@
         },
         {
           "id": "neu.notas",
-          "numero": "1.13",
+          "numero": "1.18",
           "etiqueta": "Notas",
           "tipo": "texto"
         }

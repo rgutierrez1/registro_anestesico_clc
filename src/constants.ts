@@ -1,6 +1,43 @@
 import type { TipoExamen } from './types'
 
-export const ANESTESIOLOGOS = ['Álvarez', 'Canepa', 'Gutiérrez', 'Jankelevich']
+// Equipo de anestesiólogos, en orden alfabético.
+export const ANESTESIOLOGOS = [
+  'Álvarez',
+  'Añazco',
+  'Aránguiz',
+  'Bravo',
+  'Bugueño',
+  'Campusano',
+  'Canepa',
+  'Canessa',
+  'Chang',
+  'Contreras',
+  'Crowel',
+  'Devoto',
+  'Díaz',
+  'Eulufi',
+  'Fermandois',
+  'Friedman',
+  'Gutiérrez',
+  'Jankelevich',
+  'Leiva',
+  'Manríquez',
+  'Martineke',
+  'Martínez',
+  'Morales',
+  'Muñoz G.',
+  'Orrego',
+  'Ortega',
+  'Quijano',
+  'Rajdl',
+  'Salas',
+  'Salazar',
+  'Schneider',
+  'Sotta',
+  'Souper',
+  'Vera',
+  'Villagra',
+]
 
 export const OPCIONES_ASA: { value: string; label: string }[] = [
   { value: 'I', label: 'ASA I — sano' },
@@ -192,6 +229,9 @@ export const FLUIDOS_INGRESO: TipoFluido[] = [
   { id: 'albumina', etiqueta: 'Albúmina', unidad: 'mL' },
   { id: 'coloide', etiqueta: 'Coloide', unidad: 'mL' },
 ]
+
+// Volumen (mL) con el que parte el registro rápido de estos fluidos.
+export const VOLUMEN_FLUIDO_POR_DEFECTO: Record<string, number> = { ringer: 500, sf09: 500 }
 
 export const FLUIDOS_EGRESO: TipoFluido[] = [
   { id: 'sangrado', etiqueta: 'Sangrado estimado', unidad: 'mL' },

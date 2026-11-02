@@ -1,6 +1,6 @@
 import { obtenerFarmaco, type FarmacoDef } from '../../data/catalogoFarmacos'
 import type { DatosPaciente, ItemCarrito } from '../../types'
-import { formatDosis, formatNumero, pesoParaDosificar } from '../../utils/dosis'
+import { dosisSugeridaPorPeso, formatDosis, formatNumero, pesoParaDosificar } from '../../utils/dosis'
 import { ID_PERSONALIZADO } from '../../utils/farmacos'
 import { Field, Input, Select } from '../ui'
 
@@ -69,6 +69,7 @@ export function CamposDosis({
       </div>
 
       {def?.dosisPorKg && <SugerenciaPeso def={def} paciente={paciente} />}
+      {def?.referencia && <p className="mt-1 text-xs text-slate-500">Referencia: {def.referencia}</p>}
     </>
   )
 }
@@ -78,11 +79,11 @@ function SugerenciaPeso({ def, paciente }: { def: FarmacoDef; paciente: DatosPac
   if (!peso || !def.dosisPorKg) {
     return <p className="mt-2 text-xs text-amber-700">Falta el peso del paciente: no se pudo sugerir la dosis.</p>
   }
-  const calculada = def.dosisPorKg * peso.kg
+  const sugerida = dosisSugeridaPorPeso(def, peso.kg) ?? 0
   return (
     <p className="mt-2 text-xs text-slate-500">
       Sugerida: {def.dosisPorKg} {def.unidad}/kg × {formatNumero(Math.round(peso.kg * 10) / 10)} kg ({peso.detalle}) ={' '}
-      {formatNumero(Math.round(calculada))} {def.unidad}
+      {formatNumero(sugerida)} {def.unidad}
     </p>
   )
 }

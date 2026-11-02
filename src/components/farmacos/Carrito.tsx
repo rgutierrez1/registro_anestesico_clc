@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { obtenerFarmaco, type FarmacoDef } from '../../data/catalogoFarmacos'
+import { ANTIBIOTICOS, obtenerFarmaco, type FarmacoDef } from '../../data/catalogoFarmacos'
 import { VIAS_FARMACO } from '../../constants'
 import type { DatosPaciente, ItemCarrito, ViaFarmaco } from '../../types'
-import { ID_PERSONALIZADO, itemListo } from '../../utils/farmacos'
+import { alergicoPenicilina } from '../../utils/caso'
+import { crearItemCarrito, ID_PERSONALIZADO, itemListo } from '../../utils/farmacos'
 import { Badge, Button, Field, Input, Select } from '../ui'
 import { BotonesAgregar } from './BotonesAgregar'
 import { CamposDosis } from './CamposDosis'
@@ -145,6 +146,34 @@ function FilaCarrito({
               ))}
             </Select>
           </Field>
+        </div>
+      )}
+
+      {def?.grupo === 'antibiotico' && (
+        <div className="mb-2">
+          <Field label="Antibiótico">
+            <Select
+              value={def.oculto ? '' : def.id}
+              onChange={(e) => {
+                const nuevo = obtenerFarmaco(e.target.value || 'antibiotico')
+                if (!nuevo) return
+                const reemplazo = { ...crearItemCarrito(nuevo, paciente), id: item.id }
+                onCambiar(nuevo.oculto ? { ...reemplazo, dosisSel: '' } : reemplazo)
+              }}
+            >
+              <option value="">Elegir…</option>
+              {ANTIBIOTICOS.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nombre}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {alergicoPenicilina(paciente) && (
+            <p className="mt-1 text-xs text-amber-700">
+              {def.oculto ? 'Alergia a penicilina: elegí un antibiótico alternativo.' : def.id === 'cefazolina' ? 'Atención: el paciente tiene alergia a penicilina.' : ''}
+            </p>
+          )}
         </div>
       )}
 

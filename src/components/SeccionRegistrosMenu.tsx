@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo, textoBloqueo } from '../menus/bloqueos'
+import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo, textoBloqueo, textoConcentracion } from '../menus/bloqueos'
 import { DEF_NEUROAXIAL, SECCIONES_NEUROAXIAL, tarjetaNeuroaxial } from '../menus/neuroaxial'
 import { Anular } from '../menus/componentes/Anular'
 import { FormularioMenu } from '../menus/componentes/FormularioMenu'
@@ -25,6 +25,8 @@ export interface ConfigRegistros {
   // Campo con detalle libre que se muestra bajo la tarjeta.
   detalle?: string
   acciones?: (id: string, valores: Valores, aux: (clave: string, valor: Valor | undefined) => void) => ReactNode
+  // Campo de texto que se arma solo con lo registrado, hasta que se edita a mano (`campo#manual`).
+  auto?: { campo: string; generar: (valores: Valores) => string }
 }
 
 // Lista de registros con hora (agregar, editar, anular) a partir de un menú de clic.
@@ -41,10 +43,20 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
   const anulados = registros.filter((b) => b.anulado)
   const original = registros.find((b) => b.id === editandoId)
   const vis = useMemo(() => (borrador ? calcularVisibilidad(def, borrador, 'adulto') : null), [borrador])
-  const pendientes = borrador && vis ? faltantes(secciones, borrador, vis, 'adulto') : []
+  const auto = config.auto
+  const efectivo = useMemo(() => {
+    if (!borrador || !auto || !vis || borrador[`${auto.campo}#manual`] === true) return borrador
+    return { ...borrador, [auto.campo]: auto.generar(soloVisibles(secciones, borrador, vis)) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [borrador, vis])
+  const pendientes = efectivo && vis ? faltantes(secciones, efectivo, vis, 'adulto') : []
 
   const cambiar = (campo: CampoDef, nuevo: Valor | undefined) =>
-    setBorrador((b) => (b ? sinOpcionesInvalidas(secciones, aplicarCambio(campo, b, nuevo, new Date().toISOString()), 'adulto') : b))
+    setBorrador((b) => {
+      if (!b) return b
+      const r = sinOpcionesInvalidas(secciones, aplicarCambio(campo, b, nuevo, new Date().toISOString()), 'adulto')
+      return auto && campo.id === auto.campo ? { ...r, [`${auto.campo}#manual`]: true } : r
+    })
   const aux = (clave: string, valor: Valor | undefined) =>
     setBorrador((b) => {
       if (!b) return b
@@ -54,13 +66,24 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
       return r
     })
 
+  // Un texto que ya no coincide con el automático se considera escrito a mano.
+  function valoresAlEditar(valores: Valores): Valores {
+    const v = { ...valores }
+    const actual = auto && v[auto.campo]
+    if (auto && typeof actual === 'string' && actual && v[`${auto.campo}#manual`] !== true) {
+      const visibles = calcularVisibilidad(def, v, 'adulto')
+      if (auto.generar(soloVisibles(secciones, v, visibles)) !== actual) v[`${auto.campo}#manual`] = true
+    }
+    return v
+  }
+
   function cerrar() {
     setBorrador(null)
     setEditandoId(null)
     setErrorEdicion('')
   }
 
-  const guardables = (): Valores => (borrador && vis ? soloVisibles(secciones, borrador, vis) : {})
+  const guardables = (): Valores => (efectivo && vis ? soloVisibles(secciones, efectivo, vis) : {})
   const actualizar = (fn: (r: RegistroMenu[], usuario: string) => RegistroMenu[]) =>
     patch((c) => ({ [clave]: fn(c[clave], anestesiologoActual(c) || 'sin definir') }))
 
@@ -99,7 +122,7 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
                       setEditandoId(r.id)
                       setHoraEdicion(hhmmLocal(r.hora))
                       setErrorEdicion('')
-                      setBorrador({ ...r.valores })
+                      setBorrador(valoresAlEditar(r.valores))
                     }}
                   >
                     <p className="font-semibold text-slate-900">{tarjeta(r, formatHora)}</p>
@@ -155,7 +178,7 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
             <p className="mb-3 text-sm font-semibold text-slate-700">{original ? `Editar ${nombre} de las ${formatHora(original.hora)}` : `Agregar ${nombre}`}</p>
             <FormularioMenu
               secciones={secciones}
-              valores={borrador}
+              valores={efectivo ?? borrador}
               version="adulto"
               visibilidad={vis}
               mostrarTitulosSeccion
@@ -211,11 +234,18 @@ export function BloqueosRegionalesSection({ caso, patch }: { caso: CasoAnestesic
         secciones: SECCIONES_BLOQUEO,
         tarjeta: tarjetaBloqueo,
         detalle: 'blq.detalle',
+        auto: { campo: 'blq.texto_final', generar: textoBloqueo },
         acciones: (id, valores, aux) =>
-          id === 'blq.texto_final' ? (
-            <Button size="sm" variant="secondary" className="mt-2" onClick={() => aux('blq.texto_final', textoBloqueo(valores))}>
-              Generar texto con lo registrado
-            </Button>
+          id === 'blq.volumen_ml' && textoConcentracion(valores) ? (
+            <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sm font-medium text-sky-900">Concentración del anestésico: {textoConcentracion(valores)}</p>
+          ) : id === 'blq.texto_final' ? (
+            valores['blq.texto_final#manual'] === true ? (
+              <Button size="sm" variant="secondary" className="mt-2" onClick={() => aux('blq.texto_final#manual', undefined)}>
+                Volver al texto automático
+              </Button>
+            ) : (
+              <p className="mt-1 text-xs text-slate-500">Se arma solo con lo registrado arriba. Si lo editas a mano, deja de actualizarse.</p>
+            )
           ) : null,
       }}
     />

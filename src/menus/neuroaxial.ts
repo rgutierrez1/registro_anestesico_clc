@@ -31,6 +31,17 @@ export function farmacosNeuroaxial(v: RegistroMenu['valores']): string {
   return lista.length ? lista.join(' + ') : antiguo
 }
 
+// Solo lo que se aparta de lo habitual (LCR claro y sin parestesias, punción dural ni sangre).
+function hallazgos(v: RegistroMenu['valores']): string[] {
+  const r: string[] = []
+  const lcr = texto(v['neu.lcr'])
+  if (lcr && lcr !== 'claro') r.push(`LCR ${lcr}`)
+  if (v['neu.epi_puncion_dural'] === true) r.push('Punción dural')
+  if (v['neu.esp_parestesias'] === true || v['neu.epi_parestesias'] === true) r.push('Parestesias')
+  if (v['neu.epi_sangre'] === true) r.push('Salida de sangre')
+  return r
+}
+
 // "{hora} · Raquídea (subaracnoidea) · L3-L4 · Bupivacaína 12,5 mg + Fentanilo 15 mcg"
 export function tarjetaNeuroaxial(r: RegistroMenu, formatHora: (iso: string) => string): string {
   const v = r.valores
@@ -39,6 +50,7 @@ export function tarjetaNeuroaxial(r: RegistroMenu, formatHora: (iso: string) => 
     etiqueta('neu.tipo', v['neu.tipo']),
     etiqueta('neu.nivel', v['neu.nivel']) || texto(v['neu.nivel']),
     farmacosNeuroaxial(v),
+    ...hallazgos(v),
     v['neu.resultado'] === 'fallida' ? 'Fallida' : '',
   ]
     .filter(Boolean)

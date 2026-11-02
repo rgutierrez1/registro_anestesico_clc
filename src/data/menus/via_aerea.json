@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Vía aérea",
-  "version": "3.4",
+  "version": "3.5",
   "fecha": "2026-10-23",
   "autor": "Dr. Alejandro Jankelevich",
   "como_leer": {
@@ -329,37 +329,27 @@
         {
           "id": "int.laringoscopio",
           "numero": "5.2",
-          "etiqueta": "Laringoscopio",
+          "etiqueta": "Laringoscopia",
           "tipo": "unica",
-          "obligatorio": true,
-          "grupos": [
-            "Videolaringoscopio",
-            "Otros"
-          ],
           "opciones": [
             {
+              "codigo": "directo",
+              "etiqueta": "Convencional"
+            },
+            {
               "codigo": "video_estandar",
-              "etiqueta": "Hoja estándar",
-              "grupo": "Videolaringoscopio",
-              "abrev": "Video estándar"
+              "etiqueta": "Videolaringoscopio hoja normal"
             },
             {
               "codigo": "video_hiperangulada",
-              "etiqueta": "Hoja hiperangulada",
-              "grupo": "Videolaringoscopio",
-              "abrev": "Video hiperangulada"
-            },
-            {
-              "codigo": "directo",
-              "etiqueta": "Directo",
-              "grupo": "Otros"
+              "etiqueta": "Videolaringoscopio hoja hiperangulada"
             },
             {
               "codigo": "fibroscopio",
-              "etiqueta": "Fibroscopio",
-              "grupo": "Otros"
+              "etiqueta": "Fibrobroncoscopio"
             }
-          ]
+          ],
+          "obligatorio": false
         },
         {
           "id": "int.cormack",

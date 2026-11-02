@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { FarmacoDef } from '../data/catalogoFarmacos'
-import { CATALOGO_FARMACOS, CATEGORIAS_FARMACO } from '../data/catalogoFarmacos'
+import { CATALOGO_ELEGIBLE, CATEGORIAS_FARMACO } from '../data/catalogoFarmacos'
 import { PACKS_FARMACOS } from '../data/packsFarmacos'
 import type { CasoAnestesico, ItemCarrito } from '../types'
 import {
@@ -126,7 +126,7 @@ export function FarmacosSection({
               aria-label="Agregar fármaco en el gráfico"
               className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
               onChange={(e) => {
-                const def = CATALOGO_FARMACOS.find((f) => f.id === e.target.value)
+                const def = CATALOGO_ELEGIBLE.find((f) => f.id === e.target.value)
                 if (!def) return
                 setEditandoId(null)
                 setAgregando({ farmacoId: def.id, nombre: def.nombre, t: Date.now() })
@@ -135,7 +135,7 @@ export function FarmacosSection({
               <option value="">Agregar fármaco…</option>
               {CATEGORIAS_FARMACO.map((categoria) => (
                 <optgroup key={categoria} label={categoria}>
-                  {CATALOGO_FARMACOS.filter((f) => f.categoria === categoria).map((f) => (
+                  {CATALOGO_ELEGIBLE.filter((f) => f.categoria === categoria).map((f) => (
                     <option key={f.id} value={f.id}>
                       {f.etiqueta}
                     </option>

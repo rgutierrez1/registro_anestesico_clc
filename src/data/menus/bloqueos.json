@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Bloqueos regionales",
-  "version": "1.4",
+  "version": "1.6",
   "fecha": "2026-11-02",
   "origen": "Registro_unificado_bloqueos.docx",
   "secciones": [
@@ -345,8 +345,16 @@
               "etiqueta": "10 mL"
             },
             {
+              "codigo": "15",
+              "etiqueta": "15 mL"
+            },
+            {
               "codigo": "20",
               "etiqueta": "20 mL"
+            },
+            {
+              "codigo": "25",
+              "etiqueta": "25 mL"
             },
             {
               "codigo": "30",
@@ -469,7 +477,8 @@
               "codigo": "no_aplica",
               "etiqueta": "No aplica"
             }
-          ]
+          ],
+          "por_defecto": "no"
         },
         {
           "id": "blq.parestesia",
@@ -493,7 +502,8 @@
               "codigo": "no_aplica",
               "etiqueta": "No aplica"
             }
-          ]
+          ],
+          "por_defecto": "no"
         },
         {
           "id": "blq.intravascular",
@@ -517,7 +527,8 @@
               "codigo": "no_aplica",
               "etiqueta": "No aplica"
             }
-          ]
+          ],
+          "por_defecto": "no"
         },
         {
           "id": "blq.intraneural",
@@ -541,7 +552,8 @@
               "codigo": "no_aplica",
               "etiqueta": "No aplica"
             }
-          ]
+          ],
+          "por_defecto": "no"
         },
         {
           "id": "blq.conducta",
@@ -713,7 +725,8 @@
               "codigo": "pendiente",
               "etiqueta": "Pendiente de evaluación"
             }
-          ]
+          ],
+          "por_defecto": "no"
         },
         {
           "id": "blq.comp_toxicidad",
@@ -741,7 +754,8 @@
               "si",
               "pendiente"
             ]
-          }
+          },
+          "por_defecto": "no"
         },
         {
           "id": "blq.comp_puncion_vascular",
@@ -773,7 +787,8 @@
               "si",
               "pendiente"
             ]
-          }
+          },
+          "por_defecto": "no"
         },
         {
           "id": "blq.comp_hematoma",
@@ -801,7 +816,8 @@
               "si",
               "pendiente"
             ]
-          }
+          },
+          "por_defecto": "no"
         },
         {
           "id": "blq.comp_otras",

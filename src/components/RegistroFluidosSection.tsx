@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FLUIDOS_EGRESO, FLUIDOS_INGRESO } from '../constants'
+import { FLUIDOS_EGRESO, FLUIDOS_INGRESO, VOLUMEN_FLUIDO_POR_DEFECTO } from '../constants'
 import type { CasoAnestesico } from '../types'
 import { cambiarHoraColumna, filasFluidos, fijarCelda, formatBalance, formatCantidad, quitarColumna, totales, type Columna } from '../utils/fluidos'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
@@ -32,7 +32,13 @@ export function RegistroFluidosSection({ caso, patch }: { caso: CasoAnestesico; 
       const actual = c.fluidos.filter((r) => r.tipo === filaElegida.id && r.hora.slice(0, 16) === col.clave).reduce((s, r) => s + r.cantidad, 0)
       return { fluidos: fijarCelda(c.fluidos, filaElegida, col, actual + numero) }
     })
-    setCantidad('')
+    setCantidad(String(VOLUMEN_FLUIDO_POR_DEFECTO[filaElegida.id] ?? ''))
+  }
+
+  function elegirTipo(id: string) {
+    setTipo(id)
+    // Ringer y SF 0,9% parten en 500 mL; si ya se escribió una cantidad, se respeta.
+    setCantidad((actual) => (actual.trim() === '' || Object.values(VOLUMEN_FLUIDO_POR_DEFECTO).map(String).includes(actual) ? String(VOLUMEN_FLUIDO_POR_DEFECTO[id] ?? '') : actual))
   }
 
   function fijar(fila: (typeof filas)[number], columna: Columna, valor: number | null) {
@@ -87,7 +93,7 @@ export function RegistroFluidosSection({ caso, patch }: { caso: CasoAnestesico; 
         <p className="mb-2 text-sm font-medium text-slate-600">Agregar rápido</p>
         <div className="flex flex-wrap items-end gap-2">
           <Field label="Fluido o pérdida">
-            <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            <Select value={tipo} onChange={(e) => elegirTipo(e.target.value)}>
               <option value="">Seleccionar…</option>
               <optgroup label="Ingresos">
                 {FLUIDOS_INGRESO.map((f) => (

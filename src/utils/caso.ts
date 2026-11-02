@@ -17,6 +17,11 @@ export function textoAlergias(p: DatosPaciente): string {
   return lista.join(', ')
 }
 
+// Alergia a penicilina marcada, o mencionada en el texto libre de alergias.
+export function alergicoPenicilina(p: DatosPaciente): boolean {
+  return /penicil/i.test([...p.alergiasLista, p.alergiasOtros, p.alergias].join(' '))
+}
+
 export const esCambioAnestesiologo = (e: Evento) => e.cambioAnestesiologo !== undefined
 
 // El anestesiólogo actual es el último que asumió por un cambio, o el inicial si no hubo cambios.

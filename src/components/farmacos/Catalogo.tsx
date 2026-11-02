@@ -1,4 +1,4 @@
-import { CATALOGO_FARMACOS, CATEGORIAS_FARMACO, type FarmacoDef } from '../../data/catalogoFarmacos'
+import { CATALOGO_ELEGIBLE, CATEGORIAS_FARMACO, type FarmacoDef } from '../../data/catalogoFarmacos'
 
 export const TIPO_DRAG_FARMACO = 'text/plain'
 
@@ -15,7 +15,7 @@ export function Catalogo({
         <div key={categoria}>
           <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">{categoria}</h3>
           <div className="flex flex-wrap gap-2">
-            {CATALOGO_FARMACOS.filter((f) => f.categoria === categoria).map((def) => {
+            {CATALOGO_ELEGIBLE.filter((f) => f.categoria === categoria).map((def) => {
               const activo = seleccionados.has(def.id)
               return (
                 <button

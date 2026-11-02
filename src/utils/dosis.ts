@@ -37,6 +37,14 @@ export function pesoParaDosificar(p: DatosPaciente): PesoDosificacion | null {
   return { kg: ajustado, base: 'ajustado', detalle: 'peso ajustado' }
 }
 
+// Dosis sugerida por peso, redondeada al múltiplo que indique el fármaco (o al entero más cercano).
+export function dosisSugeridaPorPeso(def: { dosisPorKg?: number; redondeoDosis?: number }, pesoKg: number): number | null {
+  if (!def.dosisPorKg) return null
+  const calculada = def.dosisPorKg * pesoKg
+  const paso = def.redondeoDosis ?? 1
+  return Math.round(calculada / paso) * paso
+}
+
 // En caso de empate gana el valor menor.
 export function valorMasCercano(opciones: number[], objetivo: number): number {
   return opciones.reduce((mejor, v) => (Math.abs(v - objetivo) < Math.abs(mejor - objetivo) ? v : mejor))

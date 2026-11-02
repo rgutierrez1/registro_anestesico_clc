@@ -1,5 +1,5 @@
 import { DEF_ACCESOS, SECCIONES_ACCESO, tarjetaAcceso } from '../menus/accesos'
-import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo } from '../menus/bloqueos'
+import { DEF_BLOQUEOS, SECCIONES_BLOQUEO, tarjetaBloqueo, textoConcentracion } from '../menus/bloqueos'
 import { DEF_NEUROAXIAL, SECCIONES_NEUROAXIAL, tarjetaNeuroaxial } from '../menus/neuroaxial'
 import { calcularVisibilidad, textoValor } from '../menus/motor'
 import { versionMenu } from '../menus/paciente'
@@ -92,6 +92,7 @@ function ResumenRegistros({
   tarjeta,
   mostrarTitulos = true,
   textoFinal,
+  extra,
 }: {
   registros: RegistroMenu[]
   def: MenuDef
@@ -99,6 +100,7 @@ function ResumenRegistros({
   tarjeta: (r: RegistroMenu, formatHora: (iso: string) => string) => string
   mostrarTitulos?: boolean
   textoFinal?: string
+  extra?: (r: RegistroMenu) => string
 }) {
   const vivos = registros.filter((b) => !b.anulado).sort((a, b) => a.hora.localeCompare(b.hora))
   const anulados = registros.filter((b) => b.anulado)
@@ -122,6 +124,7 @@ function ResumenRegistros({
                   </div>
                 ) : null
               })}
+            {extra?.(r) && <p className="mt-1 text-sm text-slate-700">{extra(r)}</p>}
             {typeof final === 'string' && final && <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{final}</p>}
             {ultimo && (
               <p className="text-xs text-slate-500">
@@ -141,7 +144,10 @@ function ResumenRegistros({
 }
 
 export const ResumenBloqueos = ({ caso }: { caso: CasoAnestesico }) => (
-  <ResumenRegistros registros={caso.bloqueos} def={DEF_BLOQUEOS} secciones={SECCIONES_BLOQUEO} tarjeta={tarjetaBloqueo} textoFinal="blq.texto_final" />
+  <ResumenRegistros registros={caso.bloqueos} def={DEF_BLOQUEOS} secciones={SECCIONES_BLOQUEO} tarjeta={tarjetaBloqueo}
+    textoFinal="blq.texto_final"
+    extra={(r) => (textoConcentracion(r.valores) ? `Concentración del anestésico: ${textoConcentracion(r.valores)}` : '')}
+  />
 )
 
 export const ResumenNeuroaxial = ({ caso }: { caso: CasoAnestesico }) => (
