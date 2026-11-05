@@ -4,6 +4,9 @@ import type { VersionMenu } from './tipos'
 // Hasta los 10 años inclusive se ofrece la versión pediátrica; desde que el paciente supera los 10, solo opciones de adulto.
 export const EDAD_MAXIMA_PEDIATRICA = 10
 
+// Los meses de edad solo se registran en menores de esta edad (años).
+export const EDAD_MAXIMA_CON_MESES = 2
+
 export interface PacienteMenu {
   edadAnios?: number
   edadMeses?: number
@@ -14,8 +17,7 @@ export interface PacienteMenu {
 
 export function pacienteMenu(p: DatosPaciente): PacienteMenu {
   const anios = p.edad === '' ? undefined : p.edad
-  // Los meses solo se registran en menores de 5 años.
-  const extra = p.edadMeses === '' || p.edadMeses === undefined || (anios !== undefined && anios >= 5) ? 0 : p.edadMeses
+  const extra = p.edadMeses === '' || p.edadMeses === undefined || (anios !== undefined && anios >= EDAD_MAXIMA_CON_MESES) ? 0 : p.edadMeses
   return {
     edadAnios: anios === undefined ? undefined : anios + extra / 12,
     edadMeses: anios === undefined ? undefined : anios * 12 + extra,

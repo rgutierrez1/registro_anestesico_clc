@@ -1,5 +1,6 @@
 import { ALERGIA_OTROS, ALERGIAS_OPCIONES, ANESTESIOLOGOS, GRUPOS_SANGUINEOS, OPCIONES_ASA } from '../constants'
 import type { DatosCirugia, DatosPaciente } from '../types'
+import { EDAD_MAXIMA_CON_MESES } from '../menus/paciente'
 import { RuedaNumerica, rango } from './RuedaNumerica'
 import { Field, Input, Pill, Section, Select } from './ui'
 
@@ -27,8 +28,8 @@ export function DatosCasoForm({
     if (a === ALERGIA_OTROS && lista.includes(a)) onPaciente('alergiasOtros', '')
   }
 
-  // Los meses solo se piden en menores de 5 años.
-  const muestraMeses = paciente.edad !== '' && paciente.edad < 5
+  // Los meses solo se piden en menores de 2 años.
+  const muestraMeses = paciente.edad !== '' && paciente.edad < EDAD_MAXIMA_CON_MESES
   const sp = muestraMeses ? 'sm:col-span-5' : 'sm:col-span-4'
   const spAsa = muestraMeses ? 'sm:col-span-3' : 'sm:col-span-2'
 
@@ -49,7 +50,7 @@ export function DatosCasoForm({
             inicio={40}
             onChange={(v) => {
               onPaciente('edad', v)
-              if (v === '' || v >= 5) onPaciente('edadMeses', '')
+              if (v === '' || v >= EDAD_MAXIMA_CON_MESES) onPaciente('edadMeses', '')
             }}
           />
           {muestraMeses && (
