@@ -14,7 +14,8 @@ export interface PacienteMenu {
 
 export function pacienteMenu(p: DatosPaciente): PacienteMenu {
   const anios = p.edad === '' ? undefined : p.edad
-  const extra = p.edadMeses === '' || p.edadMeses === undefined ? 0 : p.edadMeses
+  // Los meses solo se registran en menores de 5 años.
+  const extra = p.edadMeses === '' || p.edadMeses === undefined || (anios !== undefined && anios >= 5) ? 0 : p.edadMeses
   return {
     edadAnios: anios === undefined ? undefined : anios + extra / 12,
     edadMeses: anios === undefined ? undefined : anios * 12 + extra,

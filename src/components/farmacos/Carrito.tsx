@@ -3,6 +3,7 @@ import { ANTIBIOTICOS, obtenerFarmaco, type FarmacoDef } from '../../data/catalo
 import { VIAS_FARMACO } from '../../constants'
 import type { DatosPaciente, ItemCarrito, ViaFarmaco } from '../../types'
 import { alergicoPenicilina } from '../../utils/caso'
+import { formatHora } from '../../utils/tiempo'
 import { crearItemCarrito, ID_PERSONALIZADO, itemListo } from '../../utils/farmacos'
 import { Badge, Button, Field, Input, Select } from '../ui'
 import { BotonesAgregar } from './BotonesAgregar'
@@ -18,6 +19,7 @@ export function Carrito({
   onVaciar,
   onSoltar,
   onAgregarPersonalizado,
+  horaInicio,
 }: {
   items: ItemCarrito[]
   paciente: DatosPaciente
@@ -27,6 +29,8 @@ export function Carrito({
   onVaciar: () => void
   onSoltar: (def: FarmacoDef) => void
   onAgregarPersonalizado: () => void
+  // Hora de inicio de la anestesia: a esa hora se agregan los fármacos por defecto.
+  horaInicio: string | null
 }) {
   const [arrastrando, setArrastrando] = useState(false)
   const listos = items.filter(itemListo)
@@ -71,6 +75,7 @@ export function Carrito({
           onCambiar={onCambiar}
           onQuitar={() => onQuitar(item.id)}
           onRegistrar={(hora) => onRegistrar([item.id], hora)}
+          horaInicio={horaInicio}
         />
       ))}
 
@@ -84,7 +89,7 @@ export function Carrito({
         <div className="border-t border-slate-200 pt-3">
           <BotonesAgregar
             listo
-            etiquetaAhora={`Agregar todos ahora (${listos.length})`}
+            etiquetaAhora={`Agregar todos a las ${horaInicio ? formatHora(horaInicio) : '--:--'} (${listos.length})`}
             etiquetaPersonalizada="Agregar todos a hora personalizada"
             onAgregar={(hora) => onRegistrar(listos.map((i) => i.id), hora)}
           />
@@ -100,12 +105,14 @@ function FilaCarrito({
   onCambiar,
   onQuitar,
   onRegistrar,
+  horaInicio,
 }: {
   item: ItemCarrito
   paciente: DatosPaciente
   onCambiar: (item: ItemCarrito) => void
   onQuitar: () => void
   onRegistrar: (hora?: string) => void
+  horaInicio: string | null
 }) {
   const def = obtenerFarmaco(item.farmacoId)
   const personalizado = item.farmacoId === ID_PERSONALIZADO
@@ -182,7 +189,7 @@ function FilaCarrito({
       <div className="mt-3">
         <BotonesAgregar
           listo={listo}
-          etiquetaAhora={continuo ? 'Iniciar ahora' : 'Agregar ahora'}
+          etiquetaAhora={`${continuo ? 'Iniciar' : 'Agregar'} a las ${horaInicio ? formatHora(horaInicio) : '--:--'}`}
           etiquetaPersonalizada={continuo ? 'Iniciar a hora personalizada' : 'Agregar a hora personalizada'}
           onAgregar={onRegistrar}
         />

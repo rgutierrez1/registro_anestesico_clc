@@ -272,7 +272,7 @@ export default function RegistroIntraoperatorio() {
         {requiereViaAerea && <ViaAereaSection caso={caso} patch={patch} />}
         <AccesosVascularesSection caso={caso} patch={patch} />
         <RegistroVitalesSection caso={caso} onActualizar={patch} />
-        <FarmacosSection caso={caso} onActualizar={patch} />
+        <FarmacosSection caso={caso} onActualizar={patch} onIniciarAnestesia={(iso) => registrarHito('inicioAnestesia', iso)} />
         {(caso.tiposAnestesia.includes('Neuroaxial') || caso.neuroaxial.length > 0) && <NeuroaxialSection caso={caso} patch={patch} />}
         <BloqueosRegionalesSection caso={caso} patch={patch} />
         <RegistroFluidosSection caso={caso} patch={patch} />

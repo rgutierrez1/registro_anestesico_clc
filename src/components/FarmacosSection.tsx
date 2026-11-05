@@ -17,6 +17,7 @@ import {
   registrarItems,
 } from '../utils/farmacos'
 import { hitosDelCaso } from '../utils/hitos'
+import { BotonesAgregar } from './farmacos/BotonesAgregar'
 import { AgregarEnGrafico } from './farmacos/AgregarEnGrafico'
 import { Carrito } from './farmacos/Carrito'
 import { Catalogo } from './farmacos/Catalogo'
@@ -52,10 +53,15 @@ function IconoJeringa() {
 export function FarmacosSection({
   caso,
   onActualizar,
+  onIniciarAnestesia,
 }: {
   caso: CasoAnestesico
   onActualizar: (fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) => void
+  onIniciarAnestesia: (iso: string) => void
 }) {
+  // Sin inicio de anestesia no se registran fármacos; los que se agregan parten a esa hora.
+  const inicio = caso.horaInicioAnestesia
+  const bloqueado = inicio === null
   const activas = useMemo(() => infusionesActivas(caso.farmacos), [caso.farmacos])
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [agregando, setAgregando] = useState<DestinoAgregar | null>(null)
@@ -68,6 +74,18 @@ export function FarmacosSection({
 
   return (
     <Section title="Fármacos">
+      {bloqueado && (
+        <div className="mb-4 rounded-xl border border-amber-300 bg-amber-50 p-3">
+          <p className="mb-2 text-sm font-semibold text-amber-900">Primero indica la hora de inicio de la anestesia: los fármacos se registran a partir de esa hora.</p>
+          <BotonesAgregar
+            listo
+            etiquetaAhora="Iniciar anestesia ahora"
+            etiquetaPersonalizada="Inicio a otra hora"
+            onAgregar={(hora) => onIniciarAnestesia(hora ?? new Date().toISOString())}
+          />
+        </div>
+      )}
+      <div inert={bloqueado} className={bloqueado ? 'pointer-events-none select-none opacity-40' : ''}>
       <Field label="Packs de fármacos" className="mb-4 max-w-sm">
         <Select
           value=""
@@ -101,7 +119,8 @@ export function FarmacosSection({
           paciente={caso.paciente}
           onCambiar={cambiarItem}
           onQuitar={(id) => onActualizar((c) => ({ carritoFarmacos: c.carritoFarmacos.filter((i) => i.id !== id) }))}
-          onRegistrar={(ids, hora) => onActualizar((c) => registrarItems(c, ids, hora))}
+          horaInicio={inicio}
+          onRegistrar={(ids, hora) => onActualizar((c) => registrarItems(c, ids, hora ?? c.horaInicioAnestesia ?? undefined))}
           onVaciar={() => onActualizar(() => ({ carritoFarmacos: [] }))}
           onSoltar={(def) => onActualizar((c) => agregarFarmacoAlCarrito(c, def))}
           onAgregarPersonalizado={() =>
@@ -129,7 +148,7 @@ export function FarmacosSection({
                 const def = CATALOGO_ELEGIBLE.find((f) => f.id === e.target.value)
                 if (!def) return
                 setEditandoId(null)
-                setAgregando({ farmacoId: def.id, nombre: def.nombre, t: Date.now() })
+                setAgregando({ farmacoId: def.id, nombre: def.nombre, t: inicio ? Date.parse(inicio) : Date.now() })
               }}
             >
               <option value="">Agregar fármaco…</option>
@@ -203,6 +222,7 @@ export function FarmacosSection({
           registros={caso.farmacos}
           onEliminar={(id) => onActualizar((c) => ({ farmacos: c.farmacos.filter((f) => f.id !== id) }))}
         />
+      </div>
       </div>
     </Section>
   )
