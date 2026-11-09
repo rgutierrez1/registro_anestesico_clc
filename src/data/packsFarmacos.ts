@@ -24,6 +24,27 @@ function pack(id: string, nombre: string, items: ItemPack[]): PackFarmacos {
   return { id, nombre, items: [ANTIBIOTICO, ...items, ...VASOACTIVOS] }
 }
 
+// Protocolo TIVA: premedicación, inducción y mantención, analgesia multimodal, adyuvantes y otros.
+// Cambia solo el relajante neuromuscular.
+function tiva(relajante: ItemPack): ItemPack[] {
+  return [
+    { farmacoId: 'clonazepam' },
+    { farmacoId: 'propofol-tci', presentacionId: '2', dosis: 3 },
+    { farmacoId: 'remifentanilo', dosis: 4 },
+    relajante,
+    { farmacoId: 'paracetamol' },
+    { farmacoId: 'ketorolaco', dosisPorKg: 0.5 },
+    { farmacoId: 'metadona' },
+    { farmacoId: 'metamizol', dosis: 2000 },
+    { farmacoId: 'dexmedetomidina', dosis: 0.5 },
+    { farmacoId: 'sulfato-magnesio' },
+    { farmacoId: 'lidocaina-infusion', dosis: 1 },
+    { farmacoId: 'omeprazol', dosis: 40 },
+    { farmacoId: 'acido-tranexamico', dosis: 2000 },
+    { farmacoId: 'ondansetron' },
+  ]
+}
+
 // Los packs solo preseleccionan fármacos (y opcionalmente dosis/presentación);
 // el anestesiólogo revisa y confirma cada dosis antes de registrar.
 export const PACKS_FARMACOS: PackFarmacos[] = [
@@ -49,20 +70,7 @@ export const PACKS_FARMACOS: PackFarmacos[] = [
     { farmacoId: 'ondansetron', dosis: 4 },
   ]),
   // Escoliosis: premedicación, inducción y mantención TIVA, analgesia multimodal, adyuvantes y otros.
-  pack('columna-tiva', 'Cirugía de columna - TIVA', [
-    { farmacoId: 'clonazepam' },
-    { farmacoId: 'propofol-tci', presentacionId: '2', dosis: 3 },
-    { farmacoId: 'remifentanilo', dosis: 4 },
-    { farmacoId: 'rocuronio' },
-    { farmacoId: 'paracetamol' },
-    { farmacoId: 'ketorolaco', dosisPorKg: 0.5 },
-    { farmacoId: 'metadona' },
-    { farmacoId: 'metamizol', dosis: 2000 },
-    { farmacoId: 'dexmedetomidina', dosis: 0.5 },
-    { farmacoId: 'sulfato-magnesio' },
-    { farmacoId: 'lidocaina-infusion', dosis: 1 },
-    { farmacoId: 'omeprazol', dosis: 40 },
-    { farmacoId: 'acido-tranexamico', dosis: 2000 },
-    { farmacoId: 'ondansetron' },
-  ]),
+  pack('columna-tiva', 'Cirugía de columna - TIVA', tiva({ farmacoId: 'rocuronio' })),
+  // Plástica: igual que la TIVA de columna, con atracurio como relajante neuromuscular.
+  pack('plastica-tiva', 'TIVA - Plástica', tiva({ farmacoId: 'atracurio' })),
 ]
