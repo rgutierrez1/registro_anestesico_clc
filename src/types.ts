@@ -196,6 +196,60 @@ export interface RegistroBloqueo {
   updatedAt: string
 }
 
+// Seguimiento diario de un catéter (bloqueo periférico o epidural) por la Unidad de Dolor Agudo (UDA).
+export type EscalaSedacion = 0 | 1 | 2 | 3
+export type SiNo = 'si' | 'no' | ''
+
+export interface VisitaUDA {
+  id: string
+  // Fecha y hora de la visita.
+  hora: string
+  visitador: string
+  evaReposo: number | null
+  evaDinamico: number | null
+  progPCA: string
+  cambioPCA: SiNo
+  terapiaPCT: string
+  aineInf: string
+  icox2: string
+  aineSOS: string
+  tramal: string
+  morfina: string
+  hipBzdPsiq: string
+  otroFarmaco: string
+  boloDemandado: number | null
+  boloAdministrado: number | null
+  volInfundir: string
+  nBolsa: string
+  shift: string
+  sedacion: EscalaSedacion | null
+  nauseasVomito: SiNo
+  prurito: SiNo
+  retOrina: SiNo
+  constipacion: SiNo
+  efectoOtro: string
+  estadoCateter: string
+  estadoCateterNota: string
+  bloqueoMotor: EscalaSedacion | null
+  trombofilaxis: string
+  plan: string
+  anulada?: { motivo: string; usuario: string; hora: string }
+}
+
+export interface FichaUDA {
+  // Mismo id que el bloqueo o la epidural registrados (se conserva al agregarlos a un registro anestésico).
+  id: string
+  asa: string
+  funcionRenal: string
+  contraindAines: string
+  patologias: string
+  infusor: '' | 'bolsa' | 'elastomerica'
+  visitas: VisitaUDA[]
+  retiro?: { hora: string; usuario: string }
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ViaAereaMenu {
   registros: RegistroMenu[]
   legado?: unknown

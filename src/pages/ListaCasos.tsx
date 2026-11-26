@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Badge, Button, Card } from '../components/ui'
 import { db } from '../db'
 import type { EstadoCaso } from '../types'
+import { usePacientesUDA } from '../utils/uda'
 
 const estadoTono: Record<EstadoCaso, 'slate' | 'green' | 'amber'> = {
   planificado: 'slate',
@@ -19,6 +20,8 @@ const estadoLabel: Record<EstadoCaso, string> = {
 export default function ListaCasos() {
   const navigate = useNavigate()
   const casos = useLiveQuery(() => db.casos.orderBy('createdAt').reverse().toArray(), [])
+
+  const enSeguimiento = (usePacientesUDA() ?? []).filter((p) => !p.retirado).length
 
   const registrosBloqueo = useLiveQuery(() => db.registrosBloqueo.orderBy('createdAt').reverse().toArray(), [])
 
@@ -40,6 +43,9 @@ export default function ListaCasos() {
           <p className="text-sm text-slate-500">Casos guardados en este dispositivo</p>
         </div>
         <div className="flex flex-wrap justify-end gap-2">
+          <Button variant="secondary" onClick={() => navigate('/uda')} size="lg">
+            UDA{enSeguimiento > 0 && <span className="rounded-full bg-sky-600 px-2 py-0.5 text-sm text-white">{enSeguimiento}</span>}
+          </Button>
           <Button variant="secondary" onClick={() => navigate('/bloqueo/nuevo')} size="lg">
             + Registrar bloqueo
           </Button>

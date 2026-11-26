@@ -1,7 +1,7 @@
 {
   "formato": "hoja-anestesia-clc/menus-de-clic",
   "pestana": "Anestesia neuroaxial",
-  "version": "1.5",
+  "version": "1.6",
   "fecha": "2026-11-02",
   "nota": "Se muestra solo si en el plan anestésico (tipo de anestesia) está marcado Neuroaxial.",
   "secciones": [
@@ -773,8 +773,120 @@
           "numero": "1.16"
         },
         {
-          "id": "neu.resultado",
+          "id": "neu.cateter",
           "numero": "1.17",
+          "etiqueta": "Catéter epidural (queda en seguimiento UDA)",
+          "tipo": "si_no",
+          "por_defecto": true,
+          "mostrar_si": {
+            "campo": "neu.tipo",
+            "op": "in",
+            "valor": [
+              "peridural",
+              "combinada"
+            ]
+          }
+        },
+        {
+          "id": "neu.cat_fijacion_cm",
+          "numero": "1.18",
+          "etiqueta": "Profundidad de fijación en piel",
+          "tipo": "numero",
+          "unidad": "cm",
+          "min": 1,
+          "max": 40,
+          "mostrar_si": {
+            "todas": [
+              {
+                "campo": "neu.tipo",
+                "op": "in",
+                "valor": [
+                  "peridural",
+                  "combinada"
+                ]
+              },
+              {
+                "campo": "neu.cateter",
+                "op": "es_verdadero"
+              }
+            ]
+          }
+        },
+        {
+          "id": "neu.cat_esquema",
+          "numero": "1.19",
+          "etiqueta": "Esquema de infusión (continuo/bolo/lockout)",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "e_8_5_20",
+              "etiqueta": "8/5/20"
+            },
+            {
+              "codigo": "e_5_5_20",
+              "etiqueta": "5/5/20"
+            },
+            {
+              "codigo": "e_0_5_20",
+              "etiqueta": "0/5/20"
+            },
+            {
+              "codigo": "otro",
+              "etiqueta": "Otro"
+            }
+          ],
+          "mostrar_si": {
+            "todas": [
+              {
+                "campo": "neu.tipo",
+                "op": "in",
+                "valor": [
+                  "peridural",
+                  "combinada"
+                ]
+              },
+              {
+                "campo": "neu.cateter",
+                "op": "es_verdadero"
+              }
+            ]
+          }
+        },
+        {
+          "id": "neu.cat_solucion",
+          "numero": "1.20",
+          "etiqueta": "Solución de infusión",
+          "tipo": "unica",
+          "opciones": [
+            {
+              "codigo": "bupivacaina_006",
+              "etiqueta": "Solución estándar de bupivacaína 0,06 %"
+            },
+            {
+              "codigo": "otra",
+              "etiqueta": "Otra"
+            }
+          ],
+          "mostrar_si": {
+            "todas": [
+              {
+                "campo": "neu.tipo",
+                "op": "in",
+                "valor": [
+                  "peridural",
+                  "combinada"
+                ]
+              },
+              {
+                "campo": "neu.cateter",
+                "op": "es_verdadero"
+              }
+            ]
+          }
+        },
+        {
+          "id": "neu.resultado",
+          "numero": "1.21",
           "etiqueta": "Resultado",
           "tipo": "unica",
           "obligatorio": true,
@@ -792,7 +904,7 @@
         },
         {
           "id": "neu.notas",
-          "numero": "1.18",
+          "numero": "1.22",
           "etiqueta": "Notas",
           "tipo": "texto"
         }

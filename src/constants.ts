@@ -39,6 +39,9 @@ export const ANESTESIOLOGOS = [
   'Villagra',
 ]
 
+// Quienes hacen las visitas de la UDA: la enfermera universitaria y el equipo de anestesiólogos.
+export const VISITADORES_UDA = ['EU Daniela Avilés', ...ANESTESIOLOGOS]
+
 export const OPCIONES_ASA: { value: string; label: string }[] = [
   { value: 'I', label: 'ASA I — sano' },
   { value: 'II', label: 'ASA II — enfermedad sistémica leve' },
