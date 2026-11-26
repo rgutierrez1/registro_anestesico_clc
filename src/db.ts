@@ -5,11 +5,12 @@ import { migrarTecnicaRegional } from './menus/bloqueos'
 import { esTecnicaNeuroaxial, migrarTecnicaNeuroaxial } from './menus/neuroaxial'
 import { migrarViaAerea } from './menus/viaAerea'
 import type { RegistroMenu } from './menus/tipos'
-import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroFarmaco, RegistroFluido, TecnicaRegional, ViaAereaMenu } from './types'
+import type { AccesoVascular, CasoAnestesico, ManejoViaAerea, RegistroBloqueo, RegistroFarmaco, RegistroFluido, TecnicaRegional, ViaAereaMenu } from './types'
 import { nuevoId } from './utils/id'
 
 class RegistroAnestesicoDB extends Dexie {
   casos!: Table<CasoAnestesico, string>
+  registrosBloqueo!: Table<RegistroBloqueo, string>
 
   constructor() {
     super('registro-anestesico')
@@ -226,6 +227,10 @@ class RegistroAnestesicoDB extends Dexie {
             caso.tecnicasRegionales = []
           }),
       )
+    this.version(18).stores({
+      casos: 'id, estado, createdAt, paciente.nombre',
+      registrosBloqueo: 'id, createdAt',
+    })
     this.casos.hook('reading', (caso) => normalizarCaso(caso))
   }
 }

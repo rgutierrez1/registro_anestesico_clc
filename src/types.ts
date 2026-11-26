@@ -182,6 +182,18 @@ export interface ManejoViaAerea {
 }
 
 // Cada dispositivo usado (máscara, tubo…) es un registro con hora; se pueden agregar varios.
+// Bloqueos regionales registrados sin un registro anestésico (p. ej., en la preanestesia o después de la cirugía).
+export interface RegistroBloqueo {
+  id: string
+  paciente: { nombre: string; edad: number | ''; historiaClinica: string }
+  procedimiento: string
+  anestesiologo: string
+  fecha: string
+  bloqueos: RegistroMenu[]
+  createdAt: string
+  updatedAt: string
+}
+
 export interface ViaAereaMenu {
   registros: RegistroMenu[]
   legado?: unknown

@@ -7,6 +7,8 @@ import { aplicarCambio, calcularVisibilidad, faltantes, sinOpcionesInvalidas, so
 import type { CampoDef, MenuDef, RegistroMenu, SeccionDef, Valor, Valores } from '../menus/tipos'
 import type { CasoAnestesico } from '../types'
 import { anestesiologoActual } from '../utils/caso'
+import { ETIQUETA_MOMENTO, useBloqueosPendientes, type BloqueoPendiente } from '../utils/bloqueosIndependientes'
+import { PanelBloqueosPendientes } from './PanelBloqueosPendientes'
 import { nuevoId } from '../utils/id'
 import { formatHora, hhmmLocal, horaCercanaIso } from '../utils/tiempo'
 import { BotonesAgregar } from './farmacos/BotonesAgregar'
@@ -15,7 +17,6 @@ import { Button, Field, Input, Section } from './ui'
 type Patch = (fn: (c: CasoAnestesico) => Partial<CasoAnestesico>) => void
 
 export interface ConfigRegistros {
-  clave: 'bloqueos' | 'neuroaxial'
   titulo: string
   // En singular y en minúscula: "bloqueo", "técnica".
   nombre: string
@@ -27,12 +28,28 @@ export interface ConfigRegistros {
   acciones?: (id: string, valores: Valores, aux: (clave: string, valor: Valor | undefined) => void) => ReactNode
   // Campo de texto que se arma solo con lo registrado, hasta que se edita a mano (`campo#manual`).
   auto?: { campo: string; generar: (valores: Valores) => string }
+  // Contenido extra bajo cada tarjeta (marcas, botones).
+  extraTarjeta?: (r: RegistroMenu) => ReactNode
 }
 
+export type ActualizarRegistros = (fn: (registros: RegistroMenu[], usuario: string) => RegistroMenu[]) => void
+
 // Lista de registros con hora (agregar, editar, anular) a partir de un menú de clic.
-export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAnestesico; patch: Patch; config: ConfigRegistros }) {
-  const { clave, def, secciones, tarjeta, nombre } = config
-  const registros = caso[clave]
+export function SeccionRegistrosMenu({
+  registros,
+  actualizar,
+  config,
+  encabezado,
+  alSoltar,
+}: {
+  registros: RegistroMenu[]
+  actualizar: ActualizarRegistros
+  config: ConfigRegistros
+  // Contenido sobre la lista (p. ej., bloqueos pendientes de agregar) y receptor de elementos arrastrados.
+  encabezado?: ReactNode
+  alSoltar?: (datos: string) => void
+}) {
+  const { def, secciones, tarjeta, nombre } = config
   const [borrador, setBorrador] = useState<Valores | null>(null)
   const [editandoId, setEditandoId] = useState<string | null>(null)
   const [horaEdicion, setHoraEdicion] = useState('')
@@ -84,8 +101,6 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
   }
 
   const guardables = (): Valores => (efectivo && vis ? soloVisibles(secciones, efectivo, vis) : {})
-  const actualizar = (fn: (r: RegistroMenu[], usuario: string) => RegistroMenu[]) =>
-    patch((c) => ({ [clave]: fn(c[clave], anestesiologoActual(c) || 'sin definir') }))
 
   function agregar(hora?: string) {
     if (!borrador || pendientes.length) return
@@ -106,7 +121,18 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
   }
 
   return (
+    <div
+      onDragOver={(e) => {
+        if (alSoltar) e.preventDefault()
+      }}
+      onDrop={(e) => {
+        if (!alSoltar) return
+        e.preventDefault()
+        alSoltar(e.dataTransfer.getData('text/plain'))
+      }}
+    >
     <Section title={config.titulo}>
+      {encabezado}
       {vivos.length > 0 && (
         <ul className="mb-4 flex flex-col gap-2">
           {vivos.map((r) => {
@@ -137,6 +163,7 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
                     Borrar
                   </button>
                 </div>
+                {config.extraTarjeta?.(r)}
                 {anulandoId === r.id && (
                   <Anular
                     onConfirmar={(motivo) => {
@@ -218,48 +245,79 @@ export function SeccionRegistrosMenu({ caso, patch, config }: { caso: CasoAneste
         )}
       </div>
     </Section>
+    </div>
   )
 }
 
 export function BloqueosRegionalesSection({ caso, patch }: { caso: CasoAnestesico; patch: Patch }) {
+  const pendientes = useBloqueosPendientes()
+  const [elegido, setElegido] = useState<BloqueoPendiente | null>(null)
+  const actualizar: ActualizarRegistros = (fn) => patch((c) => ({ bloqueos: fn(c.bloqueos, anestesiologoActual(c) || 'sin definir') }))
+
   return (
     <SeccionRegistrosMenu
-      caso={caso}
-      patch={patch}
-      config={{
-        clave: 'bloqueos',
-        titulo: 'Bloqueos regionales',
-        nombre: 'bloqueo',
-        def: DEF_BLOQUEOS,
-        secciones: SECCIONES_BLOQUEO,
-        tarjeta: tarjetaBloqueo,
-        detalle: 'blq.detalle',
-        auto: { campo: 'blq.texto_final', generar: textoBloqueo },
-        acciones: (id, valores, aux) =>
-          id === 'blq.volumen_ml' && textoConcentracion(valores) ? (
-            <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sm font-medium text-sky-900">Concentración del anestésico: {textoConcentracion(valores)}</p>
-          ) : id === 'blq.texto_final' ? (
-            valores['blq.texto_final#manual'] === true ? (
-              <Button size="sm" variant="secondary" className="mt-2" onClick={() => aux('blq.texto_final#manual', undefined)}>
-                Volver al texto automático
-              </Button>
-            ) : (
-              <p className="mt-1 text-xs text-slate-500">Se arma solo con lo registrado arriba. Si lo editas a mano, deja de actualizarse.</p>
-            )
-          ) : null,
+      registros={caso.bloqueos}
+      actualizar={actualizar}
+      alSoltar={(datos) => {
+        const [registroId, bloqueoId] = datos.split('|')
+        const hallado = pendientes.find((p) => p.registro.id === registroId && p.bloqueo.id === bloqueoId)
+        if (hallado) setElegido(hallado)
       }}
+      encabezado={
+        <PanelBloqueosPendientes
+          caso={caso}
+          pendientes={pendientes}
+          elegido={elegido}
+          onElegir={setElegido}
+        />
+      }
+      config={configBloqueos((r) => <MarcaMomento r={r} />)}
     />
   )
+}
+
+// Marca "antes/después de entrar a pabellón" de un bloqueo traído de un registro independiente.
+export function MarcaMomento({ r }: { r: RegistroMenu }) {
+  if (!r.contexto) return null
+  return (
+    <p className="mt-1 rounded-lg bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-900">
+      {ETIQUETA_MOMENTO[r.contexto.momento]} · bloqueo hecho a las {formatHora(r.hora)}
+    </p>
+  )
+}
+
+export function configBloqueos(extraTarjeta?: ConfigRegistros['extraTarjeta']): ConfigRegistros {
+  return {
+    titulo: 'Bloqueos regionales',
+    nombre: 'bloqueo',
+    def: DEF_BLOQUEOS,
+    secciones: SECCIONES_BLOQUEO,
+    tarjeta: tarjetaBloqueo,
+    detalle: 'blq.detalle',
+    auto: { campo: 'blq.texto_final', generar: textoBloqueo },
+    extraTarjeta,
+    acciones: (id, valores, aux) =>
+      id === 'blq.volumen_ml' && textoConcentracion(valores) ? (
+        <p className="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-sm font-medium text-sky-900">Concentración del anestésico: {textoConcentracion(valores)}</p>
+      ) : id === 'blq.texto_final' ? (
+        valores['blq.texto_final#manual'] === true ? (
+          <Button size="sm" variant="secondary" className="mt-2" onClick={() => aux('blq.texto_final#manual', undefined)}>
+            Volver al texto automático
+          </Button>
+        ) : (
+          <p className="mt-1 text-xs text-slate-500">Se arma solo con lo registrado arriba. Si lo editas a mano, deja de actualizarse.</p>
+        )
+      ) : null,
+  }
 }
 
 // Raquídea y peridural: se muestra solo si el plan anestésico incluye Neuroaxial (o ya hay registros).
 export function NeuroaxialSection({ caso, patch }: { caso: CasoAnestesico; patch: Patch }) {
   return (
     <SeccionRegistrosMenu
-      caso={caso}
-      patch={patch}
+      registros={caso.neuroaxial}
+      actualizar={(fn) => patch((c) => ({ neuroaxial: fn(c.neuroaxial, anestesiologoActual(c) || 'sin definir') }))}
       config={{
-        clave: 'neuroaxial',
         titulo: 'Anestesia neuroaxial',
         nombre: 'técnica',
         def: DEF_NEUROAXIAL,

@@ -119,6 +119,8 @@ export interface MenuDef {
 export type Valor = string | number | boolean | string[] | Record<string, string | boolean>
 export type Valores = Record<string, Valor>
 
+export type MomentoBloqueo = 'antes_pabellon' | 'despues_pabellon'
+
 export interface RegistroMenu {
   id: string
   hora: string
@@ -126,6 +128,10 @@ export interface RegistroMenu {
   valores: Valores
   anulado?: { motivo: string; usuario: string; hora: string }
   retiro?: { hora: string; usuario: string }
+  // Bloqueo registrado antes o después de entrar a pabellón y traído a un registro anestésico.
+  contexto?: { momento: MomentoBloqueo; registroId: string; paciente: string }
+  // En un registro de bloqueos independiente: el registro anestésico al que ya se agregó.
+  asociadoA?: { casoId: string; hora: string }
   // Quién y cuándo cambió el registro después de guardarlo.
   historial?: { usuario: string; hora: string }[]
   legado?: unknown

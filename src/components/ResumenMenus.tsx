@@ -6,6 +6,7 @@ import { versionMenu } from '../menus/paciente'
 import type { MenuDef, RegistroMenu, SeccionDef, Valores } from '../menus/tipos'
 import { DEF_VIA, registrosVivos, SECCIONES_VIA, tarjetaVia } from '../menus/viaAerea'
 import type { CasoAnestesico } from '../types'
+import { ETIQUETA_MOMENTO } from '../utils/bloqueosIndependientes'
 import { formatHora } from '../utils/tiempo'
 
 function lineas(def: MenuDef, s: SeccionDef, valores: Valores, visibles?: Set<string>): { etiqueta: string; texto: string }[] {
@@ -146,7 +147,14 @@ function ResumenRegistros({
 export const ResumenBloqueos = ({ caso }: { caso: CasoAnestesico }) => (
   <ResumenRegistros registros={caso.bloqueos} def={DEF_BLOQUEOS} secciones={SECCIONES_BLOQUEO} tarjeta={tarjetaBloqueo}
     textoFinal="blq.texto_final"
-    extra={(r) => (textoConcentracion(r.valores) ? `Concentración del anestésico: ${textoConcentracion(r.valores)}` : '')}
+    extra={(r) =>
+      [
+        textoConcentracion(r.valores) && `Concentración del anestésico: ${textoConcentracion(r.valores)}`,
+        r.contexto && `${ETIQUETA_MOMENTO[r.contexto.momento]} (bloqueo hecho a las ${formatHora(r.hora)}).`,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    }
   />
 )
 
