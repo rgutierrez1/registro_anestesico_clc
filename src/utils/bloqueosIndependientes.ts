@@ -28,20 +28,24 @@ export function momentoSugerido(horaBloqueo: string, caso: Pick<CasoAnestesico, 
   return caso.horaInicioAnestesia && Date.parse(horaBloqueo) >= Date.parse(caso.horaInicioAnestesia) ? 'despues_pabellon' : 'antes_pabellon'
 }
 
+export type TipoRegistroIndependiente = 'bloqueo' | 'neuroaxial'
+
 export interface BloqueoPendiente {
   registro: RegistroBloqueo
   bloqueo: RegistroMenu
+  tipo: TipoRegistroIndependiente
 }
 
-// Bloqueos independientes que todavía no se agregaron a ningún registro anestésico.
+const pendientes = (r: RegistroBloqueo, tipo: TipoRegistroIndependiente): BloqueoPendiente[] =>
+  (tipo === 'bloqueo' ? r.bloqueos : (r.neuroaxial ?? [])).filter((b) => !b.anulado && !b.asociadoA).map((bloqueo) => ({ registro: r, bloqueo, tipo }))
+
+// Bloqueos y epidurales independientes que todavía no se agregaron a ningún registro anestésico.
 export function useBloqueosPendientes(): BloqueoPendiente[] {
   const registros = useLiveQuery(() => db.registrosBloqueo.toArray(), [])
-  return (registros ?? [])
-    .flatMap((registro) => registro.bloqueos.filter((b) => !b.anulado && !b.asociadoA).map((bloqueo) => ({ registro, bloqueo })))
-    .sort((a, b) => b.bloqueo.hora.localeCompare(a.bloqueo.hora))
+  return (registros ?? []).flatMap((r) => [...pendientes(r, 'bloqueo'), ...pendientes(r, 'neuroaxial')]).sort((a, b) => b.bloqueo.hora.localeCompare(a.bloqueo.hora))
 }
 
-const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim()
+const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim()
 
 // Mismo paciente (por nombre) primero.
 export function mismoPaciente(a: string, b: string): boolean {
@@ -50,19 +54,27 @@ export function mismoPaciente(a: string, b: string): boolean {
   return x !== '' && y !== '' && (x.includes(y) || y.includes(x))
 }
 
-// Copia el bloqueo al registro anestésico con la marca de antes/después de pabellón y lo da por asociado.
-export async function asociarBloqueo(registroId: string, bloqueoId: string, casoId: string, momento: MomentoBloqueo): Promise<void> {
+// Copia el bloqueo (o la epidural) al registro anestésico con la marca de antes/después de pabellón y lo da por asociado.
+export async function asociarBloqueo(
+  registroId: string,
+  bloqueoId: string,
+  casoId: string,
+  momento: MomentoBloqueo,
+  tipo: TipoRegistroIndependiente = 'bloqueo',
+): Promise<void> {
   await db.transaction('rw', db.casos, db.registrosBloqueo, async () => {
     const registro = await db.registrosBloqueo.get(registroId)
     const caso = await db.casos.get(casoId)
-    const bloqueo = registro?.bloqueos.find((b) => b.id === bloqueoId)
-    if (!registro || !caso || !bloqueo) return
+    const lista = tipo === 'bloqueo' ? registro?.bloqueos : registro?.neuroaxial
+    const bloqueo = lista?.find((b) => b.id === bloqueoId)
+    if (!registro || !caso || !lista || !bloqueo) return
     const ahora = new Date().toISOString()
     const copia: RegistroMenu = { ...bloqueo, asociadoA: undefined, contexto: { momento, registroId, paciente: registro.paciente.nombre } }
-    if (!caso.bloqueos.some((b) => b.id === bloqueoId)) await db.casos.update(casoId, { bloqueos: [...caso.bloqueos, copia], updatedAt: ahora })
-    await db.registrosBloqueo.update(registroId, {
-      bloqueos: registro.bloqueos.map((b) => (b.id === bloqueoId ? { ...b, asociadoA: { casoId, hora: ahora } } : b)),
-      updatedAt: ahora,
-    })
+    const destino = tipo === 'bloqueo' ? caso.bloqueos : caso.neuroaxial
+    if (!destino.some((b) => b.id === bloqueoId)) {
+      await db.casos.update(casoId, tipo === 'bloqueo' ? { bloqueos: [...destino, copia], updatedAt: ahora } : { neuroaxial: [...destino, copia], updatedAt: ahora })
+    }
+    const marcada = lista.map((b) => (b.id === bloqueoId ? { ...b, asociadoA: { casoId, hora: ahora } } : b))
+    await db.registrosBloqueo.update(registroId, tipo === 'bloqueo' ? { bloqueos: marcada, updatedAt: ahora } : { neuroaxial: marcada, updatedAt: ahora })
   })
 }

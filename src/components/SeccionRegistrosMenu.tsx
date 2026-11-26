@@ -30,6 +30,8 @@ export interface ConfigRegistros {
   auto?: { campo: string; generar: (valores: Valores) => string }
   // Contenido extra bajo cada tarjeta (marcas, botones).
   extraTarjeta?: (r: RegistroMenu) => ReactNode
+  // Valores con los que parte un registro nuevo (además de los por defecto del menú).
+  inicial?: Valores
 }
 
 export type ActualizarRegistros = (fn: (registros: RegistroMenu[], usuario: string) => RegistroMenu[]) => void
@@ -241,7 +243,7 @@ export function SeccionRegistrosMenu({
             </div>
           </>
         ) : (
-          <Button onClick={() => setBorrador(valoresPorDefecto(secciones))}>+ Agregar {nombre}</Button>
+          <Button onClick={() => setBorrador({ ...valoresPorDefecto(secciones), ...config.inicial })}>+ Agregar {nombre}</Button>
         )}
       </div>
     </Section>
@@ -317,14 +319,20 @@ export function NeuroaxialSection({ caso, patch }: { caso: CasoAnestesico; patch
     <SeccionRegistrosMenu
       registros={caso.neuroaxial}
       actualizar={(fn) => patch((c) => ({ neuroaxial: fn(c.neuroaxial, anestesiologoActual(c) || 'sin definir') }))}
-      config={{
-        titulo: 'Anestesia neuroaxial',
-        nombre: 'técnica',
-        def: DEF_NEUROAXIAL,
-        secciones: SECCIONES_NEUROAXIAL,
-        tarjeta: tarjetaNeuroaxial,
-        detalle: 'neu.notas',
-      }}
+      config={configNeuroaxial((r) => <MarcaMomento r={r} />)}
     />
   )
+}
+
+export function configNeuroaxial(extraTarjeta?: ConfigRegistros['extraTarjeta'], overrides?: Partial<ConfigRegistros>): ConfigRegistros {
+  return {
+    titulo: 'Anestesia neuroaxial',
+    nombre: 'técnica',
+    def: DEF_NEUROAXIAL,
+    secciones: SECCIONES_NEUROAXIAL,
+    tarjeta: tarjetaNeuroaxial,
+    detalle: 'neu.notas',
+    extraTarjeta,
+    ...overrides,
+  }
 }

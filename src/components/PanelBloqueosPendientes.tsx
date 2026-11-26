@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { tarjetaBloqueo } from '../menus/bloqueos'
+import { tarjetaNeuroaxial } from '../menus/neuroaxial'
 import type { MomentoBloqueo } from '../menus/tipos'
 import type { CasoAnestesico } from '../types'
 import { asociarBloqueo, ETIQUETA_MOMENTO, mismoPaciente, momentoSugerido, type BloqueoPendiente } from '../utils/bloqueosIndependientes'
@@ -7,6 +8,8 @@ import { formatHora } from '../utils/tiempo'
 import { Button, Pill } from './ui'
 
 // Confirma si el bloqueo se hizo antes o después de entrar a pabellón (se propone según la hora).
+const tarjetaDe = (p: BloqueoPendiente) => (p.tipo === 'bloqueo' ? tarjetaBloqueo(p.bloqueo, formatHora) : tarjetaNeuroaxial(p.bloqueo, formatHora))
+
 export function ConfirmarAsociacion({
   titulo,
   hora,
@@ -63,7 +66,7 @@ export function PanelBloqueosPendientes({
 
   return (
     <div className="mb-4 rounded-xl border border-dashed border-sky-300 bg-sky-50/50 p-3">
-      <p className="text-sm font-semibold text-sky-900">Bloqueos registrados sin registro anestésico ({pendientes.length})</p>
+      <p className="text-sm font-semibold text-sky-900">Bloqueos y epidurales registrados sin registro anestésico ({pendientes.length})</p>
       <p className="mb-2 text-xs text-sky-800">Arrastra uno hasta esta sección, o toca "Agregar a este registro".</p>
       <ul className="flex flex-col gap-2">
         {lista.map((p) => (
@@ -78,7 +81,10 @@ export function PanelBloqueosPendientes({
           >
             <div>
               <p className="text-sm font-semibold text-slate-900">{p.registro.paciente.nombre || 'Paciente sin nombre'}</p>
-              <p className="text-xs text-slate-600">{tarjetaBloqueo(p.bloqueo, formatHora)}</p>
+              <p className="text-xs text-slate-600">
+                <span className="mr-1 font-semibold uppercase text-slate-400">{p.tipo === 'bloqueo' ? 'Bloqueo' : 'Epidural'}</span>
+                {tarjetaDe(p)}
+              </p>
             </div>
             <Button size="sm" variant="secondary" onClick={() => onElegir(p)}>
               Agregar a este registro
@@ -93,12 +99,12 @@ export function PanelBloqueosPendientes({
       )}
       {elegido && (
         <ConfirmarAsociacion
-          titulo={`${elegido.registro.paciente.nombre || 'Paciente sin nombre'} · ${tarjetaBloqueo(elegido.bloqueo, formatHora)}`}
+          titulo={`${elegido.registro.paciente.nombre || 'Paciente sin nombre'} · ${tarjetaDe(elegido)}`}
           hora={elegido.bloqueo.hora}
           sugerido={momentoSugerido(elegido.bloqueo.hora, caso)}
           onCancelar={() => onElegir(null)}
           onConfirmar={async (momento) => {
-            await asociarBloqueo(elegido.registro.id, elegido.bloqueo.id, caso.id, momento)
+            await asociarBloqueo(elegido.registro.id, elegido.bloqueo.id, caso.id, momento, elegido.tipo)
             onElegir(null)
           }}
         />

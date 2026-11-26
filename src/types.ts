@@ -190,6 +190,8 @@ export interface RegistroBloqueo {
   anestesiologo: string
   fecha: string
   bloqueos: RegistroMenu[]
+  // Epidurales (u otras técnicas neuroaxiales) registradas aparte; los registros antiguos no lo tienen.
+  neuroaxial?: RegistroMenu[]
   createdAt: string
   updatedAt: string
 }

@@ -3,13 +3,14 @@ import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ConfirmarAsociacion } from '../components/PanelBloqueosPendientes'
 import { DatosBloqueoForm } from '../components/DatosBloqueoForm'
-import { configBloqueos, SeccionRegistrosMenu } from '../components/SeccionRegistrosMenu'
+import { configBloqueos, configNeuroaxial, SeccionRegistrosMenu } from '../components/SeccionRegistrosMenu'
 import { Badge, Button, Section } from '../components/ui'
 import { db } from '../db'
 import { tarjetaBloqueo } from '../menus/bloqueos'
 import type { RegistroMenu } from '../menus/tipos'
 import type { CasoAnestesico, RegistroBloqueo } from '../types'
-import { asociarBloqueo, mismoPaciente, momentoSugerido } from '../utils/bloqueosIndependientes'
+import { tarjetaNeuroaxial } from '../menus/neuroaxial'
+import { asociarBloqueo, mismoPaciente, momentoSugerido, type TipoRegistroIndependiente } from '../utils/bloqueosIndependientes'
 import { formatHora } from '../utils/tiempo'
 
 export default function RegistroBloqueoIndependiente() {
@@ -31,6 +32,82 @@ export default function RegistroBloqueoIndependiente() {
     (a, b) => Number(mismoPaciente(b.paciente.nombre, registro.paciente.nombre)) - Number(mismoPaciente(a.paciente.nombre, registro.paciente.nombre)),
   )
 
+  const neuroaxial = registro.neuroaxial ?? []
+  const tarjetaDe = (tipo: TipoRegistroIndependiente, r: RegistroMenu) => (tipo === 'bloqueo' ? tarjetaBloqueo(r, formatHora) : tarjetaNeuroaxial(r, formatHora))
+
+  // Marca de "agregado" o botón para llevar el registro a un registro anestésico.
+  const extra = (tipo: TipoRegistroIndependiente) => (r: RegistroMenu) => (
+    <div className="mt-2">
+      {r.asociadoA ? (
+        <p className="text-xs text-emerald-800">
+          <Badge tone="green">Agregado a un registro anestésico</Badge>{' '}
+          <a className="underline" href={`#/caso/${r.asociadoA.casoId}`}>
+            Abrir el registro
+          </a>
+        </p>
+      ) : (
+        !r.anulado && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              setCasoElegido(null)
+              setAsociando(r)
+            }}
+          >
+            Agregar a un registro anestésico
+          </Button>
+        )
+      )}
+      {asociando?.id === r.id && (
+        <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
+          {casoElegido ? (
+            <ConfirmarAsociacion
+              titulo={`${casoElegido.paciente.nombre || 'Paciente sin nombre'} · ${tarjetaDe(tipo, r)}`}
+              hora={r.hora}
+              sugerido={momentoSugerido(r.hora, casoElegido)}
+              onCancelar={() => setCasoElegido(null)}
+              onConfirmar={async (momento) => {
+                await asociarBloqueo(registro.id, r.id, casoElegido.id, momento, tipo)
+                setAsociando(null)
+                setCasoElegido(null)
+              }}
+            />
+          ) : (
+            <>
+              <p className="mb-2 text-sm font-medium text-slate-700">¿A qué registro anestésico lo agregas?</p>
+              {candidatos.length === 0 && <p className="text-sm text-slate-500">Todavía no hay registros anestésicos.</p>}
+              <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
+                {candidatos.map((c) => (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => setCasoElegido(c)}
+                      className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 text-left hover:border-sky-300"
+                    >
+                      <span>
+                        <span className="font-medium text-slate-900">{c.paciente.nombre || 'Paciente sin nombre'}</span>
+                        <span className="ml-2 text-xs text-slate-500">
+                          {c.cirugia.procedimiento || 'Procedimiento sin definir'} · {c.cirugia.fecha}
+                        </span>
+                      </span>
+                      {mismoPaciente(c.paciente.nombre, registro.paciente.nombre) && <Badge tone="sky">Mismo paciente</Badge>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-2 flex justify-end">
+                <Button size="sm" variant="ghost" onClick={() => setAsociando(null)}>
+                  Cancelar
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <div className="mx-auto min-h-screen max-w-3xl px-4 py-6 pb-16">
       <header className="mb-4 flex items-center gap-3">
@@ -40,7 +117,7 @@ export default function RegistroBloqueoIndependiente() {
         <div>
           <h1 className="text-xl font-bold text-slate-900">{registro.paciente.nombre || 'Paciente sin nombre'}</h1>
           <p className="text-sm text-slate-500">
-            Bloqueo sin registro anestésico · {registro.fecha}
+            Bloqueos y epidurales sin registro anestésico · {registro.fecha}
             {registro.procedimiento && ` · ${registro.procedimiento}`}
             {registro.anestesiologo && ` · ${registro.anestesiologo}`}
           </p>
@@ -80,81 +157,18 @@ export default function RegistroBloqueoIndependiente() {
         )}
       </div>
 
-      <SeccionRegistrosMenu
-        registros={registro.bloqueos}
-        actualizar={(fn) => guardar({ bloqueos: fn(registro.bloqueos, registro.anestesiologo || 'sin definir') })}
-        config={configBloqueos((r) => (
-          <div className="mt-2">
-            {r.asociadoA ? (
-              <p className="text-xs text-emerald-800">
-                <Badge tone="green">Agregado a un registro anestésico</Badge>{' '}
-                <a className="underline" href={`#/caso/${r.asociadoA.casoId}`}>
-                  Abrir el registro
-                </a>
-              </p>
-            ) : (
-              !r.anulado && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => {
-                    setCasoElegido(null)
-                    setAsociando(r)
-                  }}
-                >
-                  Agregar a un registro anestésico
-                </Button>
-              )
-            )}
-            {asociando?.id === r.id && (
-              <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
-                {casoElegido ? (
-                  <ConfirmarAsociacion
-                    titulo={`${casoElegido.paciente.nombre || 'Paciente sin nombre'} · ${tarjetaBloqueo(r, formatHora)}`}
-                    hora={r.hora}
-                    sugerido={momentoSugerido(r.hora, casoElegido)}
-                    onCancelar={() => setCasoElegido(null)}
-                    onConfirmar={async (momento) => {
-                      await asociarBloqueo(registro.id, r.id, casoElegido.id, momento)
-                      setAsociando(null)
-                      setCasoElegido(null)
-                    }}
-                  />
-                ) : (
-                  <>
-                    <p className="mb-2 text-sm font-medium text-slate-700">¿A qué registro anestésico lo agregas?</p>
-                    {candidatos.length === 0 && <p className="text-sm text-slate-500">Todavía no hay registros anestésicos.</p>}
-                    <ul className="flex max-h-64 flex-col gap-1 overflow-y-auto">
-                      {candidatos.map((c) => (
-                        <li key={c.id}>
-                          <button
-                            type="button"
-                            onClick={() => setCasoElegido(c)}
-                            className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 text-left hover:border-sky-300"
-                          >
-                            <span>
-                              <span className="font-medium text-slate-900">{c.paciente.nombre || 'Paciente sin nombre'}</span>
-                              <span className="ml-2 text-xs text-slate-500">
-                                {c.cirugia.procedimiento || 'Procedimiento sin definir'} · {c.cirugia.fecha}
-                              </span>
-                            </span>
-                            {mismoPaciente(c.paciente.nombre, registro.paciente.nombre) && <Badge tone="sky">Mismo paciente</Badge>}
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="mt-2 flex justify-end">
-                      <Button size="sm" variant="ghost" onClick={() => setAsociando(null)}>
-                        Cancelar
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      />
+      <div className="flex flex-col gap-4">
+        <SeccionRegistrosMenu
+          registros={registro.bloqueos}
+          actualizar={(fn) => guardar({ bloqueos: fn(registro.bloqueos, registro.anestesiologo || 'sin definir') })}
+          config={configBloqueos(extra('bloqueo'))}
+        />
+        <SeccionRegistrosMenu
+          registros={neuroaxial}
+          actualizar={(fn) => guardar({ neuroaxial: fn(neuroaxial, registro.anestesiologo || 'sin definir') })}
+          config={configNeuroaxial(extra('neuroaxial'), { titulo: 'Epidural', nombre: 'epidural', inicial: { 'neu.tipo': 'peridural' } })}
+        />
+      </div>
     </div>
   )
 }

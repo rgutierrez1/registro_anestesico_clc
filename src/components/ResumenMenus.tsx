@@ -159,5 +159,8 @@ export const ResumenBloqueos = ({ caso }: { caso: CasoAnestesico }) => (
 )
 
 export const ResumenNeuroaxial = ({ caso }: { caso: CasoAnestesico }) => (
-  <ResumenRegistros registros={caso.neuroaxial} def={DEF_NEUROAXIAL} secciones={SECCIONES_NEUROAXIAL} tarjeta={tarjetaNeuroaxial} mostrarTitulos={false} />
+  <ResumenRegistros registros={caso.neuroaxial} def={DEF_NEUROAXIAL} secciones={SECCIONES_NEUROAXIAL} tarjeta={tarjetaNeuroaxial}
+    mostrarTitulos={false}
+    extra={(r) => (r.contexto ? `${ETIQUETA_MOMENTO[r.contexto.momento]} (hecho a las ${formatHora(r.hora)}).` : '')}
+  />
 )

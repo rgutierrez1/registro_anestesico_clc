@@ -92,11 +92,11 @@ export default function ListaCasos() {
 
       {registrosBloqueo && registrosBloqueo.length > 0 && (
         <section className="mt-8">
-          <h2 className="mb-1 text-lg font-semibold text-slate-800">Bloqueos sin registro anestésico</h2>
+          <h2 className="mb-1 text-lg font-semibold text-slate-800">Bloqueos y epidurales sin registro anestésico</h2>
           <p className="mb-3 text-sm text-slate-500">Se pueden agregar después a un registro anestésico.</p>
           <div className="flex flex-col gap-3">
             {registrosBloqueo.map((r) => {
-              const vivos = r.bloqueos.filter((b) => !b.anulado)
+              const vivos = [...r.bloqueos, ...(r.neuroaxial ?? [])].filter((b) => !b.anulado)
               const sinAgregar = vivos.filter((b) => !b.asociadoA).length
               return (
                 <Card key={r.id} className="flex cursor-pointer items-center justify-between p-4 hover:border-sky-300" onClick={() => navigate(`/bloqueo/${r.id}`)}>
@@ -106,7 +106,7 @@ export default function ListaCasos() {
                       {sinAgregar > 0 ? <Badge tone="amber">{sinAgregar} sin agregar</Badge> : vivos.length > 0 ? <Badge tone="green">Agregado</Badge> : <Badge tone="slate">Sin bloqueos</Badge>}
                     </div>
                     <p className="text-sm text-slate-500">
-                      {vivos.length} bloqueo(s) · {r.fecha}
+                      {vivos.length} registro(s) · {r.fecha}
                       {r.procedimiento && ` · ${r.procedimiento}`}
                     </p>
                   </div>
